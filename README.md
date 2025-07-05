@@ -1,6 +1,6 @@
 # 🎸 Riffle
 
-> A Rock & Metal music trivia game built with **HTML**, **JavaScript**, **Tailwind CSS**, and the **Spotify API**.
+> A Rock & Metal music trivia game built with **HTML**, **JavaScript**, **Tailwind CSS**, and the **Deezer API**.
 
 <p align="center">
   <img src="src/img/riffle.png" alt="riffle-logo" width="400">
