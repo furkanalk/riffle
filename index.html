@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Riffle</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    body { font-family: 'Montserrat', sans-serif; }
+    @keyframes scroll {
+      0% { transform: translateX(0) rotate(-30deg); }
+      100% { transform: translateX(-50%) rotate(-30deg); }
+    }
+    .animate-scroll { animation: scroll 30s linear infinite; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-purple-900 to-black min-h-screen relative overflow-hidden">
+  <!-- Background moving strips -->
+  <div class="absolute inset-0 overflow-hidden -z-10">
+    <div class="absolute top-1/2 left-[-50%] w-[200%] h-56 flex space-x-6 animate-scroll">
+      <img src="https://via.placeholder.com/200x150" alt="Albüm" class="object-cover rounded"/>
+      <img src="https://via.placeholder.com/200x150" alt="Albüm" class="object-cover rounded"/>
+      <img src="https://via.placeholder.com/200x150" alt="Albüm" class="object-cover rounded"/>
+      <img src="https://via.placeholder.com/200x150" alt="Albüm" class="object-cover rounded"/>
+      <img src="https://via.placeholder.com/200x150" alt="Albüm" class="object-cover rounded"/>
+      <img src="https://via.placeholder.com/200x150" alt="Albüm" class="object-cover rounded"/>
+    </div>
+  </div>
+
+  <!-- Language selector -->
+  <div class="absolute top-4 left-4 z-20">
+    <select id="language-select" class="bg-gray-800 text-white py-1 px-2 rounded">
+      <option value="tr">TR</option>
+      <option value="en">EN</option>
+    </select>
+  </div>
+
+  <!-- Auth Buttons Centered Top -->
+  <div class="absolute top-4 inset-x-0 flex justify-center z-20 space-x-4">
+    <button id="login-btn" class="py-2 px-6 bg-white text-gray-900 hover:bg-gray-100 rounded-lg font-semibold transition">
+      Login
+    </button>
+    <button id="signup-btn" class="py-2 px-6 bg-purple-600 text-white hover:bg-purple-700 rounded-lg font-semibold transition">
+      Sign Up
+    </button>
+  </div>
+
+  <!-- Main Menu Cards -->
+  <main class="relative z-10 pt-32 px-4 pb-8">
+    <h1 class="text-5xl font-extrabold text-white text-center mb-10">Riffle</h1>
+    <div class="max-w-4xl mx-auto grid gap-8 grid-cols-1 md:grid-cols-2">
+      <!-- Card: Solo Marathon -->
+      <div class="bg-black bg-opacity-50 rounded-2xl shadow-xl overflow-hidden hover:scale-105 transform transition">
+        <div class="p-6 flex flex-col items-center">
+          <img src="https://via.placeholder.com/400x250" alt="Solo Mode" class="w-full h-56 object-cover border-4 border-purple-600 rounded cursor-pointer" data-mode="solo"/>
+          <h2 class="mt-6 text-3xl font-bold text-white">Marathon</h2>
+        </div>
+      </div>
+      <!-- Card: Coop -->
+      <div class="bg-black bg-opacity-50 rounded-2xl shadow-xl overflow-hidden hover:scale-105 transform transition">
+        <div class="p-6 flex flex-col items-center">
+          <img src="https://via.placeholder.com/400x250" alt="Coop" class="w-full h-56 object-cover border-4 border-purple-600 rounded cursor-pointer" data-mode="coop"/>
+          <h2 class="mt-6 text-3xl font-bold text-white">Coop</h2>
+        </div>
+      </div>
+      <!-- Card: Solo VS -->
+      <div class="bg-black bg-opacity-50 rounded-2xl shadow-xl overflow-hidden hover:scale-105 transform transition">
+        <div class="p-6 flex flex-col items-center">
+          <img src="https://via.placeholder.com/400x250" alt="Solo VS" class="w-full h-56 object-cover border-4 border-purple-600 rounded cursor-pointer" data-mode="versus"/>
+          <h2 class="mt-6 text-3xl font-bold text-white">Solo VS</h2>
+        </div>
+      </div>
+      <!-- Card: Team VS -->
+      <div class="bg-black bg-opacity-50 rounded-2xl shadow-xl overflow-hidden hover:scale-105 transform transition">
+        <div class="p-6 flex flex-col items-center">
+          <img src="https://via.placeholder.com/400x250" alt="Team VS" class="w-full h-56 object-cover border-4 border-purple-600 rounded cursor-pointer" data-mode="team"/>
+          <h2 class="mt-6 text-3xl font-bold text-white">Team VS</h2>
+        </div>
+      </div>
+      <!-- Card: Chaos -->
+      <div class="bg-black bg-opacity-50 rounded-2xl shadow-xl overflow-hidden hover:scale-105 transform transition">
+        <div class="p-6 flex flex-col items-center">
+          <img src="https://via.placeholder.com/400x250" alt="Chaos" class="w-full h-56 object-cover border-4 border-purple-600 rounded cursor-pointer" data-mode="chaos"/>
+          <h2 class="mt-6 text-3xl font-bold text-white">Chaos</h2>
+        </div>
+      </div>
+      <!-- Card: Custom -->
+      <div class="bg-black bg-opacity-50 rounded-2xl shadow-xl overflow-hidden hover:scale-105 transform transition">
+        <div class="p-6 flex flex-col items-center">
+          <img src="https://via.placeholder.com/400x250" alt="Custom" class="w-full h-56 object-cover border-4 border-purple-600 rounded cursor-pointer" data-mode="custom"/>
+          <h2 class="mt-6 text-3xl font-bold text-white">Custom</h2>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="src/js/script.js"></script>
+</body>
+</html>
