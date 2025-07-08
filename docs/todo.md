@@ -1,8 +1,8 @@
 # Riffle 
 
 ## To do
-- [ ] çalan şarkılar bir daha çalmayacak
-- [ ] cevaplar düzeltilecek
+- [*] çalan şarkılar bir daha çalmayacak
+- [*] cevaplar düzeltilecek
 - [ ] albümler oto eklenecek
 - [ ] süre çubuğu eklenecek
 - [ ] skor güzelleştirilecek
