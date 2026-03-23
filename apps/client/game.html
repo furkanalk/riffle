@@ -15,7 +15,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="./src/css/game.css">
 </head>
-<body class="bg-gradient-to-br from-gray-900 via-purple-900 to-black min-h-screen text-white overflow-hidden">
+<body>
+  <div class="bg-glow bg-glow--purple"></div>
+  <div class="bg-glow bg-glow--pink"></div>
+  <div class="bg-glow bg-glow--blue"></div>
   <!-- Game Loading Screen -->
   <div id="loading-screen" class="fixed inset-0 flex items-center justify-center bg-black z-50">
     <div class="text-center">
@@ -27,63 +30,53 @@
     </div>
   </div>
 
-  <!-- Top Navigation -->
-  <nav class="relative z-10 px-4 pt-4 flex justify-between items-center">
-    <button id="mainMenuBtn" type="button" class="flex items-center text-white hover:text-purple-300 transition bg-black bg-opacity-60 border border-purple-600 rounded-lg px-3 py-2 shadow-lg hover:scale-105 transform transition-all duration-300 cursor-pointer z-[1000]">
+  <header class="game-header">
+    <button id="mainMenuBtn" type="button" class="menu-btn">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
       </svg>
       Main Menu
     </button>
-    <div class="text-white text-xl font-bold flex items-center">
-      <span id="game-mode-title">Marathon Mode</span>
-      <span id="round-info" class="ml-4 text-sm bg-purple-800 px-3 py-1 rounded-full">Question 1/10</span>
+    <div class="header-center">
+      <span id="game-mode-title" class="game-mode-title">Marathon Mode</span>
+      <span id="round-info" class="round-pill">Question 1/10</span>
     </div>
-  </nav>
+    <div class="score-card">
+      <div class="avatar-chip">
+        <img id="player-avatar" src="./src/img/avatars/avatar1.png" alt="Player Avatar" class="rounded-full">
+      </div>
+      <div class="score-main">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-400 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+        </svg>
+        <span id="current-score" class="font-bold">0</span>
+        <span>/</span>
+        <span id="max-score">10</span>
+      </div>
+      <div id="lives-display" class="lives-chip hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-500 mr-1" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+        <span id="lives-count" class="font-bold text-red-400">3</span>
+      </div>
+    </div>
+  </header>
 
-  <!-- Game Container -->
-  <main class="relative z-10 flex flex-col items-center justify-center min-h-[80vh] px-4 py-8">
+  <main class="game-main">
     <!-- Audio Player (Hidden) -->
     <audio id="music-player" class="hidden"></audio>
 
-    <!-- Score Display -->
-    <div class="absolute top-6 right-6 flex items-center">
-      <div class="bg-black bg-opacity-50 px-4 py-2 rounded-lg flex items-center">
-        <!-- Player Avatar -->
-        <div class="h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 p-1 mr-3 flex-shrink-0">
-          <img id="player-avatar" src="./src/img/avatars/avatar1.png" alt="Player Avatar" class="rounded-full">
-        </div>
-        
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-        </svg>
-        <span id="current-score" class="text-xl font-bold">0</span>
-        <span class="mx-1">/</span>
-        <span id="max-score">10</span>
-        
-        <!-- Lives display for Marathon mode -->
-        <div id="lives-display" class="ml-4 hidden">
-          <div class="flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500 mr-1" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
-            <span id="lives-count" class="text-md font-bold text-red-400">3</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Timer Bar (For VS modes) -->
-    <div id="timer-container" class="w-full max-w-3xl mb-6">
-      <div class="w-full h-3 bg-gray-800 rounded-full overflow-hidden">
-        <div id="timer-bar" class="h-full bg-gradient-to-r from-red-500 to-yellow-500 progress-bar" style="width: 100%"></div>
+    <div id="timer-container" class="timer-wrap">
+      <div class="timer-track">
+        <div id="timer-bar" class="timer-bar progress-bar" style="width: 100%"></div>
       </div>
     </div>
 
     <!-- Album Art & Visualizer -->
-    <div class="mb-10 relative">
-      <div class="w-48 h-48 md:w-64 md:h-64 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 flex items-center justify-center pulse-animation">
-        <div class="w-24 h-24 md:w-32 md:h-32 rounded-full bg-black flex items-center justify-center overflow-hidden">
+    <div class="music-stage">
+      <div class="album-cover pulse-animation">
+        <div class="album-cover__inner">
           <!-- Audio Bar Visualizer -->
           <div id="music-visualizer" class="w-full h-full flex items-center justify-center">
             <div class="audio-bars-container flex items-center justify-center space-x-1 h-16">
@@ -94,52 +87,42 @@
       </div>
       
       <!-- Duration Bar - Above the Disk (Higher position) -->
-      <div id="music-duration-bar" class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-12 w-48 h-3 z-20 flex justify-center items-center rounded-full overflow-hidden shadow-lg">
+      <div id="music-duration-bar" class="duration-bar">
         <div id="music-progress" class="h-full bg-gradient-to-r from-purple-500 to-indigo-500" style="width: 100%"></div>
       </div>
     </div>
 
     <!-- Question -->
     <!-- This section needs to be updated with the correct question and genre information and should be dynamic and fetched from js, not static hardcoded here -->
-    <div class="text-center mb-8">
+    <div class="question-panel">
       <h2 id="question-text" class="text-3xl md:text-4xl font-bold mb-2 text-white">Which album is this track from?</h2>
       <p id="genre-info" class="text-lg text-purple-300">70's Rock</p>
     </div>
 
     <!-- Answer Options -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-3xl">
-      <button class="answer-btn bg-purple-900 bg-opacity-50 hover:bg-opacity-70 py-4 px-6 rounded-xl text-xl font-semibold transition duration-200 transform shadow-lg">Answer 1</button>
-      <button class="answer-btn bg-purple-900 bg-opacity-50 hover:bg-opacity-70 py-4 px-6 rounded-xl text-xl font-semibold transition duration-200 transform shadow-lg">Answer 2</button>
-      <button class="answer-btn bg-purple-900 bg-opacity-50 hover:bg-opacity-70 py-4 px-6 rounded-xl text-xl font-semibold transition duration-200 transform shadow-lg">Answer 3</button>
-      <button class="answer-btn bg-purple-900 bg-opacity-50 hover:bg-opacity-70 py-4 px-6 rounded-xl text-xl font-semibold transition duration-200 transform shadow-lg">Answer 4</button>
+    <div class="answers-grid">
+      <button class="answer-btn">Answer 1</button>
+      <button class="answer-btn">Answer 2</button>
+      <button class="answer-btn">Answer 3</button>
+      <button class="answer-btn">Answer 4</button>
     </div>
 
     <!-- Players (For multiplayer modes) -->
-    <div id="players-container" class="w-full max-w-3xl mt-10 hidden">
+    <div id="players-container" class="players-card hidden">
       <h3 class="text-xl font-bold mb-3 text-purple-300">Players</h3>
-      <div class="bg-black bg-opacity-50 rounded-xl p-4">
-        <div id="players-list" class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <!-- Player cards will be generated dynamically -->
-        </div>
-      </div>
+      <div id="players-list" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
     </div>
   </main>
 
   <!-- Round Completion Screen (Hidden by default) -->
-  <div id="round-completion" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 hidden">
-    <div class="bg-gradient-to-br from-purple-900 to-indigo-900 rounded-2xl p-8 max-w-2xl w-full mx-4 relative shadow-2xl transform transition-all duration-500 scale-100">
-      <div class="absolute -top-16 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-yellow-500 to-yellow-300 rounded-full p-4 shadow-lg">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-purple-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      </div>
-      
+  <div id="round-completion" class="fixed inset-0 modal-overlay hidden">
+    <div class="modal-card max-w-2xl">
       <h2 class="text-3xl font-extrabold mb-2 text-center text-white mt-8">Round Complete!</h2>
       
       <!-- Album cover display -->
       <div class="mb-4 flex justify-center">
-        <div class="w-32 h-32 md:w-40 md:h-40 rounded-lg overflow-hidden shadow-lg">
-          <img id="album-cover-display" src="https://via.placeholder.com/200" alt="Album Cover" class="w-full h-full object-cover">
+        <div class="w-32 h-32 md:w-40 md:h-40 rounded-lg overflow-hidden shadow-lg border border-purple-500/25">
+          <img id="album-cover-display" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' rx='12' fill='%23180D30'/%3E%3C/svg%3E" alt="Album Cover" class="w-full h-full object-cover">
         </div>
       </div>
       
@@ -154,8 +137,8 @@
       <!-- Current Round Scoreboard -->
       <div class="mb-6">
         <h3 class="text-xl font-bold mb-3 text-purple-300">Current Standings</h3>
-        <div class="bg-black bg-opacity-50 rounded-xl p-4">
-          <table class="w-full text-white">
+        <div class="panel-surface p-4 overflow-x-auto">
+          <table class="w-full min-w-[520px] text-white">
             <thead>
               <tr class="border-b border-purple-800">
                 <th class="py-2 text-left">Player</th>
@@ -171,7 +154,7 @@
       </div>
       
       <div class="flex justify-center">
-        <button id="next-round-btn" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-3 px-8 rounded-lg transform transition hover:scale-105">
+        <button id="next-round-btn" class="primary-btn">
           Next Round
         </button>
       </div>
@@ -179,15 +162,8 @@
   </div>
 
   <!-- Results Modal (Hidden by default) -->
-  <div id="results-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 hidden overflow-y-auto py-10">
-    <div id="results-content" class="bg-gradient-to-b from-gray-900 to-purple-900 rounded-2xl p-8 max-w-2xl w-full mx-4 relative shadow-2xl transform transition-all duration-500 scale-95 opacity-0 border-2 border-purple-500/30">
-      <!-- Trophy icon at the top -->
-      <div class="absolute -top-16 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-yellow-200 rounded-full p-4 shadow-xl">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14 text-purple-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-        </svg>
-      </div>
-      
+  <div id="results-modal" class="fixed inset-0 modal-overlay hidden overflow-y-auto py-10">
+    <div id="results-content" class="modal-card max-w-2xl w-full mx-4 relative">
       <h2 class="text-4xl font-extrabold mb-4 text-center text-white mt-6 animate-pulseGrow">Game Over!</h2>
       
       <div class="mb-4 text-center">
@@ -208,8 +184,8 @@
       <!-- Final Scoreboard -->
       <div id="final-scoreboard" class="mb-8">
         <h3 class="text-xl font-bold mb-3 text-purple-300">Final Scoreboard</h3>
-        <div class="bg-black bg-opacity-60 rounded-xl p-4 border border-purple-800/30">
-          <table class="w-full text-white">
+        <div class="panel-surface p-4 border border-purple-800/30 overflow-x-auto">
+          <table class="w-full min-w-[520px] text-white">
             <thead>
               <tr class="border-b border-purple-800">
                 <th class="py-2 text-left">Player</th>
@@ -230,7 +206,7 @@
       </div>
       
       <div class="flex flex-col sm:flex-row gap-4 justify-center mt-6">
-        <button id="replay-btn" class="bg-gradient-to-r from-purple-700 to-purple-600 hover:from-purple-600 hover:to-purple-500 text-white font-bold py-3 px-8 rounded-lg transform transition hover:scale-105 shadow-lg animate-fadeInUp" style="animation-delay: 0.6s">
+        <button id="replay-btn" class="primary-btn">
           <div class="flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
@@ -238,7 +214,7 @@
             Play Again
           </div>
         </button>
-        <button id="menu-btn" class="bg-gradient-to-r from-indigo-700 to-indigo-600 hover:from-indigo-600 hover:to-indigo-500 text-white font-bold py-3 px-8 rounded-lg transform transition hover:scale-105 shadow-lg animate-fadeInUp" style="animation-delay: 0.7s">
+        <button id="menu-btn" class="secondary-btn">
           <div class="flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
