@@ -34,16 +34,6 @@
         reverse_proxy client:80
     }
 
-    # ----- Rate Limiting -----
-    # Aynı IP'den dakikada max 120 istek
-    rate_limit {
-        zone global {
-            key    {remote_host}
-            events 120
-            window 1m
-        }
-    }
-
     # ----- Security Headers -----
     header {
         X-Content-Type-Options  "nosniff"
