@@ -58,6 +58,17 @@ layers["all"] = [
   ...layers["app:client"],
 ];
 
+// ── Dependency files (included during `up` for cross-layer depends_on) ─────────
+// Docker Compose needs all referenced services visible in the same invocation.
+// `--no-recreate` (default) prevents already-running containers from restarting.
+const upDeps = {
+  "svc:all":    [...layers["infra:data"]],
+  "app:client": [...layers["infra:data"]],
+};
+if (env === "prod") {
+  upDeps["app:client"] = [...layers["infra:data"], ...layers["svc:all"]];
+}
+
 // ── Resolve target ─────────────────────────────────────────────────────────────
 const selectedFiles = layers[target];
 
@@ -67,13 +78,16 @@ if (!selectedFiles) {
   process.exit(1);
 }
 
+const depFiles = action === "up" ? (upDeps[target] ?? []) : [];
+const allFiles  = [...new Set([...depFiles, ...selectedFiles])];
+
 // ── Build docker compose command ───────────────────────────────────────────────
 const envFile = path.join(__dirname, `../env/.env.${env}`);
 
 const args = [
   "compose",
   "--env-file", envFile,
-  ...selectedFiles.flatMap((f) => ["-f", f]),
+  ...allFiles.flatMap((f) => ["-f", f]),
   action === "up" ? "up" : "down",
 ];
 
@@ -89,7 +103,7 @@ console.log(`${colors.cyan}│${colors.reset}  ENV     : ${colors.yellow}${env}$
 console.log(`${colors.cyan}│${colors.reset}  Target  : ${colors.yellow}${target}${colors.reset}`);
 console.log(`${colors.cyan}│${colors.reset}  Action  : ${colors.yellow}${action.toUpperCase()}${colors.reset}`);
 console.log(`${colors.cyan}│${colors.reset}  Config  : ${colors.gray}${envFile}${colors.reset}`);
-console.log(`${colors.cyan}│${colors.reset}  Files   : ${colors.gray}${selectedFiles.join(", ")}${colors.reset}`);
+console.log(`${colors.cyan}│${colors.reset}  Files   : ${colors.gray}${allFiles.join(", ")}${colors.reset}`);
 console.log(`${colors.cyan}└─────────────────────────────────────────┘${colors.reset}\n`);
 
 // ── Run ────────────────────────────────────────────────────────────────────────
