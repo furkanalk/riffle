@@ -27,14 +27,17 @@ if (!action || !target) {
 }
 
 // ── Common layers (both environments) ─────────────────────────────────────────
-// In dev, svc:all and app:client also include dev-volumes.yml so that
-// tsx watch / Vite HMR can pick up host file changes without rebuilding.
-const DEV_VOLUMES = "ops/compose/dev/dev-volumes.yml";
+// In dev, svc:all / app:client also include their respective volume override
+// files so tsx watch / Vite HMR can pick up host file changes without rebuilding.
+// Each override file only references the services its parent compose file defines,
+// preventing "service has no image/build" errors when files are merged.
+const DEV_SVC_VOLUMES    = "ops/compose/dev/dev-volumes.yml";
+const DEV_CLIENT_VOLUMES = "ops/compose/dev/dev-client-volumes.yml";
 
 const layers = {
   "infra:data":  ["ops/compose/common/data.yml"],
-  "svc:all":     ["ops/compose/common/services.yml",  ...(env === "dev" ? [DEV_VOLUMES] : [])],
-  "app:client":  ["ops/compose/common/client.yml",    ...(env === "dev" ? [DEV_VOLUMES] : [])],
+  "svc:all":     ["ops/compose/common/services.yml", ...(env === "dev" ? [DEV_SVC_VOLUMES]    : [])],
+  "app:client":  ["ops/compose/common/client.yml",   ...(env === "dev" ? [DEV_CLIENT_VOLUMES] : [])],
 };
 
 // ── Prod-only layers ───────────────────────────────────────────────────────────

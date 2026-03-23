@@ -1,0 +1,12 @@
+# ==========================================================
+# DEV OVERRIDE: Source bind mount for client hot-reload
+#
+# Merged on top of client.yml when ENV=dev.
+# Vite HMR picks up host file changes without rebuilding.
+# ==========================================================
+
+services:
+  client:
+    volumes:
+      - ../../../apps/client:/app
+      - /app/node_modules
