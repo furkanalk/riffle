@@ -1,0 +1,47 @@
+version: 2
+updates:
+
+  # ── npm (workspace root — tüm apps/* ve packages/* dahil) ──────────────────
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+    groups:
+      # Minor + patch güncellemelerini tek PR'da grupla (gürültüyü azaltır)
+      non-breaking:
+        update-types:
+          - minor
+          - patch
+    open-pull-requests-limit: 5
+
+  # ── Docker base images ──────────────────────────────────────────────────────
+  - package-ecosystem: docker
+    directories:
+      - /apps/core-api
+      - /apps/client
+      - /apps/game-engine
+      - /apps/music-service
+      - /apps/store-service
+      - /apps/worker
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+    groups:
+      docker-images:
+        patterns:
+          - "*"
+
+  # ── GitHub Actions ──────────────────────────────────────────────────────────
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+    groups:
+      actions:
+        patterns:
+          - "*"
