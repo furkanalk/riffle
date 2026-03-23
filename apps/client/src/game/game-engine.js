@@ -17,11 +17,11 @@ export class GameEngine {
     this.currentTrack = null;
     this.correctAnswer = "";
     this.currentQuestionType = "artist";
+    this.lastQuestionType = null;
     this.gameMode = "";
     this.settings = {
       categories: [],
       questionType: "mixed",
-      difficulty: "normal",
       previewLength: 10,
       lives: "3",
     };
@@ -242,28 +242,25 @@ export class GameEngine {
       return new Set(values).size;
     };
 
-    let questionType = this.settings.questionType;
-    if (questionType === "mixed") {
-      const candidates = [
-        { type: "song", weight: 0.45, unique: countUnique("song") },
-        { type: "artist", weight: 0.45, unique: countUnique("artist") },
-        { type: "album", weight: 0.1, unique: countUnique("album") },
-      ].filter((c) => c.unique >= 2);
+    // Always randomize question type (Song / Artist / Album)
+    const candidates = [
+      { type: "song", weight: 0.45, unique: countUnique("song") },
+      { type: "artist", weight: 0.4, unique: countUnique("artist") },
+      { type: "album", weight: 0.15, unique: countUnique("album") },
+    ].filter((c) => c.unique >= 2);
 
-      const safeCandidates = candidates.length > 0 ? candidates : [{ type: "song", weight: 1, unique: 1 }];
-      const totalWeight = safeCandidates.reduce((sum, c) => sum + c.weight, 0);
-      let roll = Math.random() * totalWeight;
-      for (const c of safeCandidates) {
-        roll -= c.weight;
-        if (roll <= 0) {
-          questionType = c.type;
-          break;
-        }
-      }
-    } else {
-      // If selected question type has no meaningful alternatives, fall back to song.
-      if (countUnique(questionType) < 2) {
-        questionType = "song";
+    const safeCandidates = candidates.length > 0 ? candidates : [{ type: "song", weight: 1, unique: 1 }];
+    const withoutRepeat = safeCandidates.filter((c) => c.type !== this.lastQuestionType);
+    const weightedPool = withoutRepeat.length > 0 ? withoutRepeat : safeCandidates;
+
+    const totalWeight = weightedPool.reduce((sum, c) => sum + c.weight, 0);
+    let roll = Math.random() * totalWeight;
+    let questionType = weightedPool[weightedPool.length - 1].type;
+    for (const c of weightedPool) {
+      roll -= c.weight;
+      if (roll <= 0) {
+        questionType = c.type;
+        break;
       }
     }
 
@@ -293,13 +290,13 @@ export class GameEngine {
         correctAnswer = track.artist;
     }
 
+    this.lastQuestionType = questionType;
     return { questionText, genreInfo, correctAnswer, questionType };
   }
 
   // Generate answer options
   generateAnswerOptions() {
     const questionType = this.currentQuestionType || "artist";
-    const difficulty = this.settings.difficulty || "normal";
     const currentTrack = this.currentTrack;
     const pool = Array.isArray(this.currentPlaylistTracks) ? this.currentPlaylistTracks : [];
     const options = new Set([this.correctAnswer]);
@@ -326,29 +323,9 @@ export class GameEngine {
 
     const otherTracks = pool.filter((t) => t.id !== currentTrack.id);
 
-    if (difficulty === "insane") {
-      const hardPool = [...sameArtist, ...sameAlbum, ...otherTracks];
-      const ranked = hardPool
-        .filter((t, idx, arr) => arr.findIndex((x) => x.id === t.id) === idx)
-        .map((t) => ({
-          track: t,
-          score: this.getSimilarityScore(extract(t), this.correctAnswer),
-        }))
-        .sort((a, b) => b.score - a.score)
-        .map((x) => x.track);
-
-      pushFrom(ranked);
-    } else if (difficulty === "hard") {
-      // Harder distractors first: related tracks from same artist/album
-      pushFrom(sameArtist);
-      pushFrom(sameAlbum);
-      pushFrom(otherTracks);
-    } else {
-      // Normal: broader random distractors from the same playlist
-      pushFrom(this.uiManager.shuffleArray([...otherTracks]));
-      pushFrom(sameArtist);
-      pushFrom(sameAlbum);
-    }
+    // Balanced default difficulty: mixed distractors with preference for close options
+    pushFrom(this.uiManager.shuffleArray([...sameArtist, ...sameAlbum]));
+    pushFrom(this.uiManager.shuffleArray([...otherTracks]));
 
     // Last-resort fallback from previously played tracks (also from Deezer)
     pushFrom(this.playedTracks.filter((t) => t.id !== currentTrack.id));
@@ -360,26 +337,6 @@ export class GameEngine {
     }
 
     return this.uiManager.shuffleArray(finalOptions);
-  }
-
-  getSimilarityScore(a, b) {
-    const left = String(a || "").toLowerCase().trim();
-    const right = String(b || "").toLowerCase().trim();
-    if (!left || !right) return 0;
-    if (left === right) return 100;
-
-    let score = 0;
-    if (left.startsWith(right.slice(0, 3))) score += 20;
-    if (right.startsWith(left.slice(0, 3))) score += 20;
-
-    const lTokens = left.split(/[\s\-_/()[\],.!?'"`]+/).filter(Boolean);
-    const rTokens = new Set(right.split(/[\s\-_/()[\],.!?'"`]+/).filter(Boolean));
-    for (const t of lTokens) {
-      if (rTokens.has(t)) score += 10;
-    }
-
-    score += Math.max(0, 20 - Math.abs(left.length - right.length));
-    return score;
   }
 
   // Add continue button for VS modes

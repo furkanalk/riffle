@@ -15,13 +15,6 @@ const MODE_LABELS = {
   custom: "Custom",
 };
 
-const QUESTION_TYPE_LABELS = {
-  song: "Song Title Questions",
-  artist: "Artist/Band Questions",
-  mixed: "Mixed Questions",
-  guitarist: "Guitarist Questions (Hard!)",
-};
-
 const VISIBILITY_LABELS = {
   visible: "Answers Visible to All",
   hidden: "Answers Hidden Until Round End",
@@ -127,8 +120,6 @@ function loadSavedModeSettings() {
       if (el) el.value = val;
     };
 
-    if (settings.questionType) safeSet("question-type", settings.questionType);
-    if (settings.difficulty) safeSet("difficulty", settings.difficulty);
     if (settings.timeLimit) safeSet("time-limit", settings.timeLimit);
 
     if (settings.rounds) {
@@ -264,8 +255,7 @@ function updateSettingsSummary() {
 
   const typeEl = getEl("selection-question-type");
   if (typeEl) {
-    const val = getEl("question-type")?.value || "mixed";
-    typeEl.textContent = QUESTION_TYPE_LABELS[val] || "Mixed Questions";
+    typeEl.textContent = "Random (Song / Artist / Album)";
   }
 
   const visCont = getEl("selection-visibility-container");
@@ -300,7 +290,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupGameModeSettings();
   updateSelectionsSummary();
 
-  ["round-count", "time-limit", "question-type", "difficulty", "lives-count", "answer-visibility"].forEach(
+  ["round-count", "time-limit", "lives-count", "answer-visibility"].forEach(
     (id) => {
       getEl(id)?.addEventListener("change", updateSelectionsSummary);
     }
