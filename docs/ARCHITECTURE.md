@@ -25,7 +25,7 @@ Riffle is designed as a modular, scalable system that prioritizes performance, s
 
 ## Monorepo Structure
 
-Riffle is designed as a **Fully Distributed System**. Code is organized by domain responsibilities.
+Riffle is structured as a **microservices monorepo**: separate services per domain, shared tooling, single repo. Code is organized by domain responsibilities.
 
 ```text
 riffle/
@@ -61,8 +61,8 @@ riffle/
 > The client is responsible only for rendering, user input, and real-time communication. No authoritative game state or scoring logic exists on the client.
 
 ### 2. Backend API & Authentication
-* **Runtime:** Node.js
-* **Framework:** Fastify
+* **Runtime:** Node.js v22
+* **Framework:** Fastify v5
 * **Language:** TypeScript
 * **Protocols:** REST + WebSocket (Socket.io)
 
@@ -165,12 +165,12 @@ Riffle follows a defense-in-depth model sized for current product scope.
 ## Scaling & Failure Assumptions
 
 ### 1. Scalability
-- **Horizontal Scaling:** All Service Layer containers (API, Engine, Store) are stateless and can scale horizontally behind the Gateway.
+- **Horizontal Scaling:** All service containers (API, Engine, Store) are stateless and can scale horizontally behind Caddy.
 - **Database Scaling:** PostgreSQL is the single source of truth; read-replicas can be added for analytics. Redis handles high-throughput write operations.
 
 ### 2. Data Consistency & State
 - **Eventual Consistency:** Due to the **Write-Behind** pattern, data in PostgreSQL (Store Layer) is eventually consistent. Real-time game state exists in the Active Layer (Redis) first.
-- **Persistence & Backup:** - The `active-worker` service ensures data durability by moving completed match data from Redis to PostgreSQL asynchronously.
+- **Persistence & Backup:** The `db-sync-worker` service ensures data durability by moving completed match data from Redis to PostgreSQL asynchronously.
   - A dedicated `pg-backup` sidecar container performs automated daily backups of the PostgreSQL database to a secure volume, ensuring recovery point objectives (RPO) are met even in catastrophic failure scenarios.
 
 ### 3. Failure Scenarios

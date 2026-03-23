@@ -84,17 +84,16 @@ Stages may overlap intentionally as the platform evolves.
 ## Stage 5: Production Operations
 > *Automation, delivery, and observability.*
 
-- [ ] **Phase 1: GitOps & Delivery**
-  - [ ] ArgoCD continuous deployment.
-  - [ ] Environment promotion strategy.
+- [ ] **Phase 1: CI/CD Delivery**
+  - [ ] GitHub Actions pipeline (build → push → deploy via SSH + docker compose pull).
+  - [ ] Environment promotion strategy (dev → prod gate).
 
 - [ ] **Phase 2: Secrets & Configuration**
-  - [ ] HashiCorp Vault integration.
-  - [ ] Secret rotation & config externalization.
+  - [ ] Secret rotation policy and externalized config (env + secrets management).
 
 - [ ] **Phase 3: Observability**
-  - [ ] Metrics & logs (Prometheus, Grafana, Loki).
-  - [ ] Distributed tracing (Tempo).
+  - [x] Metrics & logs baseline (Prometheus, Grafana, Loki in prod stack).
+  - [ ] Distributed tracing (Tempo + OpenTelemetry) for cross-service visibility.
 
 ---
 

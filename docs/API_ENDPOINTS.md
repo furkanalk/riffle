@@ -54,12 +54,12 @@ Status legends: `(Active)`, `(Implemented)`, `(Planned)`.
 * `PATCH /api/users/me/equip` **(Planned)** - Set active avatar/frame.
 
 ## 5. Security & Integrity
-> Managed by **Rust WASM** & **SafeLine WAF**.
+> Managed by **Rust WASM** (planned).
 
 * `POST /api/security/integrity-check` **(Planned)** - Client sends WASM-generated token for validation.
 * `POST /api/security/report` **(Planned)** - Report a user for cheating or abuse.
 
 ## 6. System & Infrastructure
-* `GET /health` - Health check (Docker/K8s Liveness probe).
+* `GET /health` - Health check (Docker liveness probe).
 * `GET /secure-data` - API Key validation test endpoint.
 * `GET /metrics` **(Planned)** - Prometheus metrics scraping endpoint.

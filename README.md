@@ -28,7 +28,7 @@ RIFFLE — INFO
 Genre        : Rock • Metal (more TBD)
 Architecture : Microservices (Monorepo Managed)
 Platform     : Web • Mobile (Planned)
-Version      : v0.5.0-alpha
+Version      : v0.5.1-alpha
 
 “Test your music knowledge under pressure.”
 ```
@@ -83,7 +83,7 @@ Version      : v0.5.0-alpha
 
 ## Technical Architecture
 
-Riffle utilizes a **Modular Monolith** architecture designed to evolve into Microservices. The project is managed as a **Monorepo** using TurboRepo to ensure type safety and atomic deployments.
+Riffle is structured as a **microservices monorepo**: separate services per domain, shared tooling, single repo. Managed with TurboRepo for consistent builds and atomic deployments.
 
 **[Read the Full Architecture Documentation](./docs/ARCHITECTURE.md)** for a deep dive into our design decisions, security layers, and scaling strategy.
 
@@ -92,7 +92,7 @@ Riffle utilizes a **Modular Monolith** architecture designed to evolve into Micr
 | Component | Technology | Role |
 |-----------|------------|------|
 | **Frontend** | React 18 + Vite | User Interface & Global State (Zustand) |
-| **Core API** | Node.js v22 (Express) | Orchestrator, Auth & User Management |
+| **Core API** | Node.js v22 + Fastify v5 (TypeScript) | Orchestrator, Auth & User Management |
 | **Engine** | Go (Golang) | High-Performance Matchmaking Service |
 | **Security (Core)** | Rust + WASM | Client Integrity & Anti-Cheat (Planned) |
 | **Edge** | Caddy + mTLS | Reverse Proxy, HTTPS, Rate Limiting |
@@ -115,7 +115,7 @@ The system is split into **Edge (prod)**, **Data**, **Service**, and **App** lay
 * **Docker Desktop** (running)
 * **Node.js v22+** (Required for Vite/Client)
 * **Go (Golang) v1.21+** (Required for Game Engine Development)
-* **Rust & Cargo** (Required for Security/WASM Module)
+* **Rust & Cargo** (only required when working on the planned WASM security module)
 * **Git**
 
 ### 1. Setup & Installation
