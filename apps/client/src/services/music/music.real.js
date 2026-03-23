@@ -1,15 +1,25 @@
 const BASE_URL = "/api";
 
 async function handleResponse(response, errorContext) {
-  const contentType = response.headers.get("content-type");
-  if (contentType?.includes("text/html")) {
-    throw new Error(`HTML returned rather than JSON. Is Backend working? (${errorContext})`);
+  const contentType = response.headers.get("content-type") ?? "";
+
+  if (contentType.includes("text/html")) {
+    throw new Error(`Server returned HTML — is the backend running? (${errorContext})`);
   }
 
-  const data = await response.json();
+  // Guard against empty body (e.g. network error causing Fastify to emit 500 with no body)
+  let data;
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error(
+      `Empty or invalid JSON from server — status ${response.status} (${errorContext}). ` +
+      "Check that the API and Docker are running.",
+    );
+  }
 
   if (!response.ok) {
-    throw new Error(data.error || `API Hatası: ${response.status} (${errorContext})`);
+    throw new Error(data?.error || `API error ${response.status} (${errorContext})`);
   }
 
   return data;
