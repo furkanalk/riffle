@@ -4,25 +4,26 @@ WORKDIR /app
 COPY package*.json ./
 
 # --- STAGE 2: DEVELOPMENT ---
+# tsx watch provides hot-reload with source maps
 FROM base AS dev
 RUN npm install
 COPY . .
 EXPOSE 1968
 CMD ["npm", "run", "dev"]
 
-# --- STAGE 2.1: TESTING ---
-# Dev = Test
-FROM dev AS test
-
-# --- STAGE 3: PRODUCTION ---
-FROM base AS prod
-RUN npm ci --only=production
+# --- STAGE 3: BUILDER ---
+FROM base AS builder
+RUN npm ci
 COPY . .
+RUN npm run build
+
+# --- STAGE 4: PRODUCTION ---
+FROM node:22-alpine AS prod
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY package*.json ./
+RUN npm ci --only=production
 EXPOSE 1968
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:1968/health || exit 1
-CMD ["npm", "start"]
-
-# --- STAGE 3.1: STAGING ---
-# Stage = Prod
-FROM prod AS stage
+CMD ["node", "dist/server.js"]
