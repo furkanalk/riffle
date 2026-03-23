@@ -1,0 +1,22 @@
+# ==========================================================
+# DEV OVERRIDE: Source bind mounts for hot-reload
+#
+# Merged on top of services.yml / client.yml when ENV=dev.
+# Bind-mounting source lets tsx watch / Vite HMR pick up
+# host file changes without rebuilding the image.
+#
+# The anonymous /app/node_modules volume ensures the
+# container's installed modules are not overwritten by
+# whatever lives in the host workspace.
+# ==========================================================
+
+services:
+  core-api:
+    volumes:
+      - ../../../apps/core-api:/app
+      - /app/node_modules
+
+  client:
+    volumes:
+      - ../../../apps/client:/app
+      - /app/node_modules

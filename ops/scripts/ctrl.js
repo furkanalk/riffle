@@ -21,16 +21,20 @@ if (!["dev", "prod"].includes(env)) {
 
 if (!action || !target) {
   console.error(`${colors.red}Usage: ENV=dev node ops/scripts/ctrl.js [up|down] [target]${colors.reset}`);
-  console.error(`${colors.gray}Targets: infra:data, infra:edge(*), svc:all, app:client, prod:monitor, prod:backup, infra:all, all${colors.reset}`);
+  console.error(`${colors.gray}Targets: infra:data, infra:edge(*), svc:all, app:client, prod:monitor(*), prod:backup(*), infra:all, all${colors.reset}`);
   console.error(`${colors.gray}(*) infra:edge only available in prod (Caddy)${colors.reset}`);
   process.exit(1);
 }
 
 // ── Common layers (both environments) ─────────────────────────────────────────
+// In dev, svc:all and app:client also include dev-volumes.yml so that
+// tsx watch / Vite HMR can pick up host file changes without rebuilding.
+const DEV_VOLUMES = "ops/compose/dev/dev-volumes.yml";
+
 const layers = {
   "infra:data":  ["ops/compose/common/data.yml"],
-  "svc:all":     ["ops/compose/common/services.yml"],
-  "app:client":  ["ops/compose/common/client.yml"],
+  "svc:all":     ["ops/compose/common/services.yml",  ...(env === "dev" ? [DEV_VOLUMES] : [])],
+  "app:client":  ["ops/compose/common/client.yml",    ...(env === "dev" ? [DEV_VOLUMES] : [])],
 };
 
 // ── Prod-only layers ───────────────────────────────────────────────────────────

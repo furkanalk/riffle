@@ -13,34 +13,40 @@ Operational guide for running Riffle with the current infrastructure model:
 Riffle uses `ops/scripts/ctrl.js` as the single control entrypoint.
 
 - `ENV=dev`:
-  - no reverse proxy
-  - no mTLS
-  - devtools enabled (`mailhog`, `httpbin`, `redis-commander`)
+  - No reverse proxy (direct container port mapping)
+  - No mTLS
+  - Source files bind-mounted for hot-reload (`tsx watch` + Vite HMR)
 - `ENV=prod`:
   - Caddy reverse proxy + automatic HTTPS
   - mTLS enabled between services
-  - monitoring and backup layers enabled
+  - Monitoring and backup layers enabled
 
 ---
 
 ## 2. Quick Start
 
-### 2.1 Development
+### 2.1 Development (recommended)
+```bash
+npm run start:dev
+```
+
+### 2.2 Development (manual)
 ```bash
 docker network create riffle_network || true
 ENV=dev node ops/scripts/ctrl.js up all
 ```
 
-### 2.2 Production
+### 2.3 Production
 ```bash
 docker network create riffle_network || true
 ENV=prod node ops/scripts/ctrl.js up all
 ```
 
-### 2.3 Stop
+### 2.4 Stop
 ```bash
+npm run stop:all
+# or
 ENV=dev node ops/scripts/ctrl.js down all
-ENV=prod node ops/scripts/ctrl.js down all
 ```
 
 ---
@@ -56,11 +62,6 @@ ENV=dev  node ops/scripts/ctrl.js up app:client
 ENV=prod node ops/scripts/ctrl.js up infra:data
 ENV=prod node ops/scripts/ctrl.js up svc:all
 ENV=prod node ops/scripts/ctrl.js up app:client
-```
-
-### Dev-only
-```bash
-ENV=dev node ops/scripts/ctrl.js up dev:tools
 ```
 
 ### Prod-only
@@ -90,8 +91,8 @@ Use manual Compose only when you need explicit file-level control.
 docker compose --env-file ops/env/.env.dev \
   -f ops/compose/common/data.yml \
   -f ops/compose/common/services.yml \
+  -f ops/compose/dev/dev-volumes.yml \
   -f ops/compose/common/client.yml \
-  -f ops/compose/dev/devtools.yml \
   up -d
 ```
 
@@ -135,6 +136,7 @@ npm run mobile:sync
 
 ## Notes
 
-- Preferred workflow is `ctrl.js` (`ENV=dev|prod`).
+- Preferred workflow is `npm run start:dev` (or `stop:all` / `restart:dev`).
 - Keep `ops/env/.env.dev` and `ops/env/.env.prod` local and secret.
 - For mobile builds (Capacitor), production API access should go through HTTPS domain behind Caddy.
+- Hot-reload works out of the box in dev: source directories are bind-mounted into containers so `tsx watch` and Vite HMR detect host file changes immediately.

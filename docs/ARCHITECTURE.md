@@ -50,13 +50,10 @@ riffle/
 ## Technology Stack
 
 ### 1. Frontend (Client)
-* **Framework:** React 18 + Vite
-* **Language:** TypeScript
-* **State Management:**
-  * **Zustand:** Global client state
-  * **React Query:** Server state & caching
-* **Styling:** Tailwind CSS + Radix UI
-* **Platform:** Web-first, Capacitor-compatible (iOS / Android)
+* **Current:** Vanilla HTML + JavaScript + Tailwind CSS (via CDN)
+* **Planned Migration:** React 18 + Vite + TypeScript
+* **Planned State Management:** Zustand (global state), React Query (server state)
+* **Platform:** Web-first, Capacitor-compatible (iOS / Android planned)
 
 > The client is responsible only for rendering, user input, and real-time communication. No authoritative game state or scoring logic exists on the client.
 
@@ -124,7 +121,7 @@ riffle/
 
 Riffle currently uses a Compose-only infrastructure strategy with two environments:
 
-- **Dev:** `ops/compose/common/*` + `ops/compose/dev/devtools.yml`
+- **Dev:** `ops/compose/common/*` + `ops/compose/dev/dev-volumes.yml` (source bind mounts for hot-reload)
 - **Prod:** `ops/compose/common/*` + `ops/compose/prod/{caddy,monitor,backup}.yml`
 
 Kubernetes, Kong, and WAF layers are intentionally removed to keep operational complexity aligned with the current product stage.
