@@ -580,7 +580,7 @@ export class UIManager {
 
   // Setup UI based on game mode
   setupGameMode(gameMode, settings, players) {
-    document.getElementById("game-mode-title").textContent =
+    const fullModeLabel =
       {
         solo: "Marathon Mode",
         coop: "Cooperative Mode",
@@ -589,6 +589,22 @@ export class UIManager {
         chaos: "Chaos Mode",
         custom: "Custom Mode",
       }[gameMode] || "Riffle";
+
+    const compactModeLabel =
+      {
+        solo: "Marathon",
+        coop: "Co-op",
+        versus: "VS",
+        team: "Team VS",
+        chaos: "Chaos",
+        custom: "Custom",
+      }[gameMode] || "Riffle";
+
+    const modeTitleEl = document.getElementById("game-mode-title");
+    if (modeTitleEl) {
+      const useCompact = window.matchMedia("(max-width: 640px)").matches;
+      modeTitleEl.textContent = useCompact ? compactModeLabel : fullModeLabel;
+    }
 
     if (gameMode === "solo") {
       document.getElementById("timer-container").classList.add("hidden");
