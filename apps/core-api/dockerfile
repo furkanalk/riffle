@@ -13,7 +13,7 @@ CMD ["npm", "run", "dev"]
 
 # --- STAGE 3: BUILDER ---
 FROM base AS builder
-RUN npm ci
+RUN npm install
 COPY . .
 RUN npm run build
 
@@ -22,7 +22,7 @@ FROM node:22-alpine AS prod
 WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm install --omit=dev
 EXPOSE 1968
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:1968/health || exit 1
