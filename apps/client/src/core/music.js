@@ -49,72 +49,62 @@ function normalizeTrackData(track) {
   };
 }
 
-// Playlist IDs by category - Real playlist IDs from Deezer
+// Playlist catalog — mirrors apps/core-api/data/playlists.ts
+// deezer_id values must stay in sync with the API catalog.
 const GENRE_PLAYLISTS = {
-  // Rock categories (by decade)
-  rock_60s: "1109890291", // 60's Rock
-  rock_70s: "1950507922", // 70's Rock
-  rock_80s: "1283499905", // 80's Rock
-  rock_90s: "1291471565", // 90's Rock
-  rock_00s: "1082556351", // 2000's Rock
+  // Rock
+  rock_60s:     "1437011185",
+  rock_70s:     "1405240385",
+  rock_80s:     "867825522",
+  rock_90s:     "1728093421",
+  rock_00s:     "1419215845",
+  rock_10s:     "1057779131",
+  rock_20s:     "13693489781",
 
-  // Metal categories (by decade)
-  metal_60s: "7276244344", // 60's Metal & Hard Rock
-  metal_70s: "9504053062", // 70's Metal
-  metal_80s: "1294679255", // 80's Metal // done
-  metal_90s: "1266971131", // 90's Metal
-  metal_00s: "1256268491", // 2000's Metal
+  // Metal
+  metal_70s:    "5325499642",
+  metal_80s:    "1294679255",
+  metal_90s:    "1471284255",
+  metal_00s:    "2004964442",
+  metal_10s:    "1045800791",
+  metal_20s:    "13693525421",
 
-  // Mixed categories (by decade)
-  mixed_60s: "1109890291", // 60's Rock & Metal Mix
-  mixed_70s: "1950507922", // 70's Rock & Metal Mix
-  mixed_80s: "1283499905", // 80's Rock & Metal Mix
-  mixed_90s: "1291471565", // 90's Rock & Metal Mix
-  mixed_00s: "1082556351", // 2000's Rock & Metal Mix
+  // Mixed
+  mixed_60s:    "620264073",
+  mixed_70s:    "1470022445",
+  mixed_80s:    "867825522",
+  mixed_90s:    "878989033",
 
-  // Turkish Rock & Metal
-  turkish_rock: "1121135381", // Turkish Rock Classics
-  turkish_rock_new: "3173547266", // New Turkish Rock
-  turkish_metal: "9270303122", // Turkish Metal
-
-  // Artist/Group Specific Categories
-  turkish_anatolian: "1496273595", // Anatolian Rock
-  pentagram: "10581252702", // Pentagram/Mezarkabul
-  mor_ve_otesi: "1155523471", // Mor ve Ötesi
+  // Turkish
+  turkish_rock: "1384032635",
 };
 
-// Metadata information for categories
 const GENRE_INFO = {
-  // Rock categories
-  rock_60s: { name: "60's Rock", type: "rock", era: "60s" },
-  rock_70s: { name: "70's Rock", type: "rock", era: "70s" },
-  rock_80s: { name: "80's Rock", type: "rock", era: "80s" },
-  rock_90s: { name: "90's Rock", type: "rock", era: "90s" },
-  rock_00s: { name: "2000's Rock", type: "rock", era: "00s" },
+  // Rock
+  rock_60s:     { name: "60's Rock",    type: "rock",    era: "60s"     },
+  rock_70s:     { name: "70's Rock",    type: "rock",    era: "70s"     },
+  rock_80s:     { name: "80's Rock",    type: "rock",    era: "80s"     },
+  rock_90s:     { name: "90's Rock",    type: "rock",    era: "90s"     },
+  rock_00s:     { name: "2000's Rock",  type: "rock",    era: "00s"     },
+  rock_10s:     { name: "2010's Rock",  type: "rock",    era: "10s"     },
+  rock_20s:     { name: "2020's Rock",  type: "rock",    era: "20s"     },
 
-  // Metal categories
-  metal_60s: { name: "60's Metal", type: "metal", era: "60s" },
-  metal_70s: { name: "70's Metal", type: "metal", era: "70s" },
-  metal_80s: { name: "80's Metal", type: "metal", era: "80s" },
-  metal_90s: { name: "90's Metal", type: "metal", era: "90s" },
-  metal_00s: { name: "2000's Metal", type: "metal", era: "00s" },
+  // Metal
+  metal_70s:    { name: "70's Metal",   type: "metal",   era: "70s"     },
+  metal_80s:    { name: "80's Metal",   type: "metal",   era: "80s"     },
+  metal_90s:    { name: "90's Metal",   type: "metal",   era: "90s"     },
+  metal_00s:    { name: "2000's Metal", type: "metal",   era: "00s"     },
+  metal_10s:    { name: "2010's Metal", type: "metal",   era: "10s"     },
+  metal_20s:    { name: "2020's Metal", type: "metal",   era: "20s"     },
 
-  // Mixed categories
-  mixed_60s: { name: "60's Mix", type: "mixed", era: "60s" },
-  mixed_70s: { name: "70's Mix", type: "mixed", era: "70s" },
-  mixed_80s: { name: "80's Mix", type: "mixed", era: "80s" },
-  mixed_90s: { name: "90's Mix", type: "mixed", era: "90s" },
-  mixed_00s: { name: "2000's Mix", type: "mixed", era: "00s" },
+  // Mixed
+  mixed_60s:    { name: "60's Mix",     type: "mixed",   era: "60s"     },
+  mixed_70s:    { name: "70's Mix",     type: "mixed",   era: "70s"     },
+  mixed_80s:    { name: "80's Mix",     type: "mixed",   era: "80s"     },
+  mixed_90s:    { name: "90's Mix",     type: "mixed",   era: "90s"     },
 
-  // Turkish Rock & Metal
-  turkish_rock: { name: "Turkish Rock Classics", type: "turkish", era: "classic" },
-  turkish_rock_new: { name: "Modern Turkish Rock", type: "turkish", era: "modern" },
-  turkish_metal: { name: "Turkish Metal", type: "turkish", era: "metal" },
-
-  // Artist/Group Specific Categories
-  turkish_anatolian: { name: "Anatolian Rock", type: "turkish", era: "anatolian" },
-  pentagram: { name: "Pentagram/Mezarkabul", type: "artist", era: "turkish" },
-  mor_ve_otesi: { name: "Mor ve Ötesi", type: "artist", era: "turkish" },
+  // Turkish
+  turkish_rock: { name: "Turkish Rock", type: "turkish", era: "classic" },
 };
 
 // Returns the list of all categories
