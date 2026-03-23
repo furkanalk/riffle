@@ -11,7 +11,7 @@ export async function getPlaylistTracks(playlistId) {
     artist: { name: `Mock Artist ${i + 1}` },
     album: {
       title: `Mock Album ${i}`,
-      cover_medium: "https://via.placeholder.com/250/6D28D9/FFFFFF?text=RiffleMock",
+      cover_medium: null,
     },
     preview: "https://cdns-preview-b.dzcdn.net/stream/c-deda7fa9316d9e9e880226309674381b-8.mp3",
   }));

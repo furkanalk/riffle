@@ -31,10 +31,16 @@ export async function getPlaylistTracks(playlistId) {
     const res = await fetch(`${BASE_URL}/playlist/${playlistId}/tracks`);
     const data = await handleResponse(res, `Playlist: ${playlistId}`);
 
-    const tracks = Array.isArray(data) ? data : data.data;
+    const allTracks = Array.isArray(data) ? data : (data.data ?? []);
 
-    if (!tracks || tracks.length === 0) {
-      throw new Error("No playable tracks found in this playlist.");
+    // Defensive: drop tracks without a usable preview URL (proxy already filters,
+    // but guard against edge cases or mock data leaking through)
+    const tracks = allTracks.filter(
+      (t) => typeof t.preview === "string" && t.preview.length > 0,
+    );
+
+    if (tracks.length === 0) {
+      throw new Error("No previewable tracks found in this playlist.");
     }
 
     return tracks;

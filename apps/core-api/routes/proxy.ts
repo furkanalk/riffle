@@ -21,8 +21,20 @@ const proxyRoutes: FastifyPluginAsync = async (fastify) => {
     const { id } = req.params;
     req.log.info(`[proxy] playlist ${id}`);
     try {
-      const data = await deezerFetch(`${DEEZER_API}/playlist/${id}/tracks?limit=100`);
-      return reply.send(data);
+      const raw = await deezerFetch(`${DEEZER_API}/playlist/${id}/tracks?limit=100`) as {
+        data?: Array<Record<string, unknown>>;
+      };
+
+      // Keep only tracks that have a non-empty preview URL
+      const tracks = (raw.data ?? []).filter(
+        (t) => typeof t.preview === "string" && t.preview.length > 0,
+      );
+
+      if (tracks.length === 0) {
+        return reply.code(404).send({ error: "No previewable tracks found in this playlist" });
+      }
+
+      return reply.send({ data: tracks, total: tracks.length });
     } catch (err: unknown) {
       req.log.error(err, "Deezer playlist proxy error");
       const status = (err as { status?: number }).status ?? 502;

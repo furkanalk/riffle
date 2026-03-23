@@ -31,6 +31,12 @@ export class AudioManager {
   // Set current track
   setCurrentTrack(track) {
     this.currentTrack = track;
+    if (!track?.preview) {
+      console.warn("[AudioManager] Track has no preview URL — skipping audio load", track?.title);
+      this.musicPlayer.removeAttribute("src");
+      this.musicPlayer.load();
+      return;
+    }
     this.musicPlayer.src = track.preview;
     this.musicPlayer.volume = 0.8;
   }
@@ -56,18 +62,21 @@ export class AudioManager {
 
   // Attempt to play audio with autoplay handling
   async attemptAutoplay() {
+    if (!this.musicPlayer.src || this.musicPlayer.src === window.location.href) {
+      console.warn("[AudioManager] No audio source — skipping playback");
+      return;
+    }
+
     try {
       this.musicPlayer.muted = true;
       await this.musicPlayer.play();
-
-      setTimeout(() => {
-        this.musicPlayer.muted = false;
-      }, 100);
+      setTimeout(() => { this.musicPlayer.muted = false; }, 100);
     } catch (_e) {
       const handlePageInteraction = () => {
         this.musicPlayer.muted = false;
-        this.musicPlayer.play();
-
+        this.musicPlayer.play().catch(() => {
+          // User interaction happened but source still unusable — ignore silently
+        });
         document.removeEventListener("click", handlePageInteraction);
         document.removeEventListener("keydown", handlePageInteraction);
       };
