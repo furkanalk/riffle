@@ -128,6 +128,23 @@ export async function getRandomTrackFromGenre(genreId) {
   };
 }
 
+// Get normalized tracks from a specific genre playlist
+export async function getTracksFromGenre(genreId) {
+  const playlistId = GENRE_PLAYLISTS[genreId];
+  if (!playlistId) throw new Error(`Unknown genre: ${genreId}`);
+
+  const tracks = await MusicService.getPlaylistTracks(playlistId);
+  const normalized = tracks
+    .filter((track) => track?.preview)
+    .map((track) => normalizeTrackData(track));
+
+  return normalized.map((track) => ({
+    ...track,
+    genre: genreId,
+    genreName: GENRE_INFO[genreId]?.name || genreId,
+  }));
+}
+
 // Get a random track from a random category
 export async function getRandomTrackFromRandomGenre() {
   const genres = Object.keys(GENRE_PLAYLISTS);

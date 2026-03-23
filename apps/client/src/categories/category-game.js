@@ -34,6 +34,7 @@ function startGame() {
     // For Marathon mode (solo), always use the hidden input value to ensure it's unlimited
     rounds: gameMode === "solo" ? "unlimited" : roundCountSelect.value,
     questionType: document.getElementById("question-type").value,
+    difficulty: document.getElementById("difficulty")?.value || "normal",
     timeLimit: parseInt(document.getElementById("time-limit").value, 10),
     answerVisibility: answerVisibility,
     avatar: selectedAvatar,
@@ -51,6 +52,7 @@ function startGame() {
       // For Marathon mode (solo), always use unlimited rounds in saved settings
       rounds: gameMode === "solo" ? "unlimited" : document.getElementById("round-count").value,
       questionType: document.getElementById("question-type").value,
+      difficulty: document.getElementById("difficulty")?.value || "normal",
       timeLimit: parseInt(document.getElementById("time-limit").value, 10),
       answerVisibility: answerVisibility,
       lives: lives,

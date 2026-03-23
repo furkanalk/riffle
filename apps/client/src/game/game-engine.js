@@ -1,5 +1,5 @@
 // game-engine.js
-import { getRandomTrackFromGenre, resetPlayedTracks } from "../core/music.js";
+import { getTracksFromGenre, resetPlayedTracks } from "../core/music.js";
 import { AudioManager } from "./audio-manager.js";
 import { ScoreManager } from "./score-manager.js";
 import { TimerManager } from "./timer-manager.js";
@@ -16,14 +16,17 @@ export class GameEngine {
     this.totalRounds = 10;
     this.currentTrack = null;
     this.correctAnswer = "";
+    this.currentQuestionType = "artist";
     this.gameMode = "";
     this.settings = {
       categories: [],
       questionType: "mixed",
+      difficulty: "normal",
       previewLength: 10,
       lives: "3",
     };
     this.playedTracks = [];
+    this.currentPlaylistTracks = [];
     this.answerSelected = false;
   }
 
@@ -130,14 +133,17 @@ export class GameEngine {
       this.audioManager.createMusicVisualizer();
       this.timerManager.resetTimer();
 
-      // Get random track
-      const track = await this.getRandomTrack();
+      // Get random track and source playlist for dynamic question generation
+      const roundData = await this.getRandomTrack();
+      const track = roundData.track;
+      this.currentPlaylistTracks = roundData.playlistTracks;
       this.currentTrack = track;
       this.audioManager.setCurrentTrack(track);
 
       // Prepare question
-      const { questionText, genreInfo, correctAnswer } = this.prepareQuestion(track);
+      const { questionText, genreInfo, correctAnswer, questionType } = this.prepareQuestion(track);
       this.correctAnswer = correctAnswer;
+      this.currentQuestionType = questionType;
 
       // Update question display
       this.uiManager.updateQuestion(questionText, genreInfo);
@@ -207,26 +213,58 @@ export class GameEngine {
 
   // Get random track based on settings
   async getRandomTrack() {
-    let track;
-    if (this.settings.categories && this.settings.categories.length > 0) {
-      const categoryId =
-        this.settings.categories[Math.floor(Math.random() * this.settings.categories.length)];
-      track = await getRandomTrackFromGenre(categoryId);
-    } else {
-      track = await getRandomTrackFromGenre("rock_80s");
-    }
+    const categoryId =
+      this.settings.categories && this.settings.categories.length > 0
+        ? this.settings.categories[Math.floor(Math.random() * this.settings.categories.length)]
+        : "rock_80s";
 
-    // Add to played tracks
+    const playlistTracks = await getTracksFromGenre(categoryId);
+    const playedIds = new Set(this.playedTracks.map((t) => t.id));
+    const availableTracks = playlistTracks.filter((t) => !playedIds.has(t.id));
+    const sourceTracks = availableTracks.length > 0 ? availableTracks : playlistTracks;
+    const track = sourceTracks[Math.floor(Math.random() * sourceTracks.length)];
+
     this.playedTracks.push(track);
-
-    return track;
+    return { track, playlistTracks };
   }
 
   // Prepare question based on track and settings
   prepareQuestion(track) {
+    const countUnique = (type) => {
+      const source = [...(this.currentPlaylistTracks || []), track];
+      const values = source
+        .map((t) => {
+          if (type === "song") return this.uiManager.cleanSongTitle(t.title || "");
+          if (type === "album") return t.album?.title || "";
+          return t.artist || "";
+        })
+        .filter(Boolean);
+      return new Set(values).size;
+    };
+
     let questionType = this.settings.questionType;
     if (questionType === "mixed") {
-      questionType = Math.random() > 0.5 ? "song" : "artist";
+      const candidates = [
+        { type: "song", weight: 0.45, unique: countUnique("song") },
+        { type: "artist", weight: 0.45, unique: countUnique("artist") },
+        { type: "album", weight: 0.1, unique: countUnique("album") },
+      ].filter((c) => c.unique >= 2);
+
+      const safeCandidates = candidates.length > 0 ? candidates : [{ type: "song", weight: 1, unique: 1 }];
+      const totalWeight = safeCandidates.reduce((sum, c) => sum + c.weight, 0);
+      let roll = Math.random() * totalWeight;
+      for (const c of safeCandidates) {
+        roll -= c.weight;
+        if (roll <= 0) {
+          questionType = c.type;
+          break;
+        }
+      }
+    } else {
+      // If selected question type has no meaningful alternatives, fall back to song.
+      if (countUnique(questionType) < 2) {
+        questionType = "song";
+      }
     }
 
     let questionText, correctAnswer;
@@ -242,6 +280,10 @@ export class GameEngine {
         questionText = "Which artist/band performs this track?";
         correctAnswer = track.artist;
         break;
+      case "album":
+        questionText = "Which album is this track from?";
+        correctAnswer = track.album?.title || "Unknown Album";
+        break;
       case "guitarist":
         questionText = "Who is the guitarist for this track?";
         correctAnswer = track.guitarist || track.artist;
@@ -251,273 +293,93 @@ export class GameEngine {
         correctAnswer = track.artist;
     }
 
-    return { questionText, genreInfo, correctAnswer };
+    return { questionText, genreInfo, correctAnswer, questionType };
   }
 
   // Generate answer options
   generateAnswerOptions() {
-    const enhancedOptions = {
-      song: {
-        "60s": [
-          "House Of The Rising Sun",
-          "Purple Haze",
-          "Born To Be Wild",
-          "Light My Fire",
-          "Fortunate Son",
-          "Good Vibrations",
-          "Satisfaction",
-          "Gimme Shelter",
-          "White Rabbit",
-          "All Along The Watchtower",
-        ],
-        "70s": [
-          "Stairway To Heaven",
-          "Hotel California",
-          "Smoke On The Water",
-          "Bohemian Rhapsody",
-          "Black Dog",
-          "Paranoid",
-          "Another Brick In The Wall",
-          "Dream On",
-          "Layla",
-          "Free Bird",
-        ],
-        "80s": [
-          "Sweet Child O' Mine",
-          "Enter Sandman",
-          "Back in Black",
-          "Crazy Train",
-          "Run To The Hills",
-          "Breaking The Law",
-          "You Give Love A Bad Name",
-          "Welcome To The Jungle",
-          "Master of Puppets",
-          "Jump",
-        ],
-        "90s": [
-          "Nothing Else Matters",
-          "Smells Like Teen Spirit",
-          "Black Hole Sun",
-          "Enter Sandman",
-          "One",
-          "Sober",
-          "Alive",
-          "Jeremy",
-          "Zombie",
-          "Basket Case",
-        ],
-        "00s": [
-          "Chop Suey!",
-          "In The End",
-          "Toxicity",
-          "Seven Nation Army",
-          "Boulevard of Broken Dreams",
-          "Numb",
-          "The Pretender",
-          "Mr. Brightside",
-          "Last Resort",
-          "Diary of Jane",
-        ],
-      },
-      artist: {
-        "60s": [
-          "The Doors",
-          "Jimi Hendrix",
-          "The Beatles",
-          "The Rolling Stones",
-          "Jefferson Airplane",
-          "Steppenwolf",
-          "Cream",
-          "The Who",
-          "The Animals",
-          "Creedence Clearwater Revival",
-        ],
-        "70s": [
-          "Led Zeppelin",
-          "Black Sabbath",
-          "Deep Purple",
-          "Queen",
-          "Pink Floyd",
-          "AC/DC",
-          "Aerosmith",
-          "Lynyrd Skynyrd",
-          "The Eagles",
-          "Kiss",
-        ],
-        "80s": [
-          "Metallica",
-          "Guns N' Roses",
-          "Iron Maiden",
-          "Judas Priest",
-          "Motley Crue",
-          "Van Halen",
-          "Bon Jovi",
-          "Def Leppard",
-          "Megadeth",
-          "Scorpions",
-        ],
-        "90s": [
-          "Nirvana",
-          "Pearl Jam",
-          "Soundgarden",
-          "Alice In Chains",
-          "Rage Against The Machine",
-          "Tool",
-          "Red Hot Chili Peppers",
-          "Radiohead",
-          "The Cranberries",
-          "Green Day",
-        ],
-        "00s": [
-          "System Of A Down",
-          "Linkin Park",
-          "Disturbed",
-          "The White Stripes",
-          "Slipknot",
-          "Evanescence",
-          "Foo Fighters",
-          "The Killers",
-          "Papa Roach",
-          "Breaking Benjamin",
-        ],
-      },
-      guitarist: {
-        "60s": [
-          "Jimi Hendrix",
-          "Keith Richards",
-          "Eric Clapton",
-          "Pete Townshend",
-          "Jimmy Page",
-          "Jeff Beck",
-          "David Gilmour",
-          "Jorma Kaukonen",
-          "John Fogerty",
-          "George Harrison",
-        ],
-        "70s": [
-          "Jimmy Page",
-          "Tony Iommi",
-          "Ritchie Blackmore",
-          "Brian May",
-          "David Gilmour",
-          "Angus Young",
-          "Joe Perry",
-          "Allen Collins",
-          "Don Felder",
-          "Ace Frehley",
-        ],
-        "80s": [
-          "Kirk Hammett",
-          "Slash",
-          "Dave Murray",
-          "K.K. Downing",
-          "Mick Mars",
-          "Eddie Van Halen",
-          "Richie Sambora",
-          "Phil Collen",
-          "Marty Friedman",
-          "Rudolf Schenker",
-        ],
-        "90s": [
-          "Kurt Cobain",
-          "Mike McCready",
-          "Kim Thayil",
-          "Jerry Cantrell",
-          "Tom Morello",
-          "Adam Jones",
-          "John Frusciante",
-          "Jonny Greenwood",
-          "Billie Joe Armstrong",
-          "Noel Gallagher",
-        ],
-        "00s": [
-          "Daron Malakian",
-          "Brad Delson",
-          "Dan Donegan",
-          "Jack White",
-          "Jim Root",
-          "Ben Moody",
-          "Dave Grohl",
-          "Matthew Bellamy",
-          "Zacky Vengeance",
-          "Mark Tremonti",
-        ],
-      },
-      turkish: {
-        artist: [
-          "Barış Manço",
-          "Erkin Koray",
-          "Cem Karaca",
-          "Murat Ses",
-          "Mor ve Ötesi",
-          "Duman",
-          "Pentagram/Mezarkabul",
-          "Hayko Cepkin",
-          "Kurban",
-          "Şebnem Ferah",
-        ],
-        song: [
-          "Dönence",
-          "Yine Yalnızım",
-          "Resimdeki Gözyaşları",
-          "İşte Hendek İşte Deve",
-          "Bir Derdim Var",
-          "Senden Daha Güzel",
-          "Lions In A Cage",
-          "Bertaraf Et",
-          "Yirmi",
-          "Can Kırıkları",
-        ],
-      },
+    const questionType = this.currentQuestionType || "artist";
+    const difficulty = this.settings.difficulty || "normal";
+    const currentTrack = this.currentTrack;
+    const pool = Array.isArray(this.currentPlaylistTracks) ? this.currentPlaylistTracks : [];
+    const options = new Set([this.correctAnswer]);
+
+    const normalizedTitle = (title) => this.uiManager.cleanSongTitle(title || "");
+    const extract = (track) => {
+      if (questionType === "song") return normalizedTitle(track.title);
+      if (questionType === "album") return track.album?.title || "Unknown Album";
+      return track.artist || "Unknown Artist";
     };
 
-    const questionType =
-      this.settings.questionType === "mixed"
-        ? this.correctAnswer === (this.currentTrack.cleanTitle || this.currentTrack.title)
-          ? "song"
-          : "artist"
-        : this.settings.questionType;
+    const sameArtist = pool.filter((t) => t.artist === currentTrack.artist && t.id !== currentTrack.id);
+    const sameAlbum = pool.filter(
+      (t) => t.album?.title && t.album?.title === currentTrack.album?.title && t.id !== currentTrack.id,
+    );
 
-    // Determine era and genre
-    let era = "80s";
-    let genre = "rock";
-
-    if (this.currentTrack.genreName) {
-      const genreLower = this.currentTrack.genreName.toLowerCase();
-      if (genreLower.includes("60")) era = "60s";
-      else if (genreLower.includes("70")) era = "70s";
-      else if (genreLower.includes("80")) era = "80s";
-      else if (genreLower.includes("90")) era = "90s";
-      else if (genreLower.includes("00") || genreLower.includes("2000")) era = "00s";
-
-      if (genreLower.includes("turkish") || genreLower.includes("anatolia")) {
-        genre = "turkish";
+    const pushFrom = (list) => {
+      for (const t of this.uiManager.shuffleArray([...list])) {
+        const value = extract(t);
+        if (value && !options.has(value)) options.add(value);
+        if (options.size >= 4) break;
       }
+    };
+
+    const otherTracks = pool.filter((t) => t.id !== currentTrack.id);
+
+    if (difficulty === "insane") {
+      const hardPool = [...sameArtist, ...sameAlbum, ...otherTracks];
+      const ranked = hardPool
+        .filter((t, idx, arr) => arr.findIndex((x) => x.id === t.id) === idx)
+        .map((t) => ({
+          track: t,
+          score: this.getSimilarityScore(extract(t), this.correctAnswer),
+        }))
+        .sort((a, b) => b.score - a.score)
+        .map((x) => x.track);
+
+      pushFrom(ranked);
+    } else if (difficulty === "hard") {
+      // Harder distractors first: related tracks from same artist/album
+      pushFrom(sameArtist);
+      pushFrom(sameAlbum);
+      pushFrom(otherTracks);
+    } else {
+      // Normal: broader random distractors from the same playlist
+      pushFrom(this.uiManager.shuffleArray([...otherTracks]));
+      pushFrom(sameArtist);
+      pushFrom(sameAlbum);
     }
 
-    const options = [this.correctAnswer];
+    // Last-resort fallback from previously played tracks (also from Deezer)
+    pushFrom(this.playedTracks.filter((t) => t.id !== currentTrack.id));
 
-    // Add appropriate fake options
-    while (options.length < 4) {
-      let optionPool;
-
-      if (genre === "turkish" && enhancedOptions.turkish[questionType]) {
-        optionPool = enhancedOptions.turkish[questionType];
-      } else if (enhancedOptions[questionType]?.[era]) {
-        optionPool = enhancedOptions[questionType][era];
-      } else {
-        const allEras = Object.values(enhancedOptions[questionType] || {}).flat();
-        optionPool = allEras.length > 0 ? allEras : enhancedOptions.artist["80s"];
-      }
-
-      const randomOption = optionPool[Math.floor(Math.random() * optionPool.length)];
-
-      if (!options.includes(randomOption)) {
-        options.push(randomOption);
-      }
+    const finalOptions = [...options].slice(0, 4);
+    const recycle = finalOptions.length > 0 ? [...finalOptions] : [this.correctAnswer];
+    while (finalOptions.length < 4) {
+      finalOptions.push(recycle[finalOptions.length % recycle.length]);
     }
 
-    return this.uiManager.shuffleArray(options);
+    return this.uiManager.shuffleArray(finalOptions);
+  }
+
+  getSimilarityScore(a, b) {
+    const left = String(a || "").toLowerCase().trim();
+    const right = String(b || "").toLowerCase().trim();
+    if (!left || !right) return 0;
+    if (left === right) return 100;
+
+    let score = 0;
+    if (left.startsWith(right.slice(0, 3))) score += 20;
+    if (right.startsWith(left.slice(0, 3))) score += 20;
+
+    const lTokens = left.split(/[\s\-_/()[\],.!?'"`]+/).filter(Boolean);
+    const rTokens = new Set(right.split(/[\s\-_/()[\],.!?'"`]+/).filter(Boolean));
+    for (const t of lTokens) {
+      if (rTokens.has(t)) score += 10;
+    }
+
+    score += Math.max(0, 20 - Math.abs(left.length - right.length));
+    return score;
   }
 
   // Add continue button for VS modes

@@ -128,6 +128,7 @@ function loadSavedModeSettings() {
     };
 
     if (settings.questionType) safeSet("question-type", settings.questionType);
+    if (settings.difficulty) safeSet("difficulty", settings.difficulty);
     if (settings.timeLimit) safeSet("time-limit", settings.timeLimit);
 
     if (settings.rounds) {
@@ -299,7 +300,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupGameModeSettings();
   updateSelectionsSummary();
 
-  ["round-count", "time-limit", "question-type", "lives-count", "answer-visibility"].forEach(
+  ["round-count", "time-limit", "question-type", "difficulty", "lives-count", "answer-visibility"].forEach(
     (id) => {
       getEl(id)?.addEventListener("change", updateSelectionsSummary);
     }
