@@ -14,9 +14,9 @@
   <img src="https://img.shields.io/badge/stack-Monorepo-black">
   <img src="https://img.shields.io/badge/backend-Node.js%20%7C%20Go-green">
   <img src="https://img.shields.io/badge/security-Rust%20(WASM)-orange">
-  <img src="https://img.shields.io/badge/gateway-Kong%20%7C%20SafeLine-red">
+  <img src="https://img.shields.io/badge/edge-Caddy-red">
   <img src="https://img.shields.io/badge/frontend-React%20%7C%20TypeScript-blue">
-  <img src="https://img.shields.io/badge/infra-Docker%20%7C%20Terraform-purple">
+  <img src="https://img.shields.io/badge/infra-Docker%20Compose-purple">
   <img src="https://img.shields.io/badge/license-Proprietary-lightgrey">
   <img src="https://img.shields.io/badge/code_style-Biome-yellow?logo=biome">
   <img src="https://img.shields.io/badge/versioning-SemVer-blue">
@@ -45,7 +45,7 @@ Version      : v0.5.0-alpha
 - [Installation \& Setup](#installation--setup)
   - [Prerequisites](#prerequisites)
   - [1. Setup \& Installation](#1-setup--installation)
-  - [2. Security Infrastructure (Zero Trust)](#2-security-infrastructure-zero-trust)
+  - [2. Security Infrastructure (mTLS Certificates)](#2-security-infrastructure-mtls-certificates)
   - [3. Environment Configuration](#3-environment-configuration)
   - [4. Create Network (if needed)](#4-create-network-if-needed)
   - [5. Start the Ecosystem](#5-start-the-ecosystem)
@@ -95,7 +95,7 @@ Riffle utilizes a **Modular Monolith** architecture designed to evolve into Micr
 | **Core API** | Node.js v22 (Express) | Orchestrator, Auth & User Management |
 | **Engine** | Go (Golang) | High-Performance Matchmaking Service |
 | **Security (Core)** | Rust + WASM | Client Integrity & Anti-Cheat (Planned) |
-| **Edge** | Kong + SafeLine + mTLS | API Gateway, WAF & Zero Trust Security |
+| **Edge** | Caddy + mTLS | Reverse Proxy, HTTPS, Rate Limiting |
 | **Data (Active)**| Redis + Worker | Hot Data, Session & Write-Behind Sync |
 | **Data (Store)** | PostgreSQL | Cold Data, Persistence & Archival |
 | **Observability**| Prom / Grafana / Loki | System Metrics & Distributed Logging |
@@ -108,8 +108,8 @@ Riffle utilizes a **Modular Monolith** architecture designed to evolve into Micr
 
 ## Installation & Setup
 
-Riffle follows a **Tiered Enterprise Microservices Architecture**.
-The system is split into **Edge**, **Data**, and **Service** layers, orchestrated via TurboRepo.
+Riffle follows a layered Docker Compose architecture.
+The system is split into **Edge (prod)**, **Data**, **Service**, and **App** layers.
 
 ### Prerequisites
 * **Docker Desktop** (running)
@@ -117,10 +117,6 @@ The system is split into **Edge**, **Data**, and **Service** layers, orchestrate
 * **Go (Golang) v1.21+** (Required for Game Engine Development)
 * **Rust & Cargo** (Required for Security/WASM Module)
 * **Git**
-* **Kubernetes Tools:**
-  * `kubectl` (Cluster CLI)
-  * `kind` (Kubernetes in Docker - for Local Lab)
-  * `helm` (Package Manager)
 
 ### 1. Setup & Installation
 
@@ -133,7 +129,7 @@ cd riffle
 npm install
 ```
 
-### 2. Security Infrastructure (Zero Trust)
+### 2. Security Infrastructure (mTLS Certificates)
 
 Riffle uses mTLS (Mutual TLS) for service-to-service communication. You must generate the Root CA and Service Certificates before starting the system.
 
@@ -148,16 +144,16 @@ chmod +x ops/scripts/generate-certs.sh
 
 ### 3. Environment Configuration
 
-Copy the template to create your environment files. The system uses a 4-Environment Strategy.
+Copy the template to create your environment files. The system uses a 2-environment strategy.
 
 ```bash
 # Create the Development environment file
 cp ops/env/.env.example ops/env/.env.dev
 
-# (Optional) Create others if needed
-# cp ops/env/.env.example ops/env/.env.prod
+# Create production environment file
+cp ops/env/.env.example ops/env/.env.prod
 ```
-> **Note:** Check `ops/env/.env.dev` and ensure **MTLS_ENABLED=false** for **Dev**, or **true** for **Prod**.
+> **Note:** `MTLS_ENABLED=false` in `dev`, `true` in `prod`.
 
 ### 4. Create Network (if needed)
 
@@ -169,55 +165,33 @@ docker network create riffle_network
 
 Choose the mode that fits your current task:
 
-#### Option A: Rapid Development (Docker Compose)
-> **Infrastructure:** Simple Containers, Hot-Reload active.
-
+#### Option A: Development
 ```bash
-# Start everything in Dev Mode
-npm run start:dev
+ENV=dev node ops/scripts/ctrl.js up all
 ```
 
-#### Option B: Production Simulation (Kubernetes / Kind)
-> **Infrastructure:** Full K8s Cluster (Kind), Cilium, Kong Ingress.
-
+#### Option B: Production-like local run
 ```bash
-# 1. Create the Cluster
-kind create cluster --config ops/k8s/kind/riffle-cluster.yaml
-
-# 2. Install Infrastructure (Helm)
-helm install riffle-infra ./ops/k8s/charts/infra
-
-# 3. Deploy Apps
-kubectl apply -f ops/k8s/manifests/
+ENV=prod node ops/scripts/ctrl.js up all
 ```
 
 ### 6. Dashboard Access (Quick Links)
 
-Access methods depend on your running environment (**Docker** vs **Kubernetes**).
+Access methods depend on your running environment (`dev` vs `prod`).
 
-#### A. Docker Dev Mode (Default)
+#### A. Dev Mode (Default)
 Directly accessible via localhost ports mapped by Docker Compose.
 
 | Service | URL (Localhost) | Credentials (Default) |
 | :--- | :--- | :--- |
 | **Client App** | [http://localhost:5173](http://localhost:5173) | N/A |
 | **Core API** | [http://localhost:1968](http://localhost:1968) | `RIFFLE_API_KEY` (Check .env) |
-| **Kong Manager** | [http://localhost:8002](http://localhost:8002) | N/A (Admin) |
-| **WAF**| [http://localhost:80](http://localhost:80) | N/A |
+| **MailHog** | [http://localhost:8025](http://localhost:8025) | N/A |
+| **Redis Commander** | [http://localhost:8081](http://localhost:8081) | N/A |
 
-#### B. Kubernetes Lab Mode (Kind)
-Services are isolated by default. Use **Port-Forwarding** to access them securely.
-
-```bash
-# Kong Manager (GUI) -> http://localhost:8002
-kubectl port-forward svc/kong-gateway-manager -n kong 8002:8002
-
-# Grafana -> http://localhost:3000
-kubectl port-forward svc/grafana -n monitoring 3000:3000
-
-# Prometheus -> http://localhost:9090
-kubectl port-forward svc/prometheus-server -n monitoring 9090:9090
-```
+#### B. Prod Mode
+- Public entry: `https://<DOMAIN>` via Caddy
+- Grafana: [http://localhost:3000](http://localhost:3000)
 
 ### 7. Stop Services
 
@@ -231,11 +205,11 @@ npm run reset
 
 ### Modular Management
 
-For the complete list of Modular Management, see  [`docs/COMMANDS.md`](docs/COMMANDS.md#modular-docker-compose-commands)
+For the complete list of modular management commands, see [`docs/COMMANDS.md`](docs/COMMANDS.md).
 
 ### QoL (npm) Scripts
 
-For the complete list of Quality of Life (QoL) npm scripts, see  [`docs/COMMANDS.md`](docs/COMMANDS.md#qoL-(npm)-scripts)
+For all operational commands, see [`docs/COMMANDS.md`](docs/COMMANDS.md).
 
 ## Configuration
 
@@ -252,14 +226,12 @@ Instead of guessing variables, use the master template:
 3.  **Customize:** Edit `.env.dev` to match your local secrets.
 
 ### Environment Modes
-The system behaves differently based on the `ENV` variable (handled automatically via `npm` scripts):
+The system behaves differently based on the `ENV` variable:
 
 | Mode | File Used | Features |
 |------|-----------|----------|
-| **Dev** | `.env.dev` | No mTLS, WAF Disabled, Debug Logs |
-| **Test** | `.env.test` | No mTLS, Mock Services |
-| **Stage**| `.env.stage`| **mTLS Enabled**, SSL Required, Pre-Prod |
-| **Prod** | `.env.prod` | **mTLS Enabled**, Tuned Performance, WAF Enabled |
+| **Dev** | `.env.dev` | No mTLS, direct ports, devtools enabled |
+| **Prod** | `.env.prod` | mTLS, Caddy HTTPS edge, monitoring, backup |
 
 **Generate secure API keys:**
 ```bash
@@ -272,7 +244,7 @@ openssl rand -hex 16
 ## Progress
 
 - **Current Stage:** `Stage 4`
-- **Active Phase:** Phase 1: Cluster & Orchestration
+- **Active Phase:** Phase 1: Compose Orchestration
 
 Explore the **[Project Roadmap](./docs/ROADMAP.md)** for architecture decisions, security layers, and scaling strategy.
 
@@ -281,7 +253,7 @@ Explore the **[Project Roadmap](./docs/ROADMAP.md)** for architecture decisions,
 Stage 1: Proof of Concept (PoC)       ██████████ 100%  (Core gameplay validated)
 Stage 2: Gameplay Depth & UX          ██░░░░░░░░ 20%  (Advanced mechanics & polish pending)
 Stage 3: Platform Architecture        ████████░░ 80%  (Monorepo, services, tooling largely done)
-Stage 4: Infrastructure Foundation    ██░░░░░░░░ 20%  ← current
+Stage 4: Infrastructure Foundation    ████░░░░░░ 40%  ← current
 Stage 5: Production Operations        ░░░░░░░░░░ 0%   (GitOps, secrets, observability planned)
 Stage 6: Expansion & Integrity        ░░░░░░░░░░ 0%   (Mobile & anti-cheat planned)
 ```
@@ -289,9 +261,9 @@ Stage 6: Expansion & Integrity        ░░░░░░░░░░ 0%   (Mobil
 ### Active Phase Breakdown (Stage 4: Phase 1)
 ```text
 - Local Lab (Docker)     ██████████ 100% (Compose modularization complete)
-- Local Lab (K8s / Kind) ██░░░░░░░░ 20%  (Cluster topology & base config)
-- Networking (Cilium)    ░░░░░░░░░░ 0%   (Planned)
-- Ingress (Kong K8s)     ░░░░░░░░░░ 0%   (Planned)
+- Prod Edge (Caddy)      ███████░░░ 70%  (HTTPS + routing complete, hardening pending)
+- Observability/Backup   ███░░░░░░░ 30%  (baseline services added)
+- Security Hardening      ░░░░░░░░░░ 0%  (planned)
 ```
 
 Review the **[Changelog](./docs/CHANGELOG.md)** for a complete history of features, changes, and releases.

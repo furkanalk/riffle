@@ -47,7 +47,7 @@ Stages may overlap intentionally as the platform evolves.
 - [x] **Phase 1: Structural Overhaul**
   - [x] Monorepo setup (TurboRepo, Apps/Ops split).
   - [x] Service separation (Core API, Worker, Engine).
-  - [x] Multi-environment strategy (Dev/Test/Stage/Prod).
+  - [x] Multi-environment strategy (Dev/Prod).
 
 - [x] **Phase 2: Developer Tooling**
   - [x] Biome (linting & formatting).
@@ -62,19 +62,22 @@ Stages may overlap intentionally as the platform evolves.
 ---
 
 ## Stage 4: Infrastructure Foundation
-> *Establishing a cloud-native, zero-trust baseline.*
+> *Establishing a production-ready container baseline.*
 
 - [ ] **Phase 1: Local Orchestration**
-  - [x] Docker Compose modularization (Dev/Test).
-  - [ ] Kubernetes local lab (Kind, multi-node).
+  - [x] Docker Compose modularization (common/dev/prod layers).
+  - [x] Environment simplification to Dev + Prod.
 
-- [ ] **Phase 2: Networking**
-  - [ ] Cilium CNI integration (eBPF).
-  - [ ] Baseline NetworkPolicies.
+- [ ] **Phase 2: Edge & Security**
+  - [x] Caddy reverse proxy in prod.
+  - [x] Automatic HTTPS termination in prod.
+  - [ ] Hardened rate-limit and abuse policies.
+  - [ ] JWT/session hardening pass.
 
-- [ ] **Phase 3: Ingress & Edge**
-  - [ ] Kong Ingress Controller.
-  - [ ] mTLS for service-to-service traffic.
+- [ ] **Phase 3: Reliability**
+  - [x] PostgreSQL backup service in prod stack.
+  - [ ] Backup restore drill automation.
+  - [ ] Healthcheck and restart policy audit for all services.
 
 ---
 
