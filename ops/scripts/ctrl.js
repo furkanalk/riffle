@@ -21,7 +21,7 @@ if (!["dev", "prod"].includes(env)) {
 
 if (!action || !target) {
   console.error(`${colors.red}Usage: ENV=dev node ops/scripts/ctrl.js [up|down] [target]${colors.reset}`);
-  console.error(`${colors.gray}Targets: infra:data, infra:edge(*), svc:all, app:client, dev:tools, prod:monitor, prod:backup, infra:all, all${colors.reset}`);
+  console.error(`${colors.gray}Targets: infra:data, infra:edge(*), svc:all, app:client, prod:monitor, prod:backup, infra:all, all${colors.reset}`);
   console.error(`${colors.gray}(*) infra:edge only available in prod (Caddy)${colors.reset}`);
   process.exit(1);
 }
@@ -33,11 +33,6 @@ const layers = {
   "app:client":  ["ops/compose/common/client.yml"],
 };
 
-// ── Dev-only layers ────────────────────────────────────────────────────────────
-if (env === "dev") {
-  layers["dev:tools"] = ["ops/compose/dev/devtools.yml"];
-}
-
 // ── Prod-only layers ───────────────────────────────────────────────────────────
 if (env === "prod") {
   layers["infra:edge"]    = ["ops/compose/prod/caddy.yml"];
@@ -48,7 +43,6 @@ if (env === "prod") {
 // ── Aliases ────────────────────────────────────────────────────────────────────
 layers["infra:all"] = [
   ...layers["infra:data"],
-  ...(env === "dev"  ? layers["dev:tools"]                                          : []),
   ...(env === "prod" ? [...layers["infra:edge"], ...layers["prod:monitor"], ...layers["prod:backup"]] : []),
 ];
 
