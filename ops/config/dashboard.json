@@ -1,26 +1,15 @@
 {
   "dev": {
-    "title": "RIFFLE DEV STACK (v0.4.5)",
+    "title": "RIFFLE DEV STACK (v0.5.0)",
     "services": [
-      { "name": "Client", "url": "http://localhost:80" },
-      { "name": "WAF", "url": "http://localhost:443" },
-      { "name": "Kong Proxy", "url": "http://localhost:8000" },
-      { "name": "Kong API", "url": "http://localhost:8001" },
-      { "name": "Kong Manager", "url": "http://localhost:8002" },
-      { "name": "Core API", "url": "http://localhost:1968" }
+      { "name": "Client",      "url": "http://localhost:5173" },
+      { "name": "Core API",    "url": "http://localhost:1968" },
+      { "name": "Matchmaker",  "url": "http://localhost:8080" }
     ],
     "tools": [
-      { "name": "MailHog", "url": "http://localhost:8025" },
-      { "name": "Redis GUI", "url": "http://localhost:8081" },
-      { "name": "HttpBin", "url": "http://localhost:8082" }
+      { "name": "MailHog",     "url": "http://localhost:8025" },
+      { "name": "Redis GUI",   "url": "http://localhost:8081" },
+      { "name": "HttpBin",     "url": "http://localhost:8082" }
     ]
-  },
-  "test": {
-    "title": "RIFFLE TEST STACK ONLINE",
-    "services": [
-      { "name": "Client", "url": "http://localhost:80" },
-      { "name": "Core API", "url": "http://localhost:1969" }
-    ],
-    "tools": [{ "name": "MailHog", "url": "http://localhost:8025" }]
   }
 }

@@ -11,9 +11,6 @@ try {
   const data = config[env];
 
   if (!data) {
-    if (["stage", "prod"].includes(env)) {
-      console.log(`\n ${env.toUpperCase()} ENVIRONMENT STARTED (Logs Hidden)\n`);
-    }
     process.exit(0);
   }
 
