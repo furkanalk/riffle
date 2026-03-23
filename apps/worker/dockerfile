@@ -1,16 +1,10 @@
 FROM node:22-alpine AS base
 WORKDIR /app
 
-# --- DEV & TEST ---
+# --- DEVELOPMENT ---
 FROM base AS dev
 CMD ["sh", "-c", "echo 'Worker (DEV) started...' && tail -f /dev/null"]
 
-# Dev = Test
-FROM dev AS test
-
-# --- PROD & STAGE ---
+# --- PRODUCTION ---
 FROM base AS prod
 CMD ["sh", "-c", "echo 'Worker (PROD) started...' && tail -f /dev/null"]
-
-# Stage = Prod
-FROM prod AS stage
