@@ -153,11 +153,9 @@ export function initAuthUI() {
       // Button state
       btn.disabled = !isFormValid;
       if (isFormValid) {
-        btn.classList.remove("opacity-50", "cursor-not-allowed");
-        btn.classList.add("hover:shadow-lg", "hover:-translate-y-1");
+        btn.classList.remove("btn--disabled");
       } else {
-        btn.classList.add("opacity-50", "cursor-not-allowed");
-        btn.classList.remove("hover:shadow-lg", "hover:-translate-y-1");
+        btn.classList.add("btn--disabled");
       }
     };
 
@@ -368,17 +366,13 @@ export function initAuthUI() {
   function switchAuthTab(tab) {
     clearMessage();
     if (tab === "login") {
-      elements.tabLogin.classList.add("text-white", "border-purple-500");
-      elements.tabLogin.classList.remove("text-gray-400", "border-transparent");
-      elements.tabRegister.classList.add("text-gray-400", "border-transparent");
-      elements.tabRegister.classList.remove("text-white", "border-purple-500");
+      elements.tabLogin.classList.add("auth-tab--active");
+      elements.tabRegister.classList.remove("auth-tab--active");
       elements.formLogin.classList.remove("hidden");
       elements.formRegister.classList.add("hidden");
     } else {
-      elements.tabRegister.classList.add("text-white", "border-purple-500");
-      elements.tabRegister.classList.remove("text-gray-400", "border-transparent");
-      elements.tabLogin.classList.add("text-gray-400", "border-transparent");
-      elements.tabLogin.classList.remove("text-white", "border-purple-500");
+      elements.tabRegister.classList.add("auth-tab--active");
+      elements.tabLogin.classList.remove("auth-tab--active");
       elements.formRegister.classList.remove("hidden");
       elements.formLogin.classList.add("hidden");
     }
