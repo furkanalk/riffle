@@ -4,125 +4,104 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Riffle - Options</title>
-  <!-- Favicon -->
+  <title>Riffle - Marathon Mode</title>
   <link rel="apple-touch-icon" sizes="180x180" href="./public/favicon/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="./public/favicon/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="./public/favicon/favicon-16x16.png">
   <link rel="manifest" href="./public/favicon/site.webmanifest">
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./src/css/categories.css">
-
 </head>
 
-<body class="bg-gradient-to-br from-gray-900 via-purple-900 to-black min-h-screen relative">
-  <!-- Game Timer Bar - Initially hidden -->
-  <div id="game-timer-container" class="fixed top-0 left-0 w-full h-2 z-50 hidden">
-    <div class="w-full h-full bg-gray-800">
-      <div id="game-timer-bar" class="h-full bg-gradient-to-r from-red-500 to-yellow-500 transition-all duration-100"
-        style="width: 100%"></div>
+<body>
+
+  <!-- Ambient background glows (same as index.html) -->
+  <div class="bg-glow bg-glow--purple"></div>
+  <div class="bg-glow bg-glow--pink"></div>
+  <div class="bg-glow bg-glow--blue"></div>
+
+  <style>
+    /* Same ambient bg as index.html */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      min-height: 100vh;
+      font-family: 'Montserrat', sans-serif;
+      background-color: #080810;
+      color: #fff;
+      overflow-x: hidden;
+    }
+    .bg-glow {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .bg-glow--purple { width: 600px; height: 600px; top: -200px; left: -200px;  background: rgba(109,40,217,.18); }
+    .bg-glow--pink   { width: 500px; height: 500px; top: 40%;   right: -150px; background: rgba(219,39,119,.12); }
+    .bg-glow--blue   { width: 500px; height: 500px; bottom: -150px; left: 30%; background: rgba(37,99,235,.10); }
+
+    /* Header (same as index.html) */
+    .site-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .75rem 1.5rem;
+      background: rgba(8,8,16,.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .site-logo {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      font-size: 1.125rem;
+      font-weight: 900;
+      color: #fff;
+      text-decoration: none;
+      letter-spacing: -.02em;
+    }
+    .site-logo span:first-child { font-size: 1.375rem; }
+
+    /* Content spacing for fixed header */
+    main { padding-top: 4.5rem; position: relative; z-index: 10; }
+  </style>
+
+  <!-- ── HEADER ─────────────────────────────────────────────────────────── -->
+  <header class="site-header">
+    <a href="./index.html" class="site-logo">
+      <span>🎸</span>
+      <span>Riffle</span>
+    </a>
+    <a href="./index.html" class="text-purple-300 hover:text-white text-sm font-semibold transition flex items-center gap-1">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+      </svg>
+      Main Menu
+    </a>
+  </header>
+  <!-- ── MAIN ───────────────────────────────────────────────────────────── -->
+  <main>
+    <!-- Game Timer Bar -->
+    <div id="game-timer-container" class="fixed top-14 left-0 w-full h-2 z-40 hidden">
+      <div class="w-full h-full bg-gray-800">
+        <div id="game-timer-bar" class="h-full bg-gradient-to-r from-red-500 to-yellow-500 transition-all duration-100"
+          style="width: 100%"></div>
+      </div>
     </div>
-  </div>
 
-  <!-- Main container with scrolling -->
-  <div class="h-screen overflow-y-auto py-6 px-4 relative"
-    style="scrollbar-width: thin; scrollbar-color: rgba(139, 92, 246, 0.5) rgba(0, 0, 0, 0.2); pointer-events: auto;">
+    <!-- Content wrapper -->
+    <div class="h-screen overflow-y-auto py-6 px-4 relative"
+      style="scrollbar-width: thin; scrollbar-color: rgba(139, 92, 246, 0.5) rgba(0, 0, 0, 0.2);">
 
-    <!-- THIS section is going to be replaced with the rock/metal band album covers. Its a placeholder currently -->
-    <!-- Background moving strips - multiple layers with different speeds -->
-    <div class="fixed inset-0 overflow-hidden -z-10">
-      <!-- Top layer - faster -->
-      <div class="absolute top-1/4 left-[-50%] w-[200%] h-40 flex space-x-8 animate-scroll"
-        style="animation-duration: 25s;">
-        <img src="https://i.scdn.co/image/ab67616d0000b2733238d38e7af93cdbed9c094f" alt="Album Cover"
-          class="object-cover rounded-lg shadow-lg h-full" />
-        <img src="https://i.scdn.co/image/ab67616d0000b273713f147e436b1f6969c1c868" alt="Album Cover"
-          class="object-cover rounded-lg shadow-lg h-full" />
-        <img src="https://i.scdn.co/image/ab67616d0000b2732dc63e977bd5101072adcef6" alt="Album Cover"
-          class="object-cover rounded-lg shadow-lg h-full" />
-        <img src="https://i.scdn.co/image/ab67616d0000b2735c1c5f32210ecb26e8cf0b6c" alt="Album Cover"
-          class="object-cover rounded-lg shadow-lg h-full" />
-        <img src="https://i.scdn.co/image/ab67616d0000b2734718e2b124f79258be7bc452" alt="Album Cover"
-          class="object-cover rounded-lg shadow-lg h-full" />
-        <img src="https://i.scdn.co/image/ab67616d0000b273b1c4b76e23414c9f20242268" alt="Album Cover"
-          class="object-cover rounded-lg shadow-lg h-full" />
-      </div>
-
-      <!-- Middle layer - normal speed -->
-      <div class="absolute top-1/2 left-[-50%] w-[200%] h-48 flex space-x-6 animate-scroll">
-        <img src="https://i.scdn.co/image/ab67616d0000b2738940ac99f49e44f7c74d8f26" alt="Album Cover"
-          class="object-cover rounded-lg shadow-lg h-full" />
-        <img src="https://i.scdn.co/image/ab67616d0000b273f0b9b2e5e266d0a4b2e59d30" alt="Album Cover"
-          class="object-cover rounded-lg shadow-lg h-full" />
-        <img src="https://i.scdn.co/image/ab67616d0000b273b89348385c0f5ca25a90b413" alt="Album Cover"
-          class="object-cover rounded-lg shadow-lg h-full" />
-        <img src="https://i.scdn.co/image/ab67616d0000b273d5a8395b0d80b8c48a5d851c" alt="Album Cover"
-          class="object-cover rounded-lg shadow-lg h-full" />
-        <img src="https://i.scdn.co/image/ab67616d0000b2731b4d3ee02816c6b7520e5ae4" alt="Album Cover"
-          class="object-cover rounded-lg shadow-lg h-full" />
-        <img src="https://i.scdn.co/image/ab67616d0000b2730d249b1b7c8cd71a08a4ceb5" alt="Album Cover"
-          class="object-cover rounded-lg shadow-lg h-full" />
-      </div>
-
-      <!-- Bottom layer - slower -->
-      <div class="absolute top-3/4 left-[-50%] w-[200%] h-36 flex space-x-10 animate-scroll"
-        style="animation-duration: 40s;">
-        <img src="https://i.scdn.co/image/ab67616d0000b2739b6ac98a52f62d5cb473da40" alt="Album Cover"
-          class="object-cover rounded-lg shadow-lg h-full" />
-        <img src="https://i.scdn.co/image/ab67616d0000b273cc462180990bce4e1144c2ea" alt="Album Cover"
-          class="object-cover rounded-lg shadow-lg h-full" />
-        <img src="https://i.scdn.co/image/ab67616d0000b27350bae4344cb088dfbf01d04f" alt="Album Cover"
-          class="object-cover rounded-lg shadow-lg h-full" />
-        <img src="https://i.scdn.co/image/ab67616d0000b2739b19c107109de740bad72df5" alt="Album Cover"
-          class="object-cover rounded-lg shadow-lg h-full" />
-        <img src="https://i.scdn.co/image/ab67616d0000b2734ae1c4c5c45aabe565499163" alt="Album Cover"
-          class="object-cover rounded-lg shadow-lg h-full" />
-        <img src="https://i.scdn.co/image/ab67616d0000b273e175a19e530c7d76e4db5739" alt="Album Cover"
-          class="object-cover rounded-lg shadow-lg h-full" />
-      </div>
-    </div>
-
-    <!-- Top Navigation with fixed left panel -->
-    <nav class="relative px-6 pt-6 flex justify-between items-center">
-      <div id="menu-panel" style="isolation: isolate;"
-        class="fixed top-6 left-6 z-[99999] flex flex-col items-start bg-black bg-opacity-50 backdrop-blur-sm p-3 rounded-xl border border-purple-800 border-opacity-40 shadow-xl hover:shadow-purple-600/50 hover:border-purple-600 transition-all duration-500">
-        <!-- Riffle title -->
-        <div class="relative overflow-hidden mb-3 w-full">
-          <div
-            class="absolute inset-0 bg-gradient-to-r from-purple-700 via-indigo-600 to-purple-700 opacity-80 animate-pulse rounded-lg">
-          </div>
-          <h3 class="relative z-10 text-white px-4 py-2 font-bold text-xl">Riffle</h3>
-        </div>
-
-        <a href="./index.html" id="mainMenuBtn"
-          style="position: relative; display: block; width: 100%; z-index: 999999;"
-          class="block w-full bg-black bg-opacity-80 border border-purple-600 hover:border-purple-400 rounded-lg px-3 py-2 shadow-lg hover:shadow-purple-500/50 hover:scale-105 transform transition-all duration-300">
-          <div class="flex items-center text-white hover:text-purple-300">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
-            </svg>
-            <span class="font-medium">Main Menu</span>
-          </div>
-        </a>
-      </div>
-      <!-- Empty div to maintain layout spacing -->
-      <div class="invisible">
-        <div class="mb-3">
-          <div class="px-4 py-2"></div>
-        </div>
-        <div class="px-3 py-2"></div>
-      </div>
-      <div class="text-white font-bold">
-      </div>
-    </nav>
-
-    <!-- Main Content -->
-    <main class="relative z-10 px-6 pb-10">
-      <div class="max-w-5xl mx-auto">
+      <!-- Main Content Container -->
+      <div class="relative z-10 px-6 pb-10">
+        <div class="max-w-5xl mx-auto">
         <!-- Header & Settings/Chat Toggle -->
         <div class="flex flex-col md:flex-row justify-between items-center mb-4">
           <div class="relative mb-3 md:mb-0">
@@ -696,7 +675,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </main>
 
   <!-- Module Import -->
   <script type="module" src="./src/categories/module-import.js"></script>
