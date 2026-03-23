@@ -1,11 +1,11 @@
 import bcrypt from "bcryptjs";
 import type { FastifyReply, FastifyRequest } from "fastify";
-import jwt from "jsonwebtoken";
+import jwt, { type SignOptions } from "jsonwebtoken";
 import { query } from "../config/db";
 import type { UserRow } from "../models/user";
 
 const JWT_SECRET = process.env.JWT_SECRET ?? "riffle_dev_jwt_secret";
-const TOKEN_EXPIRES_IN = process.env.TOKEN_EXPIRES_IN ?? "1d";
+const TOKEN_EXPIRES_IN = (process.env.TOKEN_EXPIRES_IN ?? "1d") as SignOptions["expiresIn"];
 
 interface RegisterBody {
   username: string;
