@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Riffle - Marathon Mode</title>
+  <title>Riffle — Marathon Mode</title>
   <link rel="apple-touch-icon" sizes="180x180" href="./public/favicon/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="./public/favicon/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="./public/favicon/favicon-16x16.png">
@@ -16,61 +16,17 @@
 
 <body>
 
-  <!-- Ambient background glows (same as index.html) -->
+  <!-- Ambient glow bg -->
   <div class="bg-glow bg-glow--purple"></div>
   <div class="bg-glow bg-glow--pink"></div>
   <div class="bg-glow bg-glow--blue"></div>
 
-  <style>
-    /* Same ambient bg as index.html */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      min-height: 100vh;
-      font-family: 'Montserrat', sans-serif;
-      background-color: #080810;
-      color: #fff;
-      overflow-x: hidden;
-    }
-    .bg-glow {
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(120px);
-      pointer-events: none;
-      z-index: 0;
-    }
-    .bg-glow--purple { width: 600px; height: 600px; top: -200px; left: -200px;  background: rgba(109,40,217,.18); }
-    .bg-glow--pink   { width: 500px; height: 500px; top: 40%;   right: -150px; background: rgba(219,39,119,.12); }
-    .bg-glow--blue   { width: 500px; height: 500px; bottom: -150px; left: 30%; background: rgba(37,99,235,.10); }
-
-    /* Header (same as index.html) */
-    .site-header {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 50;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: .75rem 1.5rem;
-      background: rgba(8,8,16,.7);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border-bottom: 1px solid rgba(255,255,255,.06);
-    }
-    .site-logo {
-      display: flex;
-      align-items: center;
-      gap: .5rem;
-      font-size: 1.125rem;
-      font-weight: 900;
-      color: #fff;
-      text-decoration: none;
-      letter-spacing: -.02em;
-    }
-    .site-logo span:first-child { font-size: 1.375rem; }
-
-    /* Content spacing for fixed header */
-    main { padding-top: 4.5rem; position: relative; z-index: 10; }
-  </style>
+  <!-- Game Timer Bar (shown during game) -->
+  <div id="game-timer-container" class="fixed top-[3.25rem] left-0 w-full h-1.5 z-40 hidden">
+    <div class="w-full h-full bg-gray-800">
+      <div id="game-timer-bar" class="h-full bg-gradient-to-r from-red-500 to-yellow-400 transition-all duration-100" style="width:100%"></div>
+    </div>
+  </div>
 
   <!-- ── HEADER ─────────────────────────────────────────────────────────── -->
   <header class="site-header">
@@ -78,607 +34,419 @@
       <span>🎸</span>
       <span>Riffle</span>
     </a>
-    <a href="./index.html" class="text-purple-300 hover:text-white text-sm font-semibold transition flex items-center gap-1">
+
+    <!-- Settings / Lobby tabs -->
+    <div class="header-tabs">
+      <button id="tab-settings" class="htab htab--active">
+        <svg xmlns="http://www.w3.org/2000/svg" class="htab__icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        Settings
+      </button>
+      <button id="tab-chat" class="htab bg-purple-600 bg-opacity-40">
+        <svg xmlns="http://www.w3.org/2000/svg" class="htab__icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        </svg>
+        Lobby
+      </button>
+    </div>
+
+    <a href="./index.html" class="back-link">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
       </svg>
-      Main Menu
+      <span class="hidden sm:inline">Main Menu</span>
     </a>
   </header>
+
   <!-- ── MAIN ───────────────────────────────────────────────────────────── -->
   <main>
-    <!-- Game Timer Bar -->
-    <div id="game-timer-container" class="fixed top-14 left-0 w-full h-2 z-40 hidden">
-      <div class="w-full h-full bg-gray-800">
-        <div id="game-timer-bar" class="h-full bg-gradient-to-r from-red-500 to-yellow-500 transition-all duration-100"
-          style="width: 100%"></div>
-      </div>
-    </div>
 
-    <!-- Content wrapper -->
-    <div class="h-screen overflow-y-auto py-6 px-4 relative"
-      style="scrollbar-width: thin; scrollbar-color: rgba(139, 92, 246, 0.5) rgba(0, 0, 0, 0.2);">
+    <!-- ── SETTINGS PANEL ─────────────────────────────────────────────── -->
+    <div id="settings-panel" class="page-layout">
 
-      <!-- Main Content Container -->
-      <div class="relative z-10 px-6 pb-10">
-        <div class="max-w-5xl mx-auto">
-        <!-- Header & Settings/Chat Toggle -->
-        <div class="flex flex-col md:flex-row justify-between items-center mb-4">
-          <div class="relative mb-3 md:mb-0">
-            <h1 class="text-4xl font-extrabold text-white relative z-10">Options</h1>
-            <div class="absolute -bottom-3 left-0 w-full h-3 bg-purple-700 opacity-30 rounded-full blur-sm"></div>
-          </div>
+      <!-- ── LEFT: main content ──────────────────────────────────────── -->
+      <div class="page-main">
 
-          <!-- Tabs -->
-          <div class="inline-flex rounded-md shadow-lg">
-            <button id="tab-settings"
-              class="px-6 py-3 text-white bg-purple-800 hover:bg-purple-700 active bg-opacity-80 rounded-l-lg font-semibold flex items-center transition-all duration-300">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              Settings
-            </button>
-            <button id="tab-chat"
-              class="px-6 py-3 text-white bg-purple-600 hover:bg-purple-700 bg-opacity-40 rounded-r-lg font-semibold flex items-center transition-all duration-300">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-              Chat
-            </button>
+        <!-- Page hero -->
+        <div class="page-hero">
+          <div class="page-hero__icon">🏃</div>
+          <div>
+            <h1 class="page-hero__title">Marathon Mode</h1>
+            <p class="page-hero__sub">Endless run — guess songs, survive as long as you can.</p>
           </div>
         </div>
 
-        <!-- Settings Panel -->
-        <div id="settings-panel"
-          class="bg-gradient-to-br from-black to-purple-900 bg-opacity-80 rounded-2xl p-5 mb-6 shadow-2xl border border-purple-800 border-opacity-30">
-          <!-- Game Settings -->
-          <div class="mb-4">
-            <div class="flex items-center mb-3">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-400 mr-2" fill="none"
-                viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <h2 class="text-2xl font-bold text-white">Game Settings</h2>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <!-- Round Count Selection -->
-              <div
-                class="mb-4 bg-black bg-opacity-30 p-4 rounded-xl border border-purple-700 border-opacity-30 transform transition-transform hover:scale-[1.02]"
-                id="round-count-container">
-                <!-- Marathon mode badge - will only be visible in Marathon mode -->
-                <div id="marathon-badge"
-                  class="hidden absolute top-0 right-0 transform translate-x-2 -translate-y-2 bg-purple-600 text-white text-xs px-2 py-1 rounded-md shadow-lg">
-                  Marathon Mode
-                </div>
-                <div class="flex items-center mb-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-400 mr-2" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-                  </svg>
-                  <label for="round-count" class="block text-sm font-medium text-purple-200">Number of Questions</label>
-                </div>
-                <!-- For non-Marathon modes -->
-                <select id="round-count"
-                  class="w-full bg-gray-900 border border-purple-700 border-opacity-40 text-white py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 shadow-inner">
-                  <option value="5">5 Questions</option>
-                  <option value="10" selected>10 Questions</option>
-                  <option value="15">15 Questions</option>
-                  <option value="20">20 Questions</option>
-                  <option value="unlimited">Unlimited (Marathon Only)</option>
-                </select>
-
-                <!-- For Marathon mode only - empty display area to replace dropdown -->
-                <div id="marathon-unlimited-display" class="hidden w-full bg-transparent py-3 px-4 rounded-lg">
-                  <span class="text-purple-300">Unlimited Questions</span>
-                </div>
-
-                <!-- Hidden field to ensure the value is always set -->
-                <input type="hidden" id="marathon-round-count-hidden" value="unlimited">
-              </div>
-
-              <!-- Lives Setting (Only for Marathon mode) -->
-              <div
-                class="mb-4 bg-black bg-opacity-30 p-4 rounded-xl border border-purple-700 border-opacity-30 transform transition-transform hover:scale-[1.02]"
-                id="lives-container">
-                <!-- Marathon mode badge - will only be visible in Marathon mode -->
-                <div id="marathon-badge-lives"
-                  class="hidden absolute top-0 right-0 transform translate-x-2 -translate-y-2 bg-purple-600 text-white text-xs px-2 py-1 rounded-md shadow-lg">
-                  Marathon Mode
-                </div>
-                <div class="flex items-center mb-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-400 mr-2" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                  <label for="lives-count" class="block text-sm font-medium text-purple-200">Lives</label>
-                </div>
-                <select id="lives-count"
-                  class="w-full bg-gray-900 border border-purple-700 border-opacity-40 text-white py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 shadow-inner">
-                  <option value="0">No Lives - One Strike and You're Out</option>
-                  <option value="3" selected>3 Lives</option>
-                  <option value="5">5 Lives</option>
-                  <option value="10">10 Lives (Every 10 Questions)</option>
-                  <option value="unlimited">Unlimited Lives (Practice Mode)</option>
-                </select>
-              </div>
-
-              <!-- Question Type -->
-              <div
-                class="mb-4 bg-black bg-opacity-30 p-4 rounded-xl border border-purple-700 border-opacity-30 transform transition-transform hover:scale-[1.02]">
-                <div class="flex items-center mb-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-400 mr-2" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <label for="question-type" class="block text-sm font-medium text-purple-200">Question Type</label>
-                </div>
-                <select id="question-type"
-                  class="w-full bg-gray-900 border border-purple-700 border-opacity-40 text-white py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 shadow-inner">
-                  <option value="song">Song Title</option>
-                  <option value="artist">Artist/Band</option>
-                  <option value="mixed" selected>Mixed</option>
-                  <option value="guitarist">Guitarist (Extra Hard!)</option>
-                </select>
-              </div>
-
-              <!-- Answer Time - Now available for all modes -->
-              <div
-                class="mb-4 bg-black bg-opacity-30 p-4 rounded-xl border border-purple-700 border-opacity-30 transform transition-transform hover:scale-[1.02]"
-                id="time-limit-container">
-                <div class="flex items-center mb-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-400 mr-2" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <label for="time-limit" class="block text-sm font-medium text-purple-200">Answer Time</label>
-                </div>
-                <select id="time-limit"
-                  class="w-full bg-gray-900 border border-purple-700 border-opacity-40 text-white py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 shadow-inner">
-                  <option value="10">10 Seconds (Hard)</option>
-                  <option value="15" selected>15 Seconds (Normal)</option>
-                  <option value="20">20 Seconds (Easy)</option>
-                </select>
-              </div>
-
-              <!-- Answer Visibility (Only for multiplayer modes) -->
-              <div
-                class="mb-4 bg-black bg-opacity-30 p-4 rounded-xl border border-purple-700 border-opacity-30 transform transition-transform hover:scale-[1.02] hidden"
-                id="answer-visibility-container">
-                <div class="flex items-center mb-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-400 mr-2" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                  <label for="answer-visibility" class="block text-sm font-medium text-purple-200">Answer
-                    Visibility</label>
-                </div>
-                <select id="answer-visibility"
-                  class="w-full bg-gray-900 border border-purple-700 border-opacity-40 text-white py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 shadow-inner">
-                  <option value="visible" selected>Show answers in real-time</option>
-                  <option value="hidden">Reveal answers at round end</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <!-- Player Avatar Selection -->
-          <div class="mb-4">
-            <div class="flex items-center mb-3">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-400 mr-2" fill="none"
-                viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              <h2 class="text-2xl font-bold text-white">Your Avatar</h2>
-            </div>
-
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3" id="avatar-options-container">
-              <div
-                class="avatar-option selected bg-black bg-opacity-30 p-3 rounded-xl border-2 border-purple-500 text-center cursor-pointer hover:bg-purple-900 hover:bg-opacity-30 transition-all"
-                data-avatar="avatar1">
-                <div class="relative">
-                  <img src="./src/img/avatars/avatar1.png" alt="Avatar 1"
-                    class="w-20 h-20 mx-auto mb-2 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 p-1 object-cover">
-                  <div
-                    class="absolute -top-2 -right-2 w-7 h-7 bg-purple-600 rounded-full flex items-center justify-center border-2 border-white checkmark">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"
-                      stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                </div>
-                <div class="text-white text-sm">Jimi Hendrix</div>
-              </div>
-              <div
-                class="avatar-option bg-black bg-opacity-30 p-3 rounded-xl border-2 border-purple-900 border-opacity-30 text-center cursor-pointer hover:bg-purple-900 hover:bg-opacity-30 transition-all"
-                data-avatar="avatar2">
-                <div class="relative">
-                  <img src="./src/img/avatars/avatar2.png" alt="Avatar 2"
-                    class="w-20 h-20 mx-auto mb-2 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 p-1 object-cover">
-                  <div
-                    class="absolute -top-2 -right-2 w-7 h-7 bg-purple-600 rounded-full flex items-center justify-center border-2 border-white checkmark hidden">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"
-                      stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                </div>
-                <div class="text-white text-sm">Ozzy Osbourne</div>
-              </div>
-              <div
-                class="avatar-option bg-black bg-opacity-30 p-3 rounded-xl border-2 border-purple-900 border-opacity-30 text-center cursor-pointer hover:bg-purple-900 hover:bg-opacity-30 transition-all"
-                data-avatar="avatar3">
-                <div class="relative">
-                  <img src="./src/img/avatars/avatar3.png" alt="Avatar 3"
-                    class="w-20 h-20 mx-auto mb-2 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 p-1 object-cover">
-                  <div
-                    class="absolute -top-2 -right-2 w-7 h-7 bg-purple-600 rounded-full flex items-center justify-center border-2 border-white checkmark hidden">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"
-                      stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                </div>
-                <div class="text-white text-sm">Eric Clapton</div>
-              </div>
-              <div
-                class="avatar-option bg-black bg-opacity-30 p-3 rounded-xl border-2 border-purple-900 border-opacity-30 text-center cursor-pointer hover:bg-purple-900 hover:bg-opacity-30 transition-all"
-                data-avatar="avatar4">
-                <div class="relative">
-                  <img src="./src/img/avatars/avatar4.png" alt="Avatar 4"
-                    class="w-20 h-20 mx-auto mb-2 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 p-1 object-cover">
-                  <div
-                    class="absolute -top-2 -right-2 w-7 h-7 bg-purple-600 rounded-full flex items-center justify-center border-2 border-white checkmark hidden">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"
-                      stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                </div>
-                <div class="text-white text-sm">Bruce Dickinson</div>
-              </div>
-            </div>
-
-            <div class="text-center">
-              <button id="customize-avatar"
-                class="text-purple-300 hover:text-purple-200 text-sm flex items-center mx-auto">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                </svg>
-                More avatars coming soon!
-              </button>
-            </div>
-          </div>
-
-          <!-- Category Selection -->
-          <div class="flex items-center mb-2 mt-0">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-400 mr-2" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+        <!-- ── GAME SETTINGS ──────────────────────────────────────────── -->
+        <section class="settings-card">
+          <h2 class="card-title">
+            <svg xmlns="http://www.w3.org/2000/svg" class="card-title__icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            <h2 class="text-2xl font-bold text-white">Music Categories</h2>
+            Game Settings
+          </h2>
+
+          <div class="settings-grid">
+
+            <!-- Rounds (non-marathon) -->
+            <div class="setting-field" id="round-count-container">
+              <div id="marathon-badge" class="mode-badge hidden">Marathon Mode</div>
+              <label class="field-label">
+                <svg xmlns="http://www.w3.org/2000/svg" class="field-label__icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                </svg>
+                Number of Questions
+              </label>
+              <select id="round-count" class="field-select">
+                <option value="5">5 Questions</option>
+                <option value="10" selected>10 Questions</option>
+                <option value="15">15 Questions</option>
+                <option value="20">20 Questions</option>
+                <option value="unlimited">Unlimited (Marathon Only)</option>
+              </select>
+              <div id="marathon-unlimited-display" class="hidden field-unlimited">
+                ∞ Unlimited Questions
+              </div>
+              <input type="hidden" id="marathon-round-count-hidden" value="unlimited">
+            </div>
+
+            <!-- Lives (marathon) -->
+            <div class="setting-field" id="lives-container">
+              <div id="marathon-badge-lives" class="mode-badge hidden">Marathon Mode</div>
+              <label class="field-label">
+                <svg xmlns="http://www.w3.org/2000/svg" class="field-label__icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                Lives
+              </label>
+              <select id="lives-count" class="field-select">
+                <option value="0">No Lives — One Strike Out</option>
+                <option value="3" selected>3 Lives</option>
+                <option value="5">5 Lives</option>
+                <option value="10">10 Lives</option>
+                <option value="unlimited">Unlimited Lives (Practice)</option>
+              </select>
+            </div>
+
+            <!-- Question Type -->
+            <div class="setting-field">
+              <label class="field-label">
+                <svg xmlns="http://www.w3.org/2000/svg" class="field-label__icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Question Type
+              </label>
+              <select id="question-type" class="field-select">
+                <option value="song">Song Title</option>
+                <option value="artist">Artist / Band</option>
+                <option value="mixed" selected>Mixed</option>
+                <option value="guitarist">Guitarist (Extra Hard!)</option>
+              </select>
+            </div>
+
+            <!-- Answer Time -->
+            <div class="setting-field" id="time-limit-container">
+              <label class="field-label">
+                <svg xmlns="http://www.w3.org/2000/svg" class="field-label__icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Answer Time
+              </label>
+              <select id="time-limit" class="field-select">
+                <option value="10">10 s — Hard</option>
+                <option value="15" selected>15 s — Normal</option>
+                <option value="20">20 s — Easy</option>
+              </select>
+            </div>
+
+            <!-- Answer Visibility (multiplayer) -->
+            <div class="setting-field" id="answer-visibility-container">
+              <label class="field-label">
+                <svg xmlns="http://www.w3.org/2000/svg" class="field-label__icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                Answer Visibility
+              </label>
+              <select id="answer-visibility" class="field-select">
+                <option value="visible" selected>Show answers in real-time</option>
+                <option value="hidden">Reveal at round end</option>
+              </select>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ── AVATAR ─────────────────────────────────────────────────── -->
+        <section class="settings-card">
+          <h2 class="card-title">
+            <svg xmlns="http://www.w3.org/2000/svg" class="card-title__icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            Your Avatar
+          </h2>
+          <div class="avatar-grid" id="avatar-options-container">
+
+            <div class="avatar-option selected border-purple-500" data-avatar="avatar1">
+              <div class="avatar-img-wrap">
+                <img src="./src/img/avatars/avatar1.png" alt="Jimi Hendrix" class="avatar-img">
+                <div class="checkmark">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                </div>
+              </div>
+              <span class="avatar-name">Jimi Hendrix</span>
+            </div>
+
+            <div class="avatar-option border-purple-900 border-opacity-30" data-avatar="avatar2">
+              <div class="avatar-img-wrap">
+                <img src="./src/img/avatars/avatar2.png" alt="Ozzy Osbourne" class="avatar-img">
+                <div class="checkmark hidden">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                </div>
+              </div>
+              <span class="avatar-name">Ozzy Osbourne</span>
+            </div>
+
+            <div class="avatar-option border-purple-900 border-opacity-30" data-avatar="avatar3">
+              <div class="avatar-img-wrap">
+                <img src="./src/img/avatars/avatar3.png" alt="Eric Clapton" class="avatar-img">
+                <div class="checkmark hidden">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                </div>
+              </div>
+              <span class="avatar-name">Eric Clapton</span>
+            </div>
+
+            <div class="avatar-option border-purple-900 border-opacity-30" data-avatar="avatar4">
+              <div class="avatar-img-wrap">
+                <img src="./src/img/avatars/avatar4.png" alt="Bruce Dickinson" class="avatar-img">
+                <div class="checkmark hidden">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                </div>
+              </div>
+              <span class="avatar-name">Bruce Dickinson</span>
+            </div>
+
+          </div>
+          <p class="avatar-more">More avatars coming soon!</p>
+        </section>
+
+        <!-- ── CATEGORIES ─────────────────────────────────────────────── -->
+        <section class="settings-card">
+          <h2 class="card-title">
+            <svg xmlns="http://www.w3.org/2000/svg" class="card-title__icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+            </svg>
+            Music Categories
+          </h2>
+
+          <!-- Filter chips -->
+          <div class="filter-chips">
+            <button data-filter="all"   class="category-filter chip chip--active">All</button>
+            <button data-filter="rock"  class="category-filter chip bg-purple-600 bg-opacity-40">Rock</button>
+            <button data-filter="metal" class="category-filter chip bg-purple-600 bg-opacity-40">Metal</button>
+            <button data-filter="mixed" class="category-filter chip bg-purple-600 bg-opacity-40">Mixed</button>
+            <button data-filter="turkish" class="category-filter chip bg-purple-600 bg-opacity-40">Turkish</button>
+            <button data-filter="artist" class="category-filter chip bg-purple-600 bg-opacity-40">Artist</button>
           </div>
 
-          <!-- Category Filter Tabs -->
-          <div class="flex flex-wrap gap-2 mb-4 justify-center">
-            <button data-filter="all"
-              class="category-filter bg-purple-800 bg-opacity-80 hover:bg-opacity-100 text-white px-5 py-2 rounded-full text-sm font-medium shadow-lg transition-all duration-300 flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
-              </svg>
-              All Categories
-            </button>
-            <button data-filter="rock"
-              class="category-filter bg-purple-600 bg-opacity-40 hover:bg-opacity-80 text-white px-5 py-2 rounded-full text-sm font-medium shadow-lg transition-all duration-300 flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-              </svg>
-              Rock
-            </button>
-            <button data-filter="metal"
-              class="category-filter bg-purple-600 bg-opacity-40 hover:bg-opacity-80 text-white px-5 py-2 rounded-full text-sm font-medium shadow-lg transition-all duration-300 flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Metal
-            </button>
-            <button data-filter="mixed"
-              class="category-filter bg-purple-600 bg-opacity-40 hover:bg-opacity-80 text-white px-5 py-2 rounded-full text-sm font-medium shadow-lg transition-all duration-300 flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-              </svg>
-              Mixed
-            </button>
-            <button data-filter="turkish"
-              class="category-filter bg-purple-600 bg-opacity-40 hover:bg-opacity-80 text-white px-5 py-2 rounded-full text-sm font-medium shadow-lg transition-all duration-300 flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
-              </svg>
-              Turkish Rock/Metal
-            </button>
-            <button data-filter="artist"
-              class="category-filter bg-purple-600 bg-opacity-40 hover:bg-opacity-80 text-white px-5 py-2 rounded-full text-sm font-medium shadow-lg transition-all duration-300 flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              Artist Specific
-            </button>
-          </div>
-
-          <!-- Categories Horizontal Scrollable Container -->
-          <div class="mb-6 relative">
-            <!-- Left scroll button -->
-            <button id="scroll-left"
-              class="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-purple-900 bg-opacity-80 hover:bg-purple-700 rounded-full p-2 shadow-lg focus:outline-none">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
+          <!-- Scrollable category cards -->
+          <div class="cat-scroll-wrap">
+            <button id="scroll-left" class="scroll-btn scroll-btn--left" aria-label="Scroll left">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-
-            <!-- Horizontally scrollable categories container -->
-            <div class="overflow-x-auto hide-scrollbar px-10">
-              <div class="flex space-x-4 py-2" id="categories-grid">
-                <!-- Category cards will be generated by JS -->
-              </div>
+            <div class="overflow-x-auto hide-scrollbar cat-scroll-inner">
+              <div class="flex space-x-4 py-2" id="categories-grid"></div>
             </div>
-
-            <!-- Right scroll button -->
-            <button id="scroll-right"
-              class="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-purple-900 bg-opacity-80 hover:bg-purple-700 rounded-full p-2 shadow-lg focus:outline-none">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
+            <button id="scroll-right" class="scroll-btn scroll-btn--right" aria-label="Scroll right">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
             </button>
           </div>
+        </section>
 
-          <!-- Start Game Button -->
-          <div class="text-center mt-6">
-            <button id="start-game"
-              class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xl font-bold py-4 px-12 rounded-xl shadow-xl hover:from-purple-700 hover:to-indigo-700 transform transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed relative group">
-              <span class="relative z-10 flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Start Game
-              </span>
-              <span
-                class="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-600/50 to-indigo-600/50 filter blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-            </button>
+        <!-- Start button (mobile — shown below categories) -->
+        <div class="start-mobile">
+          <button id="start-game" class="start-btn" disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Start Game
+          </button>
+          <p class="start-hint">Select at least one category to start</p>
+        </div>
+
+      </div><!-- /page-main -->
+
+      <!-- ── RIGHT SIDEBAR ──────────────────────────────────────────── -->
+      <aside class="page-sidebar">
+        <div id="selections-panel" class="summary-card">
+
+          <h3 class="summary-title">Your Selections</h3>
+
+          <!-- Mode -->
+          <div class="summary-row">
+            <span class="summary-label">Mode</span>
+            <span id="selection-game-mode" class="summary-value text-purple-300">Marathon Mode</span>
+          </div>
+
+          <!-- Categories -->
+          <div class="summary-section">
+            <span class="summary-label">Categories</span>
+            <ul id="selected-categories-list" class="summary-cats">
+              <li class="text-purple-300 text-sm italic">No categories selected</li>
+            </ul>
+          </div>
+
+          <!-- Settings summary -->
+          <div class="summary-settings">
+
+            <div class="summary-row" id="selection-visibility-container">
+              <svg xmlns="http://www.w3.org/2000/svg" class="summary-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              <span id="selection-visibility" class="summary-value">Answers Visible to All</span>
+            </div>
+
+            <div class="summary-row">
+              <svg xmlns="http://www.w3.org/2000/svg" class="summary-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span id="selection-questions" class="summary-value">10 Questions</span>
+            </div>
+
+            <div class="summary-row">
+              <svg xmlns="http://www.w3.org/2000/svg" class="summary-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span id="selection-time" class="summary-value">15 seconds per answer</span>
+            </div>
+
+            <div class="summary-row">
+              <svg xmlns="http://www.w3.org/2000/svg" class="summary-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span id="selection-question-type" class="summary-value">Mixed Questions</span>
+            </div>
+
+            <div class="summary-row" id="selection-lives-container">
+              <svg xmlns="http://www.w3.org/2000/svg" class="summary-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+              <span id="selection-lives" class="summary-value">3 Lives</span>
+            </div>
+
           </div>
         </div>
 
-        <!-- Chat Panel (Hidden by default) -->
-        <div id="chat-panel"
-          class="hidden bg-gradient-to-br from-black to-purple-900 bg-opacity-80 rounded-2xl p-8 shadow-2xl border border-purple-800 border-opacity-30">
-          <div class="flex items-center mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-purple-400 mr-3" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        <!-- Desktop start button -->
+        <button id="start-game-desktop" class="start-btn w-full mt-4" disabled onclick="document.getElementById('start-game').click()">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Start Game
+        </button>
+        <p class="start-hint text-center mt-2" id="start-hint-desktop">Select at least one category</p>
+
+      </aside>
+
+    </div><!-- /page-layout (settings panel) -->
+
+    <!-- ── CHAT / LOBBY PANEL ──────────────────────────────────────────── -->
+    <div id="chat-panel" class="hidden page-layout--full">
+
+      <div class="page-layout">
+        <!-- Players -->
+        <div class="settings-card flex-1">
+          <h2 class="card-title">
+            <svg xmlns="http://www.w3.org/2000/svg" class="card-title__icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
-            <h2 class="text-2xl font-bold text-white">Game Lobby</h2>
-          </div>
+            Players
+          </h2>
+          <ul id="players-list" class="space-y-2">
+            <li class="player-row">
+              <span class="online-dot online-dot--green"></span>
+              <span class="text-white font-medium">You (Host)</span>
+              <span class="status-pill status-pill--green ml-auto">Ready</span>
+            </li>
+            <li class="player-row">
+              <span class="online-dot online-dot--yellow"></span>
+              <span class="text-gray-400">Waiting for players…</span>
+              <span class="status-pill status-pill--yellow ml-auto">Connecting</span>
+            </li>
+          </ul>
 
-          <!-- Players List -->
-          <div class="mb-8">
-            <h3 class="text-lg font-semibold text-purple-300 mb-3 flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-purple-400" fill="none"
-                viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-              Players
-            </h3>
-            <div class="bg-black bg-opacity-60 rounded-xl p-5 mb-6 border border-purple-900">
-              <ul id="players-list">
-                <li class="flex items-center justify-between mb-3 p-2 bg-purple-900 bg-opacity-20 rounded-lg">
-                  <span class="flex items-center">
-                    <span
-                      class="inline-block w-3 h-3 bg-green-500 rounded-full mr-3 shadow-md shadow-green-500/50"></span>
-                    <span class="text-white font-medium">You (Host)</span>
-                  </span>
-                  <span
-                    class="text-green-400 bg-green-900 bg-opacity-30 px-3 py-1 rounded-full text-xs font-medium">Ready</span>
-                </li>
-                <li
-                  class="flex items-center justify-between mb-3 p-2 hover:bg-purple-900 hover:bg-opacity-20 rounded-lg transition-all">
-                  <span class="flex items-center">
-                    <span
-                      class="inline-block w-3 h-3 bg-yellow-500 rounded-full mr-3 shadow-md shadow-yellow-500/50"></span>
-                    <span class="text-gray-300">Waiting for players...</span>
-                  </span>
-                  <span
-                    class="text-yellow-400 bg-yellow-900 bg-opacity-30 px-3 py-1 rounded-full text-xs font-medium">Connecting</span>
-                </li>
-                <!-- Other players will be added dynamically -->
-              </ul>
-            </div>
-
-            <!-- Invite Link -->
-            <div class="flex items-center bg-black bg-opacity-60 rounded-xl p-4 border border-purple-900">
-              <div class="flex-1">
-                <div class="text-xs text-purple-300 mb-1">Invite your friends:</div>
-                <input type="text" readonly id="invite-link" value="https://riffle.game/join/ABCDEF"
-                  class="bg-transparent text-white flex-1 outline-none w-full">
-              </div>
-              <button id="copy-invite"
-                class="ml-2 text-purple-400 hover:text-purple-300 bg-purple-900 bg-opacity-40 p-2 rounded-lg hover:bg-opacity-60 transition-all">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <!-- Invite -->
+          <div class="invite-box mt-4">
+            <span class="text-xs text-purple-400 block mb-1">Invite link</span>
+            <div class="flex items-center gap-2">
+              <input type="text" readonly id="invite-link" value="https://riffle.game/join/ABCDEF"
+                class="flex-1 bg-transparent text-white text-sm outline-none min-w-0 truncate">
+              <button id="copy-invite" class="copy-btn" title="Copy link">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
-                  <path
-                    d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                  <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
                 </svg>
               </button>
             </div>
           </div>
+        </div>
 
-          <!-- Chat Messages -->
-          <div class="bg-black bg-opacity-60 rounded-xl border border-purple-900 h-72 overflow-y-auto p-5 mb-5">
-            <div id="chat-messages" class="space-y-3">
-              <div class="p-3 bg-purple-900 bg-opacity-20 rounded-lg">
-                <div class="flex items-center mb-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-purple-400 mr-1" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span class="text-purple-400 font-semibold text-sm">System</span>
-                  <span class="text-gray-500 text-xs ml-2">just now</span>
-                </div>
-                <span class="text-white">Welcome to the lobby! Invite your friends or click "Start Game" when you're
-                  ready.</span>
-              </div>
+        <!-- Chat -->
+        <div class="settings-card flex-1 flex flex-col">
+          <h2 class="card-title">
+            <svg xmlns="http://www.w3.org/2000/svg" class="card-title__icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+            Game Lobby Chat
+          </h2>
+          <div id="chat-messages" class="chat-messages">
+            <div class="chat-system-msg">
+              <span class="text-purple-400 font-semibold text-sm">System</span>
+              <span class="text-white ml-2">Welcome! Invite friends or start when ready.</span>
             </div>
           </div>
-
-          <!-- Chat Input -->
-          <div class="flex items-center">
-            <input type="text" id="chat-input" placeholder="Type a message..."
-              class="flex-1 bg-gray-900 border border-purple-700 text-white py-3 px-4 rounded-l-xl focus:outline-none focus:ring-2 focus:ring-purple-600 shadow-inner">
-            <button id="send-message"
-              class="bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white px-5 py-3 rounded-r-xl transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path
-                  d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+          <div class="chat-input-row">
+            <input type="text" id="chat-input" placeholder="Type a message…" class="chat-input">
+            <button id="send-message" class="chat-send">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
               </svg>
             </button>
           </div>
         </div>
       </div>
-    </main>
 
-    <!-- Fixed Selection Summary Panel -->
-    <div id="selections-panel"
-      class="fixed top-10 right-6 w-64 bg-black bg-opacity-80 border border-purple-600 rounded-xl overflow-hidden shadow-lg z-50 backdrop-blur-sm transform transition-all duration-500 hover:scale-105">
-      <!-- Header with glow effect -->
-      <div class="relative overflow-hidden">
-        <div
-          class="absolute inset-0 bg-gradient-to-r from-purple-700 via-indigo-600 to-purple-700 opacity-80 animate-pulse">
-        </div>
-        <h3 class="relative z-10 text-white text-center py-3 font-bold text-lg">Current Selections</h3>
-      </div>
+    </div><!-- /chat-panel -->
 
-      <!-- Game Mode -->
-      <div class="p-4 border-b border-purple-800">
-        <h4 class="text-purple-300 text-xs uppercase mb-2">Game Mode</h4>
-        <div class="flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-400 mr-2" fill="none" viewBox="0 0 24 24"
-            stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-          <span id="selection-game-mode" class="text-white font-medium">Marathon Mode</span>
-        </div>
-      </div>
-
-      <!-- Selected Categories -->
-      <div class="p-4 border-b border-purple-800">
-        <h4 class="text-purple-300 text-xs uppercase mb-2">Selected Categories</h4>
-        <ul id="selected-categories-list" class="space-y-1 max-h-32 overflow-y-auto pr-2 hide-scrollbar">
-          <!-- Will be populated by JS -->
-          <li class="text-purple-300 text-sm italic">No categories selected</li>
-        </ul>
-      </div>
-
-      <!-- Game Settings -->
-      <div class="p-4">
-        <h4 class="text-purple-300 text-xs uppercase mb-2">Game Settings</h4>
-
-        <!-- Questions Count -->
-        <div class="flex items-center mb-2">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-purple-400 mr-2" fill="none" viewBox="0 0 24 24"
-            stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span id="selection-questions" class="text-white text-sm">10 Questions</span>
-        </div>
-
-        <!-- Time Limit -->
-        <div class="flex items-center mb-2">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-purple-400 mr-2" fill="none" viewBox="0 0 24 24"
-            stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span id="selection-time" class="text-white text-sm">15 seconds per answer</span>
-        </div>
-
-        <!-- Question Type -->
-        <div class="flex items-center mb-2">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-purple-400 mr-2" fill="none" viewBox="0 0 24 24"
-            stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          <span id="selection-question-type" class="text-white text-sm">Mixed Questions</span>
-        </div>
-
-        <!-- Answer Visibility (only for multiplayer modes) -->
-        <div id="selection-visibility-container" class="flex items-center mb-2">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-purple-400 mr-2" fill="none" viewBox="0 0 24 24"
-            stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-          </svg>
-          <span id="selection-visibility" class="text-white text-sm">Answers Visible to All</span>
-        </div>
-
-        <!-- Lives (only shown for Marathon mode) -->
-        <div id="selection-lives-container" class="flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-purple-400 mr-2" fill="none" viewBox="0 0 24 24"
-            stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-          </svg>
-          <span id="selection-lives" class="text-white text-sm">3 Lives</span>
-        </div>
-      </div>
-    </div>
   </main>
 
-  <!-- Module Import -->
   <script type="module" src="./src/categories/module-import.js"></script>
-</body>
 
+  <script>
+    // Sync desktop start button disabled state with the real #start-game button
+    const realBtn = document.getElementById('start-game');
+    const deskBtn = document.getElementById('start-game-desktop');
+    const hint    = document.getElementById('start-hint-desktop');
+
+    const syncDesktop = () => {
+      if (!realBtn || !deskBtn) return;
+      deskBtn.disabled = realBtn.disabled;
+      if (hint) hint.style.display = realBtn.disabled ? 'block' : 'none';
+    };
+
+    new MutationObserver(syncDesktop).observe(realBtn, { attributes: true, attributeFilter: ['disabled'] });
+    syncDesktop();
+  </script>
+
+</body>
 </html>
