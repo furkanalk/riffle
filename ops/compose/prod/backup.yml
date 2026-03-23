@@ -1,0 +1,32 @@
+# ==========================================================
+# LAYER: BACKUP (production)
+# PostgreSQL otomatik yedek (günlük, 7 gün saklama)
+# ==========================================================
+
+networks:
+  riffle_network:
+
+services:
+  pg-backup:
+    image: prodrigestivill/postgres-backup-local
+    container_name: store-game-backup
+    restart: always
+    depends_on:
+      - store-game-pg
+    environment:
+      POSTGRES_HOST: store-game-pg
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      SCHEDULE: ${BACKUP_SCHEDULE}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS}
+      BACKUP_DIR: /backups
+      PGSSLMODE: ${BACKUP_SSL_MODE}
+      PGSSLCERT: /certs/client.crt
+      PGSSLKEY: /certs/client.key
+      PGSSLROOTCERT: /certs/ca.crt
+    volumes:
+      - ../../backups/postgres:/backups
+      - ../../secrets/certs:/certs:ro
+    networks:
+      - riffle_network

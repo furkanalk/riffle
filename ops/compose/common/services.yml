@@ -1,0 +1,105 @@
+# ==========================================================
+# LAYER: SERVICES
+# core-api, matchmaker, music-service, store-service, worker
+# ==========================================================
+
+networks:
+  riffle_network:
+
+services:
+  core-api:
+    build:
+      context: ../../../apps/core-api
+      dockerfile: dockerfile
+      target: ${DOCKER_STAGE:-dev}
+    container_name: service-core-api
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      PORT: ${PORT}
+      PGHOST: store-game-pg
+      PGPORT: 5432
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB}
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@store-game-pg:5432/${POSTGRES_DB}
+      REDIS_HOST: active-game-redis
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      RIFFLE_API_KEY: ${RIFFLE_API_KEY}
+      DEEZER_API_KEY: ${DEEZER_API_KEY}
+      MTLS_ENABLED: ${MTLS_ENABLED}
+      MTLS_CA_PATH: ${MTLS_CA_PATH}
+      MTLS_CERT_PATH: ${MTLS_CERT_PATH}
+      MTLS_KEY_PATH: ${MTLS_KEY_PATH}
+    volumes:
+      - ../../secrets/certs:/app/certs:ro
+    ports:
+      - "${PORT}:${PORT}"
+    networks:
+      - riffle_network
+    depends_on:
+      store-game-pg:
+        condition: service_healthy
+
+  matchmaker:
+    build:
+      context: ../../../apps/game-engine
+      dockerfile: dockerfile
+      target: ${DOCKER_STAGE:-dev}
+    container_name: service-matchmaker
+    environment:
+      REDIS_HOST: active-game-redis
+      MTLS_ENABLED: ${MTLS_ENABLED}
+      MTLS_CA_PATH: ${MTLS_CA_PATH}
+      MTLS_CERT_PATH: ${MTLS_CERT_PATH}
+      MTLS_KEY_PATH: ${MTLS_KEY_PATH}
+    volumes:
+      - ../../secrets/certs:/app/certs:ro
+    networks:
+      - riffle_network
+
+  music-service:
+    build:
+      context: ../../../apps/music-service
+      dockerfile: dockerfile
+      target: ${DOCKER_STAGE:-dev}
+    container_name: service-music
+    environment:
+      MTLS_ENABLED: ${MTLS_ENABLED}
+      MTLS_CA_PATH: ${MTLS_CA_PATH}
+      MTLS_CERT_PATH: ${MTLS_CERT_PATH}
+      MTLS_KEY_PATH: ${MTLS_KEY_PATH}
+    networks:
+      - riffle_network
+
+  store-service:
+    build:
+      context: ../../../apps/store-service
+      dockerfile: dockerfile
+      target: ${DOCKER_STAGE:-dev}
+    container_name: service-store
+    environment:
+      MTLS_ENABLED: ${MTLS_ENABLED}
+      MTLS_CA_PATH: ${MTLS_CA_PATH}
+      MTLS_CERT_PATH: ${MTLS_CERT_PATH}
+      MTLS_KEY_PATH: ${MTLS_KEY_PATH}
+    networks:
+      - riffle_network
+
+  db-sync-worker:
+    build:
+      context: ../../../apps/worker
+      dockerfile: dockerfile
+      target: ${DOCKER_STAGE:-dev}
+    container_name: service-worker
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@store-game-pg:5432/${POSTGRES_DB}
+      REDIS_HOST: active-game-redis
+      MTLS_ENABLED: ${MTLS_ENABLED}
+      MTLS_CA_PATH: ${MTLS_CA_PATH}
+      MTLS_CERT_PATH: ${MTLS_CERT_PATH}
+      MTLS_KEY_PATH: ${MTLS_KEY_PATH}
+    volumes:
+      - ../../secrets/certs:/app/certs:ro
+    networks:
+      - riffle_network

@@ -1,0 +1,44 @@
+# ==========================================================
+# LAYER: DATA
+# PostgreSQL (App DB) + Redis (Game Cache)
+# ==========================================================
+
+networks:
+  riffle_network:
+
+services:
+  store-game-pg:
+    image: postgres:17-bookworm
+    container_name: store-game-pg
+    command: ${POSTGRES_START_CMD}
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - compose_game_pg_data:/var/lib/postgresql/data
+      - ../../secrets/certs:/certs:ro
+      - ../../config/postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+    networks:
+      - riffle_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+
+  active-game-redis:
+    image: redis:7-alpine
+    container_name: active-game-redis
+    command: ${REDIS_START_CMD}
+    ports:
+      - "${GAME_REDIS_PORT}:6379"
+    volumes:
+      - compose_game_redis_data:/data
+      - ../../config/redis/users.acl:/etc/redis/users.acl
+      - ../../secrets/certs:/certs:ro
+    networks:
+      - riffle_network
+
+volumes:
+  compose_game_pg_data:
+  compose_game_redis_data:

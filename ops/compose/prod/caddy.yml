@@ -1,0 +1,36 @@
+# ==========================================================
+# LAYER: EDGE (production)
+# Caddy – Reverse Proxy + Automatic HTTPS + Rate Limiting
+# ==========================================================
+
+networks:
+  riffle_network:
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: infra-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"   # HTTP/3 (QUIC)
+    volumes:
+      - ../../config/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data             # Let's Encrypt sertifikaları
+      - caddy_config:/config
+      - caddy_logs:/var/log/caddy
+    environment:
+      DOMAIN: ${DOMAIN}
+      CADDY_EMAIL: ${CADDY_EMAIL}
+      PORT: ${PORT}
+    networks:
+      - riffle_network
+    depends_on:
+      - core-api
+      - client
+
+volumes:
+  caddy_data:
+  caddy_config:
+  caddy_logs:

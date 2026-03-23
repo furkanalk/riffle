@@ -1,0 +1,66 @@
+# ==========================================================
+# Caddyfile – Production Reverse Proxy
+#
+# Caddy otomatik olarak Let's Encrypt'ten TLS sertifikası
+# alır ve yeniler. DOMAIN env değişkenini .env.prod'da set et.
+#
+# Routing:
+#   /api/*   → core-api (REST)
+#   /ws/*    → matchmaker (WebSocket / game engine)
+#   /*       → client (static build)
+# ==========================================================
+
+{
+    email {$CADDY_EMAIL}
+}
+
+{$DOMAIN} {
+
+    # ----- Routing -----
+
+    handle /api/* {
+        reverse_proxy core-api:{$PORT}
+    }
+
+    handle /ws/* {
+        reverse_proxy matchmaker:8080 {
+            # WebSocket desteği Caddy'de otomatik — header yeterli
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+        }
+    }
+
+    handle {
+        reverse_proxy client:80
+    }
+
+    # ----- Rate Limiting -----
+    # Aynı IP'den dakikada max 120 istek
+    rate_limit {
+        zone global {
+            key    {remote_host}
+            events 120
+            window 1m
+        }
+    }
+
+    # ----- Security Headers -----
+    header {
+        X-Content-Type-Options  "nosniff"
+        X-Frame-Options         "DENY"
+        X-XSS-Protection        "1; mode=block"
+        Referrer-Policy         "strict-origin-when-cross-origin"
+        Permissions-Policy      "geolocation=(), microphone=()"
+        -Server
+        -X-Powered-By
+    }
+
+    # ----- Logging -----
+    log {
+        output file /var/log/caddy/access.log {
+            roll_size 10mb
+            roll_keep 5
+        }
+        format json
+    }
+}

@@ -1,0 +1,9 @@
+# Redis ACL Configuration
+#
+# dev:  Tüm komutlara izin ver, şifresiz
+# prod: REDIS_START_CMD bu dosyayı referans alır;
+#       production'da bu dosyayı güçlü şifrelerle güncelle.
+#
+# Format: user <name> on/off [>password] ~<key-pattern> +<command>
+
+user default on nopass ~* &* +@all

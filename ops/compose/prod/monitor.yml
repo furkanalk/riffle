@@ -1,0 +1,44 @@
+# ==========================================================
+# LAYER: MONITORING (production)
+# Prometheus (metrics) + Grafana (dashboards) + Loki (logs)
+# ==========================================================
+
+networks:
+  riffle_network:
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: monitor-prometheus
+    restart: unless-stopped
+    volumes:
+      - prometheus_data:/prometheus
+    networks:
+      - riffle_network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: monitor-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-changeme}
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - riffle_network
+    depends_on:
+      - prometheus
+      - loki
+
+  loki:
+    image: grafana/loki:latest
+    container_name: monitor-loki
+    restart: unless-stopped
+    networks:
+      - riffle_network
+
+volumes:
+  prometheus_data:
+  grafana_data:

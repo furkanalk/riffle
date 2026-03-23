@@ -1,0 +1,24 @@
+# ==========================================================
+# LAYER: APP
+# Client (Vite Frontend)
+# dev  → vite dev server on :5173 (HMR)
+# prod → static build served on :80 (served by caddy upstream)
+# ==========================================================
+
+networks:
+  riffle_network:
+
+services:
+  client:
+    build:
+      context: ../../../apps/client
+      dockerfile: dockerfile
+      target: ${DOCKER_STAGE:-dev}
+    container_name: riffle-client
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: ${VITE_API_URL}
+      VITE_USE_MOCK: ${VITE_USE_MOCK:-false}
+    networks:
+      - riffle_network
