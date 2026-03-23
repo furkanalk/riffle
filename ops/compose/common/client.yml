@@ -20,5 +20,8 @@ services:
     environment:
       VITE_API_URL: ${VITE_API_URL}
       VITE_USE_MOCK: ${VITE_USE_MOCK:-false}
+      # Used by vite.config.js server.proxy — must be the Docker service name when running in Docker.
+      # Falls back to localhost when Vite is run directly on the host.
+      API_PROXY_TARGET: http://core-api:${PORT:-1968}
     networks:
       - riffle_network

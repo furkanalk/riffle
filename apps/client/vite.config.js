@@ -13,9 +13,12 @@ export default defineConfig({
     },
   },
   server: {
+    host: "0.0.0.0",
     proxy: {
       "/api": {
-        target: "http://localhost:1968",
+        // Docker: API_PROXY_TARGET=http://core-api:1968 (set in client.yml)
+        // Local:  falls back to localhost
+        target: process.env.API_PROXY_TARGET || "http://localhost:1968",
         changeOrigin: true,
         secure: false,
       },
