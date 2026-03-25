@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
@@ -8,11 +9,34 @@ import (
 
 	"riffle/game-engine/internal/hub"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/redis/go-redis/v9"
 )
 
 func main() {
 	h := hub.NewHub()
+	instanceID := uuid.New().String()
+
+	redisAddr := strings.TrimSpace(os.Getenv("REDIS_ADDR"))
+	if redisAddr == "" {
+		if host := strings.TrimSpace(os.Getenv("REDIS_HOST")); host != "" {
+			redisAddr = host + ":6379"
+		}
+	}
+	if redisAddr != "" {
+		rdb := redis.NewClient(&redis.Options{Addr: redisAddr})
+		if err := rdb.Ping(context.Background()).Err(); err != nil {
+			log.Printf("redis %s unavailable, multi-instance fan-out disabled: %v", redisAddr, err)
+		} else {
+			h.ConfigureRedis(rdb, instanceID)
+			log.Printf("redis fan-out enabled (instance id %s)", instanceID)
+			go func() {
+				h.RunRedisSubscriber(context.Background())
+			}()
+		}
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"

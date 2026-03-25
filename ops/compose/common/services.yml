@@ -62,6 +62,9 @@ services:
       - ../../secrets/certs:/app/certs:ro
     networks:
       - riffle_network
+    depends_on:
+      active-game-redis:
+        condition: service_started
 
   music-service:
     build:

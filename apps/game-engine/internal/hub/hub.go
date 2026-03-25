@@ -1,7 +1,9 @@
 package hub
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -14,6 +16,7 @@ import (
 	"riffle/game-engine/internal/auth"
 
 	"github.com/gorilla/websocket"
+	"github.com/redis/go-redis/v9"
 )
 
 var roomCodeRe = regexp.MustCompile(`^[A-Z0-9]{6}$`)
@@ -32,14 +35,26 @@ type Player struct {
 	UserID   *int64 `json:"userId,omitempty"`
 }
 
-// Hub holds all live rooms (in-memory; scale-out later with Redis).
+// Hub holds all live rooms. Optional Redis pub/sub fans out room_state / game_started to other instances.
 type Hub struct {
-	mu    sync.RWMutex
-	rooms map[string]*Room
+	mu         sync.RWMutex
+	rooms      map[string]*Room
+	rdb        *redis.Client
+	instanceID string
 }
 
 func NewHub() *Hub {
 	return &Hub{rooms: make(map[string]*Room)}
+}
+
+// ConfigureRedis enables cross-instance fan-out via channel riffle:matchmaker (optional).
+func (h *Hub) ConfigureRedis(rdb *redis.Client, instanceID string) {
+	h.rdb = rdb
+	h.instanceID = instanceID
+}
+
+func (h *Hub) HasRedis() bool {
+	return h.rdb != nil && h.instanceID != ""
 }
 
 type Room struct {
@@ -61,6 +76,7 @@ type Client struct {
 	clientID string
 	conn     *websocket.Conn
 	send     chan []byte
+	gone     chan struct{}
 	once     sync.Once
 }
 
@@ -166,6 +182,13 @@ func (h *Hub) ServeWS(w http.ResponseWriter, r *http.Request, upgrader websocket
 
 	room := h.getOrCreateRoom(roomID, required)
 	room.mu.Lock()
+	if old, exists := room.clients[clientID]; exists {
+		ch := old.gone
+		room.mu.Unlock()
+		_ = old.conn.Close()
+		<-ch
+		room.mu.Lock()
+	}
 	if room.HostID == "" {
 		room.HostID = clientID
 	}
@@ -188,6 +211,7 @@ func (h *Hub) ServeWS(w http.ResponseWriter, r *http.Request, upgrader websocket
 		clientID: clientID,
 		conn:     conn,
 		send:     make(chan []byte, 32),
+		gone:     make(chan struct{}),
 	}
 	room.clients[clientID] = c
 	room.mu.Unlock()
@@ -233,6 +257,7 @@ func (h *Hub) broadcastRoomStateFor(room *Room) {
 	room.mu.RUnlock()
 
 	broadcastToClients(clients, payload)
+	h.maybePublishRedis(room.ID, payload)
 }
 
 func broadcastToClients(clients []*Client, payload []byte) {
@@ -314,16 +339,36 @@ func (c *Client) tryStartGame() {
 	count := len(c.room.Players)
 	req := c.room.Required
 	started := c.room.Started
-	if host && !started && count >= req {
-		c.room.Started = true
-		c.room.StartedAt = time.Now().UnixMilli()
-	}
-	shouldBroadcast := c.room.Started && !started
 	c.room.mu.Unlock()
-	if shouldBroadcast {
-		c.hub.broadcastRoomStateFor(c.room)
-		c.broadcastGameStarted()
+
+	if !host {
+		c.sendError("not_host", "Only the host can start the game.")
+		return
 	}
+	if started {
+		c.sendError("already_started", "This room has already started.")
+		return
+	}
+	if count < req {
+		c.sendError(
+			"lobby_not_ready",
+			fmt.Sprintf("Need at least %d player(s); %d connected.", req, count),
+		)
+		return
+	}
+
+	c.room.mu.Lock()
+	if c.room.Started {
+		c.room.mu.Unlock()
+		c.sendError("already_started", "This room has already started.")
+		return
+	}
+	c.room.Started = true
+	c.room.StartedAt = time.Now().UnixMilli()
+	c.room.mu.Unlock()
+
+	c.hub.broadcastRoomStateFor(c.room)
+	c.broadcastGameStarted()
 }
 
 func (c *Client) broadcastGameStarted() {
@@ -341,6 +386,23 @@ func (c *Client) broadcastGameStarted() {
 	}
 	room.mu.RUnlock()
 	broadcastToClients(clients, payload)
+	c.hub.maybePublishRedis(c.room.ID, payload)
+}
+
+func (c *Client) sendError(code, message string) {
+	b, err := json.Marshal(map[string]string{
+		"type":    "error",
+		"code":    code,
+		"message": message,
+	})
+	if err != nil {
+		return
+	}
+	select {
+	case c.send <- b:
+	default:
+		log.Printf("client send buffer full, dropping error %s", code)
+	}
 }
 
 func (c *Client) unregister() {
@@ -348,6 +410,8 @@ func (c *Client) unregister() {
 }
 
 func (c *Client) doUnregister() {
+	defer close(c.gone)
+
 	room := c.room
 	roomID := c.roomID
 	clientID := c.clientID
@@ -378,5 +442,128 @@ func (c *Client) doUnregister() {
 	c.hub.mu.RUnlock()
 	if ok {
 		c.hub.broadcastRoomStateFor(r)
+	}
+}
+
+func (h *Hub) maybePublishRedis(roomID string, payload []byte) {
+	if h.rdb == nil || h.instanceID == "" {
+		return
+	}
+	env := struct {
+		Origin  string          `json:"origin"`
+		RoomID  string          `json:"roomId"`
+		Payload json.RawMessage `json:"payload"`
+	}{
+		Origin:  h.instanceID,
+		RoomID:  roomID,
+		Payload: json.RawMessage(payload),
+	}
+	b, err := json.Marshal(env)
+	if err != nil {
+		return
+	}
+	if err := h.rdb.Publish(context.Background(), "riffle:matchmaker", string(b)).Err(); err != nil {
+		log.Printf("redis publish: %v", err)
+	}
+}
+
+// ensureRoom returns an empty shell used when Redis delivers state before any local WS client exists.
+func (h *Hub) ensureRoom(roomID string) *Room {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if r, ok := h.rooms[roomID]; ok {
+		return r
+	}
+	r := &Room{
+		ID:        roomID,
+		Required:  2,
+		Players:   make(map[string]*Player),
+		clients:   make(map[string]*Client),
+		joinOrder: nil,
+	}
+	h.rooms[roomID] = r
+	return r
+}
+
+func applyRoomStateFromJSON(room *Room, payload []byte) error {
+	var rs struct {
+		RequiredCount int      `json:"requiredCount"`
+		HostClientID  string   `json:"hostClientId"`
+		Started       bool     `json:"started"`
+		Players       []Player `json:"players"`
+	}
+	if err := json.Unmarshal(payload, &rs); err != nil {
+		return err
+	}
+	room.HostID = rs.HostClientID
+	if rs.RequiredCount > 0 {
+		room.Required = rs.RequiredCount
+	}
+	room.Started = rs.Started
+	room.Players = make(map[string]*Player)
+	room.joinOrder = room.joinOrder[:0]
+	for i := range rs.Players {
+		p := rs.Players[i]
+		pc := p
+		room.Players[p.ClientID] = &pc
+		room.joinOrder = append(room.joinOrder, p.ClientID)
+	}
+	return nil
+}
+
+// OnRedisMessage applies a fan-out message from another matchmaker instance (no re-publish).
+func (h *Hub) OnRedisMessage(raw []byte) {
+	var env struct {
+		Origin  string          `json:"origin"`
+		RoomID  string          `json:"roomId"`
+		Payload json.RawMessage `json:"payload"`
+	}
+	if err := json.Unmarshal(raw, &env); err != nil {
+		return
+	}
+	if env.Origin == h.instanceID || env.RoomID == "" {
+		return
+	}
+	room := h.ensureRoom(env.RoomID)
+	room.mu.Lock()
+	var head struct {
+		Type string `json:"type"`
+	}
+	_ = json.Unmarshal(env.Payload, &head)
+	if head.Type == "room_state" {
+		_ = applyRoomStateFromJSON(room, env.Payload)
+	} else if head.Type == "game_started" {
+		room.Started = true
+	}
+	room.mu.Unlock()
+
+	room.mu.RLock()
+	clients := make([]*Client, 0, len(room.clients))
+	for _, cl := range room.clients {
+		clients = append(clients, cl)
+	}
+	room.mu.RUnlock()
+	broadcastToClients(clients, env.Payload)
+}
+
+// RunRedisSubscriber blocks until ctx is cancelled.
+func (h *Hub) RunRedisSubscriber(ctx context.Context) {
+	if h.rdb == nil {
+		return
+	}
+	sub := h.rdb.Subscribe(ctx, "riffle:matchmaker")
+	defer sub.Close()
+
+	ch := sub.Channel()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case msg, ok := <-ch:
+			if !ok {
+				return
+			}
+			h.OnRedisMessage([]byte(msg.Payload))
+		}
 	}
 }
