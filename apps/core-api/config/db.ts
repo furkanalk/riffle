@@ -15,6 +15,9 @@ pool.on("error", (err: Error) => {
   process.exit(-1);
 });
 
+/**
+ * Always use parameterized queries ($1, $2, …). Never concatenate user input into SQL strings.
+ */
 export const query = (text: string, params?: unknown[]) => pool.query(text, params);
 
 export default pool;
