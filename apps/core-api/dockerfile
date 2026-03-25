@@ -7,8 +7,11 @@ COPY package*.json ./
 # tsx watch provides hot-reload with source maps
 FROM base AS dev
 RUN npm install
+COPY docker-entrypoint.dev.sh /docker-entrypoint.dev.sh
+RUN chmod +x /docker-entrypoint.dev.sh
 COPY . .
 EXPOSE 1968
+ENTRYPOINT ["/docker-entrypoint.dev.sh"]
 CMD ["npm", "run", "dev"]
 
 # --- STAGE 3: BUILDER ---
