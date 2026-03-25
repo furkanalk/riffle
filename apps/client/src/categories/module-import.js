@@ -2,17 +2,22 @@ import { sendChatMessage } from "./category-chat.js";
 import { debugCategories, filterCategories, loadCategories } from "./category-filters.js";
 import { startGame } from "./category-game.js";
 import { setupGameModeSettings, switchTab, updateSelectionsSummary } from "./category-settings.js";
+import { maybeShowGuestAvatarGate } from "./guest-avatar-gate.js";
+import { applyModeLayout } from "./mode-layout.js";
 import "./menu-navigation.js";
 import { selectedCategories } from "./state.js";
 
 // Init DOM
-document.addEventListener("DOMContentLoaded", init);
+document.addEventListener("DOMContentLoaded", async () => {
+  await maybeShowGuestAvatarGate();
+  applyModeLayout();
+  init();
+});
 
 function init() {
   initGameSettings();
   initStartButton();
   initScrollButtons();
-  initAvatarSelection();
   initSettingsListeners();
   initInviteCopy();
   initChat();
@@ -44,32 +49,6 @@ function initScrollButtons() {
     ?.addEventListener("click", () => container?.scrollBy({ left: 400, behavior: "smooth" }));
 }
 
-function initAvatarSelection() {
-  const avatars = document.querySelectorAll(".avatar-option");
-
-  avatars.forEach((avatar) => {
-    avatar.addEventListener("click", () => {
-      avatars.forEach(resetAvatar);
-      selectAvatar(avatar);
-    });
-  });
-}
-
-function resetAvatar(avatar) {
-  avatar.classList.remove("selected", "border-purple-500");
-  avatar.classList.add("border-purple-900", "border-opacity-30");
-  avatar.querySelector(".checkmark")?.classList.add("hidden");
-}
-
-function selectAvatar(avatar) {
-  avatar.classList.add("selected", "border-purple-500", "animate-pulse");
-  avatar.classList.remove("border-purple-900", "border-opacity-30");
-  avatar.querySelector(".checkmark")?.classList.remove("hidden");
-
-  setTimeout(() => avatar.classList.remove("animate-pulse"), 500);
-  localStorage.setItem("selectedAvatar", avatar.dataset.avatar);
-}
-
 function initSettingsListeners() {
   for (const id of [
     "round-count",
@@ -77,6 +56,8 @@ function initSettingsListeners() {
     "time-limit",
     "answer-visibility",
     "lives-count",
+    "coop-team-size",
+    "team-players-per-side",
   ]) {
     document.getElementById(id)?.addEventListener("change", updateSelectionsSummary);
   }

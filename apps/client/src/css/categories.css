@@ -78,8 +78,11 @@ body {
   letter-spacing: -0.02em;
   flex-shrink: 0;
 }
-.site-logo span:first-child {
-  font-size: 1.25rem;
+.site-logo__mark {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  display: block;
 }
 
 .back-link {
@@ -342,6 +345,11 @@ main {
   cursor: pointer;
   background: rgba(0, 0, 0, 0.25);
   transition: all 0.2s;
+}
+button.avatar-option {
+  font: inherit;
+  color: inherit;
+  appearance: none;
 }
 .avatar-option:hover {
   background: rgba(124, 58, 237, 0.15);
@@ -834,4 +842,75 @@ main {
 }
 .animate-pulse {
   animation: avatarPulse 0.45s ease-in-out;
+}
+
+/* Guest avatar gate modal */
+.guest-avatar-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(8, 8, 16, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.guest-avatar-modal.hidden {
+  display: none;
+}
+.guest-avatar-modal__box {
+  max-width: 28rem;
+  width: 100%;
+  background: rgba(24, 16, 40, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+}
+.guest-avatar-modal__title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 0.35rem;
+}
+.guest-avatar-modal__sub {
+  font-size: 0.875rem;
+  color: #a78bfa;
+  margin-bottom: 1rem;
+}
+.guest-avatar-modal__cta {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.65rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: #fff;
+  border: none;
+  transition: filter 0.2s;
+}
+.guest-avatar-modal__cta:hover {
+  filter: brightness(1.06);
+}
+
+/* Marathon: single-player setup — hide lobby tabs (no multiplayer lobby) */
+body.mode-marathon-solo .header-tabs {
+  display: none !important;
+}
+
+.quick-play-banner {
+  font-size: 0.8125rem;
+  color: #c4b5fd;
+  margin: -0.25rem 0 1rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  background: rgba(124, 58, 237, 0.12);
+  border: 1px solid rgba(124, 58, 237, 0.25);
+}
+body.mode-quick-play .settings-card .card-title {
+  margin-bottom: 0.35rem;
 }

@@ -1,4 +1,6 @@
 // score-manager.js
+import { getEffectiveAvatarId } from "../core/user-manager.js";
+
 export class ScoreManager {
   constructor() {
     this.score = 0;
@@ -111,15 +113,24 @@ export class ScoreManager {
   generateMockPlayers() {
     const playerNames = ["Sen", "Ahmet", "Zeynep", "Burak"];
     const playerColors = ["purple-500", "blue-500", "green-500", "yellow-500"];
-    const avatars = ["avatar1", "avatar2", "avatar3", "avatar4"];
+    const avatars = [
+      "avatar1",
+      "avatar2",
+      "avatar3",
+      "avatar4",
+      "avatar5",
+      "avatar6",
+      "avatar7",
+      "avatar8",
+      "avatar9",
+      "avatar10",
+    ];
 
     this.players = [];
 
     playerNames.forEach((name, i) => {
       const avatar =
-        i === 0
-          ? localStorage.getItem("selectedAvatar") || "avatar1"
-          : avatars[Math.floor(Math.random() * avatars.length)];
+        i === 0 ? getEffectiveAvatarId() : avatars[Math.floor(Math.random() * avatars.length)];
 
       this.players.push({
         name,

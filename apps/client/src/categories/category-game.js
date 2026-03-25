@@ -1,4 +1,6 @@
 // Oyun başlatma ve ayarları kaydetme
+import { getEffectiveAvatarId } from "../core/user-manager.js";
+import { isQuickPlayMode, QUICK_PLAY_FIXED } from "./quick-play.js";
 import { gameMode, selectedCategories } from "./state.js";
 
 // Start the game
@@ -8,36 +10,48 @@ function startGame() {
     return;
   }
 
-  // Get answer visibility setting (not needed for Marathon mode)
-  const answerVisibility =
-    gameMode === "solo"
-      ? "visible"
-      : document.getElementById("answer-visibility")
-        ? document.getElementById("answer-visibility").value
-        : "visible";
+  const answerVisibility = (() => {
+    if (gameMode === "solo") return "visible";
+    if (isQuickPlayMode()) return QUICK_PLAY_FIXED.answerVisibility;
+    return document.getElementById("answer-visibility")
+      ? document.getElementById("answer-visibility").value
+      : "visible";
+  })();
 
-  // Get selected avatar
-  const selectedAvatarElement = document.querySelector(".avatar-option.selected");
-  const selectedAvatar = selectedAvatarElement
-    ? selectedAvatarElement.getAttribute("data-avatar")
-    : "avatar1";
+  const selectedAvatar = getEffectiveAvatarId();
+
+  const coopTeamSizeEl = document.getElementById("coop-team-size");
+  const teamPerSideEl = document.getElementById("team-players-per-side");
+  const coopTeamSize = coopTeamSizeEl ? coopTeamSizeEl.value : "5";
+  const teamPlayersPerSide = teamPerSideEl ? teamPerSideEl.value : "5";
 
   // Get lives setting for marathon mode
   const lives =
     gameMode === "solo" ? document.getElementById("lives-count").value : "not-applicable";
 
-  // Get game settings
   const roundCountSelect = document.getElementById("round-count");
+  const timeEl = document.getElementById("time-limit");
+  const roundsValue = (() => {
+    if (gameMode === "solo") return "unlimited";
+    if (isQuickPlayMode()) return QUICK_PLAY_FIXED.rounds;
+    return roundCountSelect.value;
+  })();
+  const timeLimitValue = (() => {
+    if (isQuickPlayMode()) return QUICK_PLAY_FIXED.timeLimit;
+    return parseInt(timeEl.value, 10);
+  })();
+
   const gameSettings = {
     mode: gameMode,
     categories: selectedCategories,
-    // For Marathon mode (solo), always use the hidden input value to ensure it's unlimited
-    rounds: gameMode === "solo" ? "unlimited" : roundCountSelect.value,
+    rounds: roundsValue,
     questionType: "mixed",
-    timeLimit: parseInt(document.getElementById("time-limit").value, 10),
+    timeLimit: timeLimitValue,
     answerVisibility: answerVisibility,
     avatar: selectedAvatar,
     lives: lives,
+    coopTeamSize,
+    teamPlayersPerSide,
   };
 
   // Save global game settings for the current session
@@ -48,12 +62,13 @@ function startGame() {
     `riffleSettings_${gameMode}`,
     JSON.stringify({
       categories: selectedCategories,
-      // For Marathon mode (solo), always use unlimited rounds in saved settings
-      rounds: gameMode === "solo" ? "unlimited" : document.getElementById("round-count").value,
+      rounds: roundsValue,
       questionType: "mixed",
-      timeLimit: parseInt(document.getElementById("time-limit").value, 10),
+      timeLimit: timeLimitValue,
       answerVisibility: answerVisibility,
       lives: lives,
+      coopTeamSize,
+      teamPlayersPerSide,
     })
   );
 

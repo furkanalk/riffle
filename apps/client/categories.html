@@ -21,6 +21,17 @@
   <div class="bg-glow bg-glow--pink"></div>
   <div class="bg-glow bg-glow--blue"></div>
 
+  <!-- Guest: pick avatar before lobby (first time / no selection) -->
+  <div id="guest-avatar-modal" class="guest-avatar-modal hidden" role="dialog" aria-modal="true"
+    aria-labelledby="guest-avatar-title">
+    <div class="guest-avatar-modal__box">
+      <h2 id="guest-avatar-title" class="guest-avatar-modal__title">Choose your avatar</h2>
+      <p class="guest-avatar-modal__sub">Pick a look for this session.</p>
+      <div id="guest-avatar-grid" class="avatar-grid guest-avatar-grid"></div>
+      <button type="button" id="guest-avatar-continue" class="guest-avatar-modal__cta">Continue</button>
+    </div>
+  </div>
+
   <!-- Game Timer Bar (shown during game) -->
   <div id="game-timer-container" class="fixed top-[3.25rem] left-0 w-full h-1.5 z-40 hidden">
     <div class="w-full h-full bg-gray-800">
@@ -31,7 +42,7 @@
   <!-- ── HEADER ─────────────────────────────────────────────────────────── -->
   <header class="site-header">
     <a href="./index.html" class="site-logo">
-      <span>🎸</span>
+      <img class="site-logo__mark" src="./public/favicon/favicon-32x32.png" alt="" width="28" height="28" />
       <span>Riffle</span>
     </a>
 
@@ -87,6 +98,9 @@
             </svg>
             Game Settings
           </h2>
+          <p id="quick-play-banner" class="quick-play-banner hidden" role="status">
+            Quick match: 10 questions · 15s per answer · answers visible to everyone
+          </p>
 
           <div class="settings-grid">
 
@@ -131,7 +145,7 @@
             </div>
 
             <!-- Question mode -->
-            <div class="setting-field">
+            <div class="setting-field" id="question-mode-container">
               <label class="field-label">
                 <svg xmlns="http://www.w3.org/2000/svg" class="field-label__icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -173,61 +187,41 @@
               </select>
             </div>
 
-          </div>
-        </section>
-
-        <!-- ── AVATAR ─────────────────────────────────────────────────── -->
-        <section class="settings-card">
-          <h2 class="card-title">
-            <svg xmlns="http://www.w3.org/2000/svg" class="card-title__icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            Your Avatar
-          </h2>
-          <div class="avatar-grid" id="avatar-options-container">
-
-            <div class="avatar-option selected border-purple-500" data-avatar="avatar1">
-              <div class="avatar-img-wrap">
-                <img src="./src/img/avatars/avatar1.png" alt="Jimi Hendrix" class="avatar-img">
-                <div class="checkmark">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                </div>
-              </div>
-              <span class="avatar-name">Jimi Hendrix</span>
+            <!-- Co-op: same team size (max 5) -->
+            <div class="setting-field hidden" id="coop-team-size-container">
+              <label class="field-label">
+                <svg xmlns="http://www.w3.org/2000/svg" class="field-label__icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Co-op team size
+              </label>
+              <select id="coop-team-size" class="field-select" aria-label="Co-op team size max 5">
+                <option value="1">1 player</option>
+                <option value="2">2 players</option>
+                <option value="3">3 players</option>
+                <option value="4">4 players</option>
+                <option value="5" selected>5 players (max)</option>
+              </select>
             </div>
 
-            <div class="avatar-option border-purple-900 border-opacity-30" data-avatar="avatar2">
-              <div class="avatar-img-wrap">
-                <img src="./src/img/avatars/avatar2.png" alt="Ozzy Osbourne" class="avatar-img">
-                <div class="checkmark hidden">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                </div>
-              </div>
-              <span class="avatar-name">Ozzy Osbourne</span>
-            </div>
-
-            <div class="avatar-option border-purple-900 border-opacity-30" data-avatar="avatar3">
-              <div class="avatar-img-wrap">
-                <img src="./src/img/avatars/avatar3.png" alt="Eric Clapton" class="avatar-img">
-                <div class="checkmark hidden">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                </div>
-              </div>
-              <span class="avatar-name">Eric Clapton</span>
-            </div>
-
-            <div class="avatar-option border-purple-900 border-opacity-30" data-avatar="avatar4">
-              <div class="avatar-img-wrap">
-                <img src="./src/img/avatars/avatar4.png" alt="Bruce Dickinson" class="avatar-img">
-                <div class="checkmark hidden">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                </div>
-              </div>
-              <span class="avatar-name">Bruce Dickinson</span>
+            <!-- Team VS: players per side (up to 5v5) -->
+            <div class="setting-field hidden" id="team-vs-size-container">
+              <label class="field-label">
+                <svg xmlns="http://www.w3.org/2000/svg" class="field-label__icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 01-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 01-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 01-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                </svg>
+                Team VS — players per side
+              </label>
+              <select id="team-players-per-side" class="field-select" aria-label="Players per team up to 5">
+                <option value="1">1v1</option>
+                <option value="2">2v2</option>
+                <option value="3">3v3</option>
+                <option value="4">4v4</option>
+                <option value="5" selected>5v5</option>
+              </select>
             </div>
 
           </div>
-          <p class="avatar-more">More avatars coming soon!</p>
         </section>
 
         <!-- ── CATEGORIES ─────────────────────────────────────────────── -->

@@ -1,6 +1,7 @@
 import { getAllGenres } from "../core/music.js";
 import { sendChatMessage } from "./category-chat.js";
 import { filterCategories, toggleCategory } from "./category-filters.js"; // Importların doğru olduğundan emin ol
+import { isQuickPlayMode } from "./quick-play.js";
 import { gameMode, selectedCategories } from "./state.js";
 
 // --- CONSTANTS ---
@@ -70,12 +71,57 @@ function setupGameModeSettings() {
 
   if (isMarathon) {
     configureMarathonMode(els);
+    configureTeamSizeFields();
+    configureQuickPlayLayout();
     loadSavedModeSettings();
     return;
   }
 
   configureNormalMode(els);
+  configureTeamSizeFields();
+  configureQuickPlayLayout();
   loadSavedModeSettings();
+}
+
+function configureTeamSizeFields() {
+  const coopWrap = getEl("coop-team-size-container");
+  const teamWrap = getEl("team-vs-size-container");
+  const isCoop = gameMode === "coop";
+  const isTeam = gameMode === "team";
+  setVisibility(coopWrap, isCoop);
+  setVisibility(teamWrap, isTeam);
+}
+
+/** Hide advanced rules for quick-play modes; fixed 10 rounds / 15s / visible answers. */
+function configureQuickPlayLayout() {
+  const marathon = gameMode === "solo" || gameMode === "marathon";
+  const quick = isQuickPlayMode();
+  document.body.classList.toggle("mode-quick-play", quick);
+
+  const banner = getEl("quick-play-banner");
+  if (banner) banner.classList.toggle("hidden", !quick);
+
+  if (marathon) return;
+
+  const hideIds = [
+    "round-count-container",
+    "lives-container",
+    "question-mode-container",
+    "time-limit-container",
+    "answer-visibility-container",
+  ];
+  for (const id of hideIds) {
+    setVisibility(getEl(id), !quick, quick ? { hideAsAbsolute: true } : { position: "static" });
+  }
+
+  if (quick) {
+    const rc = getEl("round-count");
+    const tl = getEl("time-limit");
+    const av = getEl("answer-visibility");
+    if (rc) rc.value = "10";
+    if (tl) tl.value = "15";
+    if (av) av.value = "visible";
+  }
 }
 
 function configureMarathonMode(els) {
@@ -129,9 +175,8 @@ function loadSavedModeSettings() {
 
     if (settings.lives && isMarathon) safeSet("lives-count", settings.lives);
 
-    if (localStorage.getItem("selectedAvatar")) {
-      updateAvatarSelection(localStorage.getItem("selectedAvatar"));
-    }
+    if (settings.coopTeamSize) safeSet("coop-team-size", settings.coopTeamSize);
+    if (settings.teamPlayersPerSide) safeSet("team-players-per-side", settings.teamPlayersPerSide);
 
     if (settings.categories && settings.categories.length > 0) {
       selectedCategories.length = 0;
@@ -142,23 +187,6 @@ function loadSavedModeSettings() {
   } catch (e) {
     console.error("Failed to load saved settings:", e);
   }
-}
-
-function updateAvatarSelection(selectedId) {
-  document.querySelectorAll(".avatar-option").forEach((opt) => {
-    const isSelected = opt.getAttribute("data-avatar") === selectedId;
-    const checkmark = opt.querySelector(".checkmark");
-
-    if (isSelected) {
-      opt.classList.add("selected", "border-purple-500");
-      opt.classList.remove("border-purple-900", "border-opacity-30");
-      if (checkmark) checkmark.classList.remove("hidden");
-    } else {
-      opt.classList.remove("selected", "border-purple-500");
-      opt.classList.add("border-purple-900", "border-opacity-30");
-      if (checkmark) checkmark.classList.add("hidden");
-    }
-  });
 }
 
 function switchTab(tab) {
@@ -290,19 +318,11 @@ document.addEventListener("DOMContentLoaded", () => {
   setupGameModeSettings();
   updateSelectionsSummary();
 
-  ["round-count", "time-limit", "lives-count", "answer-visibility"].forEach((id) => {
-    getEl(id)?.addEventListener("change", updateSelectionsSummary);
-  });
-
-  document.querySelectorAll(".avatar-option").forEach((avatar) => {
-    avatar.addEventListener("click", function () {
-      const selectedId = this.getAttribute("data-avatar");
-      updateAvatarSelection(selectedId);
-      this.classList.add("animate-pulse");
-      setTimeout(() => this.classList.remove("animate-pulse"), 500);
-      localStorage.setItem("selectedAvatar", selectedId);
-    });
-  });
+  ["round-count", "time-limit", "lives-count", "answer-visibility", "coop-team-size", "team-players-per-side"].forEach(
+    (id) => {
+      getEl(id)?.addEventListener("change", updateSelectionsSummary);
+    }
+  );
 
   const categoriesGrid = getEl("categories-grid");
   if (categoriesGrid) {

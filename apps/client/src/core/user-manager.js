@@ -1,4 +1,5 @@
 // GUEST & USER MANAGEMENT
+import { AVATAR_IDS, DEFAULT_AVATAR_ID } from "./avatars.js";
 
 // Rock & Metal Theme Adjectives
 const adjectives = [
@@ -102,35 +103,48 @@ const nouns = [
   "Knight",
 ];
 
-// Random "Guest" name creator (E.g.: IronRiff#42)
-// Ensures a fun and thematic identity for guest users
-// Can be modified to include more adjectives/nouns for variety later on
 function generateGuestId() {
   const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
   const noun = nouns[Math.floor(Math.random() * nouns.length)];
-  const number = Math.floor(Math.random() * 9000) + 1000; // 1000-9999
+  const number = Math.floor(Math.random() * 9000) + 1000;
   return `${adj}${noun}#${number}`;
+}
+
+/** Registered user avatar from API, otherwise guest selection in localStorage. */
+export function getEffectiveAvatarId() {
+  const token = localStorage.getItem("token");
+  if (token) {
+    try {
+      const u = JSON.parse(localStorage.getItem("user") || "{}");
+      if (u.avatar && AVATAR_IDS.includes(u.avatar)) return u.avatar;
+    } catch {
+      /* ignore */
+    }
+  }
+  const g = localStorage.getItem("selectedAvatar");
+  if (g && AVATAR_IDS.includes(g)) return g;
+  return DEFAULT_AVATAR_ID;
 }
 
 // Get current user (registered or guest)
 export function getUser() {
-  // Check if registered user info is stored
-  const token = localStorage.getItem("auth_token");
-  const userStr = localStorage.getItem("user_profile");
+  const token = localStorage.getItem("token");
+  const userStr = localStorage.getItem("user");
 
   if (token && userStr) {
     try {
       const user = JSON.parse(userStr);
-      return { ...user, type: "registered" };
+      return {
+        username: user.username,
+        type: "registered",
+        avatar: getEffectiveAvatarId(),
+      };
     } catch (e) {
       console.error("User profile parse error", e);
     }
   }
 
-  // Check for existing Guest ID
   let guestName = localStorage.getItem("guest_name");
-
-  // If none exists, create and save a new Guest ID
   if (!guestName) {
     guestName = generateGuestId();
     localStorage.setItem("guest_name", guestName);
@@ -139,14 +153,15 @@ export function getUser() {
   return {
     username: guestName,
     type: "guest",
-    avatar: localStorage.getItem("selectedAvatar") || "avatar1", // Remember selected avatar
+    avatar: getEffectiveAvatarId(),
   };
 }
 
-// Logout user
+// Logout user (legacy keys + auth-ui keys)
 export function logoutUser() {
   localStorage.removeItem("auth_token");
   localStorage.removeItem("user_profile");
-  // Don't remove Guest ID so that the same Guest remains after logout (preference)
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
   window.location.reload();
 }

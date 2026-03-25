@@ -24,7 +24,7 @@
   <!-- ── HEADER ─────────────────────────────────────────────────────────── -->
   <header class="site-header">
     <a href="/" class="site-logo">
-      <span>🎸</span>
+      <img class="site-logo__mark" src="./public/favicon/favicon-32x32.png" alt="" width="28" height="28" />
       <span>Riffle</span>
     </a>
 
@@ -34,15 +34,21 @@
         <option value="tr">TR</option>
       </select>
 
+      <button type="button" id="leaderboard-btn" class="btn btn--ghost leaderboard-header-btn">
+        Leaderboard
+      </button>
+
       <div id="guest-buttons" class="auth-guest">
         <button id="login-btn" class="btn btn--ghost">Login</button>
         <button id="signup-btn" class="btn btn--primary">Sign Up</button>
       </div>
 
-      <button id="user-profile-btn" class="user-profile-btn hidden">
+      <button id="user-profile-btn" type="button" class="user-profile-btn hidden">
         <span id="user-display-name">Guest</span>
         <div class="user-avatar">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <img id="header-user-avatar" class="header-user-avatar hidden" src="" alt="" width="28" height="28" />
+          <svg id="header-user-avatar-placeholder" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
@@ -104,15 +110,17 @@
         <div class="mode-card__bar"></div>
       </a>
 
-      <!-- Chaos -->
-      <a href="./categories.html?mode=chaos" class="mode-card mode-card--fuchsia">
+      <!-- Chaos (locked — coming later) -->
+      <div class="mode-card mode-card--fuchsia mode-card--locked" role="group" aria-disabled="true"
+        aria-label="Chaos mode — coming soon">
         <div class="mode-card__icon">💥</div>
         <div class="mode-card__body">
           <h3 class="mode-card__title">Chaos Mode</h3>
-          <p class="mode-card__desc">No rules, just chaos and fun. Anything goes in this surprise-packed mode!</p>
+          <p class="mode-card__desc">No rules, just chaos and fun. To be added in a future update.</p>
+          <p class="mode-card__badge">Coming soon</p>
         </div>
         <div class="mode-card__bar"></div>
-      </a>
+      </div>
 
       <!-- Custom -->
       <a href="./categories.html?mode=custom" class="mode-card mode-card--green">
@@ -180,6 +188,58 @@
       </form>
 
       <div id="auth-message" class="auth-message hidden"></div>
+    </div>
+  </div>
+
+  <!-- Profile (registered users: avatar + logout) -->
+  <div id="profile-panel" class="auth-overlay hidden">
+    <div class="auth-box profile-box" id="profile-box">
+      <button type="button" id="close-profile" class="auth-close" aria-label="Close profile">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+      <h2 class="profile-title">Profile</h2>
+      <div class="field profile-username-block">
+        <label class="field__label" for="profile-username">Username</label>
+        <div class="profile-username-row">
+          <input type="text" id="profile-username" class="field__input" maxlength="20" autocomplete="username"
+            spellcheck="false" />
+          <button type="button" id="profile-username-save" class="btn btn--primary profile-username-save">
+            Save
+          </button>
+        </div>
+        <p id="profile-username-msg" class="field__error hidden" role="status"></p>
+      </div>
+      <p class="profile-desc">Choose your avatar</p>
+      <div id="profile-avatar-grid" class="avatar-grid profile-avatar-grid"></div>
+      <button type="button" id="profile-logout-btn" class="btn btn--ghost profile-logout">Log out</button>
+    </div>
+  </div>
+
+  <!-- Leaderboard -->
+  <div id="leaderboard-panel" class="auth-overlay hidden">
+    <div class="auth-box profile-box leaderboard-box">
+      <button type="button" id="close-leaderboard" class="auth-close" aria-label="Close leaderboard">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+      <h2 class="profile-title">Leaderboard</h2>
+      <p class="profile-desc">Top scores per game mode (registered players)</p>
+      <div class="leaderboard-toolbar">
+        <label class="field__label" for="leaderboard-mode">Mode</label>
+        <select id="leaderboard-mode" class="field__input leaderboard-mode-select">
+          <option value="solo">Marathon (solo)</option>
+          <option value="versus">Solo VS</option>
+          <option value="team">Team VS</option>
+          <option value="coop">Co-op</option>
+          <option value="custom">Custom</option>
+          <option value="chaos">Chaos</option>
+        </select>
+      </div>
+      <ol id="leaderboard-list" class="leaderboard-list"></ol>
+      <p id="leaderboard-empty" class="leaderboard-empty hidden">No scores yet for this mode.</p>
     </div>
   </div>
 

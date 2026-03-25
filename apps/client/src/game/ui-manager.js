@@ -1,4 +1,5 @@
 // ui-manager.js
+import { submitScoreIfLoggedIn } from "../core/leaderboard-submit.js";
 
 // Local SVG fallback — no external request, no DNS failure
 const COVER_FALLBACK =
@@ -340,6 +341,20 @@ export class UIManager {
     // Set up button handlers
     document.getElementById("replay-btn").onclick = onReplay;
     document.getElementById("menu-btn").onclick = onMenu;
+
+    const guestCta = document.getElementById("guest-save-cta");
+    if (guestCta) {
+      if (!localStorage.getItem("token")) {
+        guestCta.innerHTML =
+          '<p class="text-sm text-purple-200">Save your progress and climb the leaderboards — <a href="./index.html" class="text-purple-400 font-semibold underline hover:text-purple-300">create an account</a>.</p>';
+        guestCta.classList.remove("hidden");
+      } else {
+        guestCta.classList.add("hidden");
+        guestCta.innerHTML = "";
+      }
+    }
+
+    submitScoreIfLoggedIn(scoreData);
 
     // Show results modal
     this.resultsModal.classList.remove("hidden");

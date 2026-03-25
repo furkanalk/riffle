@@ -1,4 +1,5 @@
 // game-engine.js
+import { getEffectiveAvatarId } from "../core/user-manager.js";
 import { getTracksFromGenre, resetPlayedTracks } from "../core/music.js";
 import { AudioManager } from "./audio-manager.js";
 import { ScoreManager } from "./score-manager.js";
@@ -76,13 +77,12 @@ export class GameEngine {
         this.totalRounds = parseInt(this.settings.rounds, 10);
         document.getElementById("max-score").textContent = this.totalRounds;
       }
+    }
 
-      // Load avatar
-      const avatar = this.settings.avatar || localStorage.getItem("selectedAvatar") || "avatar1";
-      const avatarElement = document.getElementById("player-avatar");
-      if (avatarElement) {
-        avatarElement.src = `../img/avatars/${avatar}.png`;
-      }
+    const avatar = this.settings.avatar || getEffectiveAvatarId();
+    const avatarElement = document.getElementById("player-avatar");
+    if (avatarElement) {
+      avatarElement.src = `./src/img/avatars/${avatar}.png`;
     }
   }
 
@@ -441,7 +441,7 @@ export class GameEngine {
     const scoreData = {
       ...this.scoreManager.getGameStats(),
       gameMode: this.gameMode,
-      avatar: this.settings.avatar || localStorage.getItem("selectedAvatar") || "avatar1",
+      avatar: this.settings.avatar || getEffectiveAvatarId(),
       totalRounds: this.totalRounds,
       players: this.scoreManager.players,
     };
@@ -469,7 +469,7 @@ export class GameEngine {
     const scoreData = {
       ...this.scoreManager.getGameStats(),
       gameMode: this.gameMode,
-      avatar: this.settings.avatar || localStorage.getItem("selectedAvatar") || "avatar1",
+      avatar: this.settings.avatar || getEffectiveAvatarId(),
       totalRounds: this.totalRounds,
       players: this.scoreManager.getSortedPlayers(),
       playedTracks: this.playedTracks,

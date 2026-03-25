@@ -1,3 +1,5 @@
+import { mountAvatarPicker } from "../ui/avatar-picker.js";
+
 export function initAuthUI() {
   const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -33,6 +35,14 @@ export function initAuthUI() {
     regUsername: document.getElementById("reg-username"),
     regEmail: document.getElementById("reg-email"),
     regPassword: document.getElementById("reg-password"),
+
+    profilePanel: document.getElementById("profile-panel"),
+    closeProfile: document.getElementById("close-profile"),
+    profileAvatarGrid: document.getElementById("profile-avatar-grid"),
+    profileLogoutBtn: document.getElementById("profile-logout-btn"),
+    profileUsername: document.getElementById("profile-username"),
+    profileUsernameSave: document.getElementById("profile-username-save"),
+    profileUsernameMsg: document.getElementById("profile-username-msg"),
   };
 
   // if loginBtn or userProfileBtn not found, exit
@@ -59,11 +69,30 @@ export function initAuthUI() {
     });
   }
 
-  // Profile button click to logout
+  // Profile button opens profile panel (logged-in)
   if (elements.userProfileBtn) {
     elements.userProfileBtn.addEventListener("click", () => {
-      if (confirm("Are you sure you want to logout?")) logout();
+      openProfilePanel();
     });
+  }
+
+  if (elements.closeProfile) {
+    elements.closeProfile.addEventListener("click", closeProfilePanel);
+  }
+  if (elements.profilePanel) {
+    elements.profilePanel.addEventListener("click", (e) => {
+      if (e.target === elements.profilePanel) closeProfilePanel();
+    });
+  }
+  if (elements.profileLogoutBtn) {
+    elements.profileLogoutBtn.addEventListener("click", () => {
+      closeProfilePanel();
+      logout();
+    });
+  }
+
+  if (elements.profileUsernameSave) {
+    elements.profileUsernameSave.addEventListener("click", saveProfileUsername);
   }
 
   // Close panel
@@ -296,26 +325,51 @@ export function initAuthUI() {
 
     // Save token & user info
     localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
+    const user = { ...data.user, avatar: data.user.avatar || "avatar1" };
+    localStorage.setItem("user", JSON.stringify(user));
+    localStorage.setItem("selectedAvatar", user.avatar);
 
     // Show success message and update UI after one second
     showMessage(`Welcome back, ${data.user.username}!`, "success");
     setTimeout(() => {
       closePanel();
-      updateUI(data.user);
+      updateUI(user);
     }, 1000);
   }
 
   // Check login status on load
   function checkLoginStatus() {
-    const user = JSON.parse(localStorage.getItem("user"));
+    const raw = localStorage.getItem("user");
     const token = localStorage.getItem("token");
-    if (user && token) {
-      updateUI(user);
+    if (raw && token) {
+      try {
+        const user = JSON.parse(raw);
+        const u = { ...user, avatar: user.avatar || "avatar1" };
+        updateUI(u);
+      } catch {
+        showGuestMode();
+      }
     } else {
-      // Back to guest mode if token/user not found
       showGuestMode();
     }
+  }
+
+  function updateHeaderAvatar(user) {
+    const img = document.getElementById("header-user-avatar");
+    const ph = document.getElementById("header-user-avatar-placeholder");
+    if (!img || !ph) return;
+    const id = user.avatar || "avatar1";
+    img.src = `./src/img/avatars/${id}.png`;
+    img.alt = "";
+    img.classList.remove("hidden");
+    ph.classList.add("hidden");
+  }
+
+  function showGuestHeaderAvatar() {
+    const img = document.getElementById("header-user-avatar");
+    const ph = document.getElementById("header-user-avatar-placeholder");
+    img?.classList.add("hidden");
+    ph?.classList.remove("hidden");
   }
 
   // Update UI after login
@@ -326,12 +380,99 @@ export function initAuthUI() {
     // Show profile button and set username
     if (elements.userProfileBtn) elements.userProfileBtn.classList.remove("hidden");
     if (elements.userDisplayName) elements.userDisplayName.textContent = user.username;
+    updateHeaderAvatar(user);
   }
 
   // Show guest mode
   function showGuestMode() {
     if (elements.guestButtons) elements.guestButtons.classList.remove("hidden");
     if (elements.userProfileBtn) elements.userProfileBtn.classList.add("hidden");
+    showGuestHeaderAvatar();
+  }
+
+  async function saveProfileAvatar(avatarId) {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      const res = await fetch("/api/auth/profile", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ avatar: avatarId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Could not save avatar");
+      const prev = JSON.parse(localStorage.getItem("user") || "{}");
+      localStorage.setItem("user", JSON.stringify({ ...prev, ...data.user }));
+      localStorage.setItem("selectedAvatar", data.user.avatar);
+      updateHeaderAvatar(data.user);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Could not save avatar");
+    }
+  }
+
+  async function saveProfileUsername() {
+    const token = localStorage.getItem("token");
+    const input = elements.profileUsername;
+    const msg = elements.profileUsernameMsg;
+    if (!token || !input) return;
+    const username = input.value.trim();
+    if (msg) {
+      msg.classList.add("hidden");
+      msg.textContent = "";
+    }
+    if (!username) {
+      if (msg) {
+        msg.textContent = "Username is required.";
+        msg.classList.remove("hidden");
+      }
+      return;
+    }
+    try {
+      const res = await fetch("/api/auth/profile", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ username }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Could not save username");
+      const prev = JSON.parse(localStorage.getItem("user") || "{}");
+      localStorage.setItem("user", JSON.stringify({ ...prev, ...data.user }));
+      if (elements.userDisplayName) elements.userDisplayName.textContent = data.user.username;
+    } catch (err) {
+      if (msg) {
+        msg.textContent = err instanceof Error ? err.message : "Could not save username";
+        msg.classList.remove("hidden");
+      }
+    }
+  }
+
+  function openProfilePanel() {
+    if (!elements.profilePanel || !elements.profileAvatarGrid) return;
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    if (elements.profileUsername) elements.profileUsername.value = user.username || "";
+    if (elements.profileUsernameMsg) {
+      elements.profileUsernameMsg.classList.add("hidden");
+      elements.profileUsernameMsg.textContent = "";
+    }
+    elements.profileAvatarGrid.innerHTML = "";
+    mountAvatarPicker(elements.profileAvatarGrid, {
+      selectedId: user.avatar || "avatar1",
+      onPick: (id) => {
+        saveProfileAvatar(id);
+      },
+    });
+    elements.profilePanel.classList.remove("hidden");
+  }
+
+  function closeProfilePanel() {
+    if (!elements.profilePanel) return;
+    elements.profilePanel.classList.add("hidden");
   }
 
   // Logout
