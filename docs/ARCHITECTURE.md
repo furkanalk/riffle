@@ -77,6 +77,8 @@ riffle/
 * **Communication:** Internal HTTP / gRPC (planned)
 * **Execution Model:** Stateless
 
+> **Implementation status (matchmaker, WebSocket, Redis fan-out):** see [MATCHMAKER.md](./MATCHMAKER.md).
+
 **Responsibilities:**
 * Score calculation
 * Matchmaking logic (ELO-based)
