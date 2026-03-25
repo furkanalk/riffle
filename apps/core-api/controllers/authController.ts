@@ -76,6 +76,11 @@ export async function register(
     return;
   }
 
+  if (BLOCKED_USERNAMES.has(username.toLowerCase())) {
+    reply.code(400).send({ error: "This username is reserved." });
+    return;
+  }
+
   if (!EMAIL_PATTERN.test(email) || email.length > MAX_EMAIL_LEN) {
     reply.code(400).send({ error: "Invalid email address." });
     return;
