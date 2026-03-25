@@ -91,7 +91,17 @@ export class GameEngine {
     let players = null;
 
     if (["versus", "team", "coop"].includes(this.gameMode)) {
-      players = this.scoreManager.generateMockPlayers();
+      const raw = localStorage.getItem("riffleRoomPlayers");
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          players = this.scoreManager.setPlayers(parsed);
+        } catch {
+          players = this.scoreManager.generateMockPlayers();
+        }
+      } else {
+        players = this.scoreManager.generateMockPlayers();
+      }
     }
 
     return players;

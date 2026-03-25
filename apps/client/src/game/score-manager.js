@@ -11,6 +11,19 @@ export class ScoreManager {
     this.remainingLives = 3;
   }
 
+  setPlayers(roster) {
+    if (!Array.isArray(roster)) return this.players;
+    this.players = roster
+      .filter(Boolean)
+      .map((p, i) => ({
+        name: p.name || `Player ${i + 1}`,
+        score: 0,
+        color: p.color || "purple-500",
+        avatar: p.avatar || "avatar1",
+      }));
+    return this.players;
+  }
+
   // Initialize score manager with game settings
   initialize(gameMode, settings) {
     this.score = 0;

@@ -4,6 +4,7 @@ import { startGame } from "./category-game.js";
 import { setupGameModeSettings, switchTab, updateSelectionsSummary } from "./category-settings.js";
 import { maybeShowGuestAvatarGate } from "./guest-avatar-gate.js";
 import { applyModeLayout } from "./mode-layout.js";
+import { initRoomSim } from "../lobby/room-sim.js";
 import "./menu-navigation.js";
 import { selectedCategories } from "./state.js";
 
@@ -17,6 +18,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 function init() {
   initGameSettings();
   initStartButton();
+  initRoomSim();
   initScrollButtons();
   initSettingsListeners();
   initInviteCopy();

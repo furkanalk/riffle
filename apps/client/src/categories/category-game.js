@@ -1,5 +1,10 @@
 // Oyun başlatma ve ayarları kaydetme
 import { getEffectiveAvatarId } from "../core/user-manager.js";
+import {
+  getRoomIdForGame,
+  persistRoomPlayersForGame,
+  markRoomStartedForGame,
+} from "../lobby/room-sim.js";
 import { isQuickPlayMode, QUICK_PLAY_FIXED } from "./quick-play.js";
 import { gameMode, selectedCategories } from "./state.js";
 
@@ -8,6 +13,16 @@ function startGame() {
   if (selectedCategories.length === 0) {
     alert("Please select at least one category!");
     return;
+  }
+
+  const roomId = ["versus", "team", "coop"].includes(gameMode) ? getRoomIdForGame() : null;
+  if (roomId) {
+    const ok = persistRoomPlayersForGame();
+    if (!ok) {
+      alert("Room is not ready yet. Please wait for other players.");
+      return;
+    }
+    markRoomStartedForGame();
   }
 
   const answerVisibility = (() => {
@@ -52,6 +67,7 @@ function startGame() {
     lives: lives,
     coopTeamSize,
     teamPlayersPerSide,
+    roomId,
   };
 
   // Save global game settings for the current session
@@ -78,7 +94,7 @@ function startGame() {
   console.log(`Game settings saved for ${gameMode} mode with avatar: ${selectedAvatar}`);
 
   // Redirect to the game page
-  window.location.href = `game.html?mode=${gameMode}`;
+  window.location.href = roomId ? `game.html?mode=${gameMode}&room=${roomId}` : `game.html?mode=${gameMode}`;
 }
 
 export { startGame };
