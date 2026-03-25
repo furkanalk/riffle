@@ -20,8 +20,12 @@ if (!["dev", "prod"].includes(env)) {
 }
 
 if (!action || !target) {
-  console.error(`${colors.red}Usage: ENV=dev node ops/scripts/ctrl.js [up|down] [target]${colors.reset}`);
-  console.error(`${colors.gray}Targets: infra:data, infra:edge(*), svc:all, app:client, prod:monitor(*), prod:backup(*), infra:all, all${colors.reset}`);
+  console.error(
+    `${colors.red}Usage: ENV=dev node ops/scripts/ctrl.js [up|down] [target]${colors.reset}`
+  );
+  console.error(
+    `${colors.gray}Targets: infra:data, infra:edge(*), svc:all, app:client, prod:monitor(*), prod:backup(*), infra:all, all${colors.reset}`
+  );
   console.error(`${colors.gray}(*) infra:edge only available in prod (Caddy)${colors.reset}`);
   process.exit(1);
 }
@@ -31,39 +35,37 @@ if (!action || !target) {
 // files so tsx watch / Vite HMR can pick up host file changes without rebuilding.
 // Each override file only references the services its parent compose file defines,
 // preventing "service has no image/build" errors when files are merged.
-const DEV_SVC_VOLUMES    = "ops/compose/dev/dev-volumes.yml";
+const DEV_SVC_VOLUMES = "ops/compose/dev/dev-volumes.yml";
 const DEV_CLIENT_VOLUMES = "ops/compose/dev/dev-client-volumes.yml";
 
 const layers = {
-  "infra:data":  ["ops/compose/common/data.yml"],
-  "svc:all":     ["ops/compose/common/services.yml", ...(env === "dev" ? [DEV_SVC_VOLUMES]    : [])],
-  "app:client":  ["ops/compose/common/client.yml",   ...(env === "dev" ? [DEV_CLIENT_VOLUMES] : [])],
+  "infra:data": ["ops/compose/common/data.yml"],
+  "svc:all": ["ops/compose/common/services.yml", ...(env === "dev" ? [DEV_SVC_VOLUMES] : [])],
+  "app:client": ["ops/compose/common/client.yml", ...(env === "dev" ? [DEV_CLIENT_VOLUMES] : [])],
 };
 
 // ── Prod-only layers ───────────────────────────────────────────────────────────
 if (env === "prod") {
-  layers["infra:edge"]    = ["ops/compose/prod/caddy.yml"];
-  layers["prod:monitor"]  = ["ops/compose/prod/monitor.yml"];
-  layers["prod:backup"]   = ["ops/compose/prod/backup.yml"];
+  layers["infra:edge"] = ["ops/compose/prod/caddy.yml"];
+  layers["prod:monitor"] = ["ops/compose/prod/monitor.yml"];
+  layers["prod:backup"] = ["ops/compose/prod/backup.yml"];
 }
 
 // ── Aliases ────────────────────────────────────────────────────────────────────
 layers["infra:all"] = [
   ...layers["infra:data"],
-  ...(env === "prod" ? [...layers["infra:edge"], ...layers["prod:monitor"], ...layers["prod:backup"]] : []),
+  ...(env === "prod"
+    ? [...layers["infra:edge"], ...layers["prod:monitor"], ...layers["prod:backup"]]
+    : []),
 ];
 
-layers["all"] = [
-  ...layers["infra:all"],
-  ...layers["svc:all"],
-  ...layers["app:client"],
-];
+layers.all = [...layers["infra:all"], ...layers["svc:all"], ...layers["app:client"]];
 
 // ── Dependency files (included during `up` for cross-layer depends_on) ─────────
 // Docker Compose needs all referenced services visible in the same invocation.
 // `--no-recreate` (default) prevents already-running containers from restarting.
 const upDeps = {
-  "svc:all":    [...layers["infra:data"]],
+  "svc:all": [...layers["infra:data"]],
   "app:client": [...layers["infra:data"]],
 };
 if (env === "prod") {
@@ -80,14 +82,15 @@ if (!selectedFiles) {
 }
 
 const depFiles = action === "up" ? (upDeps[target] ?? []) : [];
-const allFiles  = [...new Set([...depFiles, ...selectedFiles])];
+const allFiles = [...new Set([...depFiles, ...selectedFiles])];
 
 // ── Build docker compose command ───────────────────────────────────────────────
 const envFile = path.join(__dirname, `../env/.env.${env}`);
 
 const args = [
   "compose",
-  "--env-file", envFile,
+  "--env-file",
+  envFile,
   ...allFiles.flatMap((f) => ["-f", f]),
   action === "up" ? "up" : "down",
 ];
@@ -102,9 +105,13 @@ if (extraService) args.push(extraService);
 console.log(`\n${colors.cyan}┌─ Riffle Controller ─────────────────────┐${colors.reset}`);
 console.log(`${colors.cyan}│${colors.reset}  ENV     : ${colors.yellow}${env}${colors.reset}`);
 console.log(`${colors.cyan}│${colors.reset}  Target  : ${colors.yellow}${target}${colors.reset}`);
-console.log(`${colors.cyan}│${colors.reset}  Action  : ${colors.yellow}${action.toUpperCase()}${colors.reset}`);
+console.log(
+  `${colors.cyan}│${colors.reset}  Action  : ${colors.yellow}${action.toUpperCase()}${colors.reset}`
+);
 console.log(`${colors.cyan}│${colors.reset}  Config  : ${colors.gray}${envFile}${colors.reset}`);
-console.log(`${colors.cyan}│${colors.reset}  Files   : ${colors.gray}${allFiles.join(", ")}${colors.reset}`);
+console.log(
+  `${colors.cyan}│${colors.reset}  Files   : ${colors.gray}${allFiles.join(", ")}${colors.reset}`
+);
 console.log(`${colors.cyan}└─────────────────────────────────────────┘${colors.reset}\n`);
 
 // ── Run ────────────────────────────────────────────────────────────────────────

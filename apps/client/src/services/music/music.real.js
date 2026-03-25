@@ -14,7 +14,7 @@ async function handleResponse(response, errorContext) {
   } catch {
     throw new Error(
       `Empty or invalid JSON from server — status ${response.status} (${errorContext}). ` +
-      "Check that the API and Docker are running.",
+        "Check that the API and Docker are running."
     );
   }
 
@@ -35,9 +35,7 @@ export async function getPlaylistTracks(playlistId) {
 
     // Defensive: drop tracks without a usable preview URL (proxy already filters,
     // but guard against edge cases or mock data leaking through)
-    const tracks = allTracks.filter(
-      (t) => typeof t.preview === "string" && t.preview.length > 0,
-    );
+    const tracks = allTracks.filter((t) => typeof t.preview === "string" && t.preview.length > 0);
 
     if (tracks.length === 0) {
       throw new Error("No previewable tracks found in this playlist.");

@@ -7,7 +7,7 @@ export async function createGame(_req: FastifyRequest, reply: FastifyReply): Pro
 
 export async function getGame(
   _req: FastifyRequest<{ Params: { id: string } }>,
-  reply: FastifyReply,
+  reply: FastifyReply
 ): Promise<void> {
   // TODO: Implement get game
   reply.send({ message: "Get game endpoint - to be implemented" });

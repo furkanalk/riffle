@@ -70,7 +70,9 @@ export class AudioManager {
     try {
       this.musicPlayer.muted = true;
       await this.musicPlayer.play();
-      setTimeout(() => { this.musicPlayer.muted = false; }, 100);
+      setTimeout(() => {
+        this.musicPlayer.muted = false;
+      }, 100);
     } catch (_e) {
       const handlePageInteraction = () => {
         this.musicPlayer.muted = false;

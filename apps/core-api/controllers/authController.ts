@@ -20,7 +20,7 @@ interface LoginBody {
 
 export async function register(
   req: FastifyRequest<{ Body: RegisterBody }>,
-  reply: FastifyReply,
+  reply: FastifyReply
 ): Promise<void> {
   const { username, email, password } = req.body;
 
@@ -44,7 +44,7 @@ export async function register(
 
     const result = await query(
       "INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING id, username, email, created_at",
-      [username, email, passwordHash],
+      [username, email, passwordHash]
     );
 
     const newUser = result.rows[0] as UserRow;
@@ -61,7 +61,7 @@ export async function register(
 
 export async function login(
   req: FastifyRequest<{ Body: LoginBody }>,
-  reply: FastifyReply,
+  reply: FastifyReply
 ): Promise<void> {
   const { identifier, password } = req.body;
 

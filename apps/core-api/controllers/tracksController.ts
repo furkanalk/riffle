@@ -23,12 +23,12 @@ interface DeezerPlaylistResponse {
 
 export async function getPlaylistTracks(
   req: FastifyRequest<{ Params: { playlistId: string } }>,
-  reply: FastifyReply,
+  reply: FastifyReply
 ): Promise<void> {
   const { playlistId } = req.params;
   try {
     const { data } = await axios.get<DeezerPlaylistResponse>(
-      `${DEEZER_API}/playlist/${playlistId}/tracks`,
+      `${DEEZER_API}/playlist/${playlistId}/tracks`
     );
     if (!data?.data) throw new Error("Invalid Deezer playlist response");
 
@@ -56,7 +56,7 @@ export async function getPlaylistTracks(
 
 export async function getTrack(
   req: FastifyRequest<{ Params: { trackId: string } }>,
-  reply: FastifyReply,
+  reply: FastifyReply
 ): Promise<void> {
   const { trackId } = req.params;
   try {

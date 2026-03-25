@@ -5,9 +5,9 @@ const COVER_FALLBACK =
   "data:image/svg+xml," +
   encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">' +
-    '<rect width="200" height="200" rx="12" fill="#180D30"/>' +
-    '<path d="M78 58 L78 128 Q78 142 94 145 Q110 148 110 134 Q110 120 94 123 L94 82 L138 70 L138 120 Q138 134 154 137 Q170 140 170 126 Q170 112 154 115 L154 48 Z" fill="#7C3AED" opacity="0.75"/>' +
-    "</svg>",
+      '<rect width="200" height="200" rx="12" fill="#180D30"/>' +
+      '<path d="M78 58 L78 128 Q78 142 94 145 Q110 148 110 134 Q110 120 94 123 L94 82 L138 70 L138 120 Q138 134 154 137 Q170 140 170 126 Q170 112 154 115 L154 48 Z" fill="#7C3AED" opacity="0.75"/>' +
+      "</svg>"
   );
 
 export class UIManager {

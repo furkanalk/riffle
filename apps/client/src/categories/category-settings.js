@@ -290,11 +290,9 @@ document.addEventListener("DOMContentLoaded", () => {
   setupGameModeSettings();
   updateSelectionsSummary();
 
-  ["round-count", "time-limit", "lives-count", "answer-visibility"].forEach(
-    (id) => {
-      getEl(id)?.addEventListener("change", updateSelectionsSummary);
-    }
-  );
+  ["round-count", "time-limit", "lives-count", "answer-visibility"].forEach((id) => {
+    getEl(id)?.addEventListener("change", updateSelectionsSummary);
+  });
 
   document.querySelectorAll(".avatar-option").forEach((avatar) => {
     avatar.addEventListener("click", function () {

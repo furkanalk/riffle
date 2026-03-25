@@ -1,6 +1,6 @@
 import cors from "@fastify/cors";
 import Fastify from "fastify";
-import { type Environment, config, validateApiKey } from "./config/environments";
+import { config, type Environment, validateApiKey } from "./config/environments";
 import { initDatabase } from "./models/init";
 import routes from "./routes/index";
 

@@ -2,9 +2,9 @@
   "dev": {
     "title": "RIFFLE DEV STACK (v0.5.0)",
     "services": [
-      { "name": "Client",      "url": "http://localhost:5173" },
-      { "name": "Core API",    "url": "http://localhost:1968" },
-      { "name": "Matchmaker",  "url": "http://localhost:8080" }
+      { "name": "Client", "url": "http://localhost:5173" },
+      { "name": "Core API", "url": "http://localhost:1968" },
+      { "name": "Matchmaker", "url": "http://localhost:8080" }
     ],
     "tools": []
   }

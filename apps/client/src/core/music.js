@@ -53,27 +53,27 @@ function normalizeTrackData(track) {
 // deezer_id values must stay in sync with the API catalog.
 const GENRE_PLAYLISTS = {
   // Rock
-  rock_60s:     "1437011185",
-  rock_70s:     "1405240385",
-  rock_80s:     "867825522",
-  rock_90s:     "1728093421",
-  rock_00s:     "1419215845",
-  rock_10s:     "1057779131",
-  rock_20s:     "13693489781",
+  rock_60s: "1437011185",
+  rock_70s: "1405240385",
+  rock_80s: "867825522",
+  rock_90s: "1728093421",
+  rock_00s: "1419215845",
+  rock_10s: "1057779131",
+  rock_20s: "13693489781",
 
   // Metal
-  metal_70s:    "5325499642",
-  metal_80s:    "1294679255",
-  metal_90s:    "1471284255",
-  metal_00s:    "2004964442",
-  metal_10s:    "1045800791",
-  metal_20s:    "13693525421",
+  metal_70s: "5325499642",
+  metal_80s: "1294679255",
+  metal_90s: "1471284255",
+  metal_00s: "2004964442",
+  metal_10s: "1045800791",
+  metal_20s: "13693525421",
 
   // Mixed
-  mixed_60s:    "620264073",
-  mixed_70s:    "1470022445",
-  mixed_80s:    "867825522",
-  mixed_90s:    "878989033",
+  mixed_60s: "620264073",
+  mixed_70s: "1470022445",
+  mixed_80s: "867825522",
+  mixed_90s: "878989033",
 
   // Turkish
   turkish_rock: "1384032635",
@@ -81,27 +81,27 @@ const GENRE_PLAYLISTS = {
 
 const GENRE_INFO = {
   // Rock
-  rock_60s:     { name: "60's Rock",    type: "rock",    era: "60s"     },
-  rock_70s:     { name: "70's Rock",    type: "rock",    era: "70s"     },
-  rock_80s:     { name: "80's Rock",    type: "rock",    era: "80s"     },
-  rock_90s:     { name: "90's Rock",    type: "rock",    era: "90s"     },
-  rock_00s:     { name: "2000's Rock",  type: "rock",    era: "00s"     },
-  rock_10s:     { name: "2010's Rock",  type: "rock",    era: "10s"     },
-  rock_20s:     { name: "2020's Rock",  type: "rock",    era: "20s"     },
+  rock_60s: { name: "60's Rock", type: "rock", era: "60s" },
+  rock_70s: { name: "70's Rock", type: "rock", era: "70s" },
+  rock_80s: { name: "80's Rock", type: "rock", era: "80s" },
+  rock_90s: { name: "90's Rock", type: "rock", era: "90s" },
+  rock_00s: { name: "2000's Rock", type: "rock", era: "00s" },
+  rock_10s: { name: "2010's Rock", type: "rock", era: "10s" },
+  rock_20s: { name: "2020's Rock", type: "rock", era: "20s" },
 
   // Metal
-  metal_70s:    { name: "70's Metal",   type: "metal",   era: "70s"     },
-  metal_80s:    { name: "80's Metal",   type: "metal",   era: "80s"     },
-  metal_90s:    { name: "90's Metal",   type: "metal",   era: "90s"     },
-  metal_00s:    { name: "2000's Metal", type: "metal",   era: "00s"     },
-  metal_10s:    { name: "2010's Metal", type: "metal",   era: "10s"     },
-  metal_20s:    { name: "2020's Metal", type: "metal",   era: "20s"     },
+  metal_70s: { name: "70's Metal", type: "metal", era: "70s" },
+  metal_80s: { name: "80's Metal", type: "metal", era: "80s" },
+  metal_90s: { name: "90's Metal", type: "metal", era: "90s" },
+  metal_00s: { name: "2000's Metal", type: "metal", era: "00s" },
+  metal_10s: { name: "2010's Metal", type: "metal", era: "10s" },
+  metal_20s: { name: "2020's Metal", type: "metal", era: "20s" },
 
   // Mixed
-  mixed_60s:    { name: "60's Mix",     type: "mixed",   era: "60s"     },
-  mixed_70s:    { name: "70's Mix",     type: "mixed",   era: "70s"     },
-  mixed_80s:    { name: "80's Mix",     type: "mixed",   era: "80s"     },
-  mixed_90s:    { name: "90's Mix",     type: "mixed",   era: "90s"     },
+  mixed_60s: { name: "60's Mix", type: "mixed", era: "60s" },
+  mixed_70s: { name: "70's Mix", type: "mixed", era: "70s" },
+  mixed_80s: { name: "80's Mix", type: "mixed", era: "80s" },
+  mixed_90s: { name: "90's Mix", type: "mixed", era: "90s" },
 
   // Turkish
   turkish_rock: { name: "Turkish Rock", type: "turkish", era: "classic" },

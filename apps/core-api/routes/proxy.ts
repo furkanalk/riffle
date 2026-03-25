@@ -7,7 +7,7 @@ async function deezerFetch(url: string): Promise<unknown> {
   if (!res.ok) {
     throw Object.assign(new Error(`Deezer returned ${res.status}`), { status: 502 });
   }
-  const data = await res.json() as Record<string, unknown>;
+  const data = (await res.json()) as Record<string, unknown>;
   if (data?.error) {
     const msg = (data.error as Record<string, unknown>)?.message ?? "Deezer error";
     throw Object.assign(new Error(String(msg)), { status: 502 });
@@ -21,13 +21,13 @@ const proxyRoutes: FastifyPluginAsync = async (fastify) => {
     const { id } = req.params;
     req.log.info(`[proxy] playlist ${id}`);
     try {
-      const raw = await deezerFetch(`${DEEZER_API}/playlist/${id}/tracks?limit=100`) as {
+      const raw = (await deezerFetch(`${DEEZER_API}/playlist/${id}/tracks?limit=100`)) as {
         data?: Array<Record<string, unknown>>;
       };
 
       // Keep only tracks that have a non-empty preview URL
       const tracks = (raw.data ?? []).filter(
-        (t) => typeof t.preview === "string" && t.preview.length > 0,
+        (t) => typeof t.preview === "string" && t.preview.length > 0
       );
 
       if (tracks.length === 0) {
@@ -59,11 +59,11 @@ const proxyRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get<{ Params: { id: string } }>("/preview/:id", async (req, reply) => {
     const { id } = req.params;
     try {
-      const data = await deezerFetch(`${DEEZER_API}/track/${id}`) as Record<string, unknown>;
+      const data = (await deezerFetch(`${DEEZER_API}/track/${id}`)) as Record<string, unknown>;
       return reply.send({
-        id:         data.id,
-        name:       data.title,
-        artists:    (data.artist as Record<string, unknown>)?.name,
+        id: data.id,
+        name: data.title,
+        artists: (data.artist as Record<string, unknown>)?.name,
         previewUrl: data.preview,
       });
     } catch (err: unknown) {
@@ -77,7 +77,7 @@ const proxyRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get<{ Params: { id: string } }>("/stream/:id", async (req, reply) => {
     const { id } = req.params;
     try {
-      const track = await deezerFetch(`${DEEZER_API}/track/${id}`) as Record<string, unknown>;
+      const track = (await deezerFetch(`${DEEZER_API}/track/${id}`)) as Record<string, unknown>;
       const previewUrl = track.preview as string | undefined;
       if (!previewUrl) {
         return reply.code(404).send({ error: "No preview available for this track" });

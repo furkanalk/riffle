@@ -249,7 +249,8 @@ export class GameEngine {
       { type: "album", weight: 0.15, unique: countUnique("album") },
     ].filter((c) => c.unique >= 2);
 
-    const safeCandidates = candidates.length > 0 ? candidates : [{ type: "song", weight: 1, unique: 1 }];
+    const safeCandidates =
+      candidates.length > 0 ? candidates : [{ type: "song", weight: 1, unique: 1 }];
     const withoutRepeat = safeCandidates.filter((c) => c.type !== this.lastQuestionType);
     const weightedPool = withoutRepeat.length > 0 ? withoutRepeat : safeCandidates;
 
@@ -308,9 +309,12 @@ export class GameEngine {
       return track.artist || "Unknown Artist";
     };
 
-    const sameArtist = pool.filter((t) => t.artist === currentTrack.artist && t.id !== currentTrack.id);
+    const sameArtist = pool.filter(
+      (t) => t.artist === currentTrack.artist && t.id !== currentTrack.id
+    );
     const sameAlbum = pool.filter(
-      (t) => t.album?.title && t.album?.title === currentTrack.album?.title && t.id !== currentTrack.id,
+      (t) =>
+        t.album?.title && t.album?.title === currentTrack.album?.title && t.id !== currentTrack.id
     );
 
     const pushFrom = (list) => {
