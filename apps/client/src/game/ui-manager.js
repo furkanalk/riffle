@@ -1,6 +1,12 @@
 // ui-manager.js
 import { submitScoreIfLoggedIn } from "../core/leaderboard-submit.js";
 
+function escapeHtml(s) {
+  const d = document.createElement("div");
+  d.textContent = s ?? "";
+  return d.innerHTML;
+}
+
 // Local SVG fallback — no external request, no DNS failure
 const COVER_FALLBACK =
   "data:image/svg+xml," +
@@ -17,6 +23,117 @@ export class UIManager {
     this.loadingScreen = document.getElementById("loading-screen");
     this.roundCompletion = document.getElementById("round-completion");
     this.resultsModal = document.getElementById("results-modal");
+  }
+
+  async loadFinalModeLeaderboard(mode) {
+    const loadingEl = document.getElementById("final-mode-leaderboard-loading");
+    const emptyEl = document.getElementById("final-mode-leaderboard-empty");
+    const podiumEl = document.getElementById("final-mode-leaderboard-podium");
+    const othersEl = document.getElementById("final-mode-leaderboard-others");
+    if (!loadingEl || !emptyEl || !podiumEl || !othersEl) return;
+
+    const safeMode = String(mode ?? "solo").slice(0, 20);
+
+    loadingEl.textContent = "Loading leaderboard…";
+    emptyEl.classList.add("hidden");
+    podiumEl.classList.add("hidden");
+    othersEl.classList.add("hidden");
+    podiumEl.innerHTML = "";
+    othersEl.innerHTML = "";
+
+    try {
+      const res = await fetch(`/api/leaderboard?mode=${encodeURIComponent(safeMode)}&limit=10`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Leaderboard load failed");
+
+      const entries = Array.isArray(data.entries) ? data.entries : [];
+      if (entries.length === 0) {
+        loadingEl.classList.add("hidden");
+        emptyEl.classList.remove("hidden");
+        return;
+      }
+
+      loadingEl.classList.add("hidden");
+
+      const top3 = entries.slice(0, 3);
+      const rest = entries.slice(3);
+
+      const card = (entry, rank, themeKey) => {
+        const avatar = entry.avatar || "avatar1";
+        const name = escapeHtml(entry.username || "Guest");
+        const score = escapeHtml(String(entry.score ?? 0));
+
+        let borderClass = "border-yellow-400";
+        let smallTextClass = "text-yellow-300";
+        let gradientFromClass = "from-yellow-400";
+
+        if (themeKey === "gray") {
+          borderClass = "border-gray-300";
+          smallTextClass = "text-gray-300";
+          gradientFromClass = "from-gray-300";
+        } else if (themeKey === "amber") {
+          borderClass = "border-amber-700";
+          smallTextClass = "text-amber-300";
+          gradientFromClass = "from-amber-700";
+        }
+
+        return `
+          <div class="w-full max-w-[16rem] text-center bg-gray-800/70 border ${borderClass} rounded-xl p-4">
+            <div class="text-sm font-bold ${smallTextClass} mb-2">${rank}</div>
+            <div class="mx-auto h-14 w-14 rounded-full bg-gradient-to-br ${gradientFromClass} to-indigo-600 p-1 flex items-center justify-center">
+              <img src="./src/img/avatars/${avatar}.png" alt="" class="rounded-full h-12 w-12 object-cover" />
+            </div>
+            <div class="mt-2 font-bold text-white text-sm truncate">${name}</div>
+            <div class="mt-1 font-extrabold text-purple-300">${score} pts</div>
+          </div>
+        `;
+      };
+
+      const podiumMarkup = `
+        <div class="flex flex-col items-center gap-3 sm:gap-4">
+          ${top3[0] ? card(top3[0], "1st", "yellow") : ""}
+          <div class="w-full flex justify-center gap-3 sm:gap-4">
+            ${top3[1] ? card(top3[1], "2nd", "gray") : ""}
+            ${top3[2] ? card(top3[2], "3rd", "amber") : ""}
+          </div>
+        </div>
+      `;
+
+      podiumEl.innerHTML = podiumMarkup;
+      podiumEl.classList.remove("hidden");
+
+      if (rest.length > 0) {
+        const othersMarkup = rest
+          .map((e, i) => {
+            const idx = i + 4;
+            const avatar = e.avatar || "avatar1";
+            const name = escapeHtml(e.username || "Guest");
+            const score = escapeHtml(String(e.score ?? 0));
+            return `
+              <div class="bg-gray-800/60 border border-purple-800/30 rounded-xl p-3">
+                <div class="flex items-center gap-3">
+                  <div class="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 p-1 flex items-center justify-center">
+                    <img src="./src/img/avatars/${avatar}.png" alt="" class="rounded-full h-9 w-9 object-cover" />
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-baseline justify-between gap-2">
+                      <div class="font-bold text-sm text-white truncate">#${idx} ${name}</div>
+                      <div class="font-extrabold text-purple-300 text-sm">${score}</div>
+                    </div>
+                    <div class="text-xs text-purple-200 mt-1">${e.game_mode || safeMode}</div>
+                  </div>
+                </div>
+              </div>
+            `;
+          })
+          .join("");
+
+        othersEl.innerHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">${othersMarkup}</div>`;
+        othersEl.classList.remove("hidden");
+      }
+    } catch (e) {
+      loadingEl.textContent = e instanceof Error ? e.message : "Could not load leaderboard.";
+    }
   }
 
   // Show loading screen with progress simulation
@@ -367,6 +484,10 @@ export class UIManager {
         star.style.animation = `rotateStar ${Math.random() * 5 + 5}s infinite linear`;
       });
     }, 100);
+
+    // Load & render top leaderboard podium for this game mode.
+    // Do not block UI; it updates when API returns.
+    this.loadFinalModeLeaderboard(scoreData.gameMode);
   }
 
   // Update game statistics display
