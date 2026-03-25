@@ -4,10 +4,7 @@ import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify";
  * In-memory fixed-window rate limiter (per Fastify encapsulation scope).
  * For multi-instance deployments, use an edge proxy or Redis-backed limits instead.
  */
-export function createSimpleRateLimit(opts: {
-  max: number;
-  windowMs: number;
-}): FastifyPluginAsync {
+export function createSimpleRateLimit(opts: { max: number; windowMs: number }): FastifyPluginAsync {
   const { max, windowMs } = opts;
   const buckets = new Map<string, { count: number; resetAt: number }>();
 
