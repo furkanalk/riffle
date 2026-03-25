@@ -1,71 +1,71 @@
-# Matchmaker (Go) — durum ve yol haritası
+# Matchmaker (Go) — status and roadmap
 
-Bu dosya `apps/game-engine` içindeki gerçek zamanlı lobi / matchmaker servisinin **son yapılanları** ve **yapılacakları** özetler. Mimari çerçeve için bkz. [ARCHITECTURE.md](./ARCHITECTURE.md).
+This document summarizes **recent work** and **planned work** for the real-time lobby / matchmaker service under `apps/game-engine`. For the broader architecture, see [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 ---
 
-## Son yapılanlar
+## Recently completed
 
-### Go servisi (`apps/game-engine`)
+### Go service (`apps/game-engine`)
 
 - **HTTP**
   - `GET /health` — JSON: `{"ok":true,"service":"matchmaker"}`
-- **WebSocket** — `GET /ws` (query parametreleri)
-  - `room` — 6 karakter `[A-Z0-9]` oda kodu
-  - `clientId` — istemci kimliği (yeniden bağlantı için)
-  - `name`, `avatar`, `required` — lobi gereksinimleri
-  - `token` — isteğe bağlı JWT (`core-api` ile aynı `JWT_SECRET`, `id` claim)
-- **Mesaj türleri (sunucu → istemci)**
-  - `room_state` — oyuncu listesi, host, `requiredCount`, `started`
-  - `game_started` — host oyunu başlattığında yayın
-  - `pong` — `ping` yanıtı
-  - `error` — `start_game` reddedildiğinde: `not_host`, `already_started`, `lobby_not_ready`
-- **İstemci → sunucu**
+- **WebSocket** — `GET /ws` (query parameters)
+  - `room` — 6-character `[A-Z0-9]` room code
+  - `clientId` — client identity (for reconnects)
+  - `name`, `avatar`, `required` — lobby parameters
+  - `token` — optional JWT (same `JWT_SECRET` as `core-api`, `id` claim)
+- **Server → client message types**
+  - `room_state` — player list, host, `requiredCount`, `started`
+  - `game_started` — broadcast when the host starts the game
+  - `pong` — response to `ping`
+  - `error` — when `start_game` is rejected: `not_host`, `already_started`, `lobby_not_ready`
+- **Client → server**
   - `ping` / `ready` / `start_game`
-- **Yeniden bağlanma** — Aynı `clientId` ile yeni socket açılırsa eski bağlantı kapatılıp kayıt temizlenene kadar beklenir; `joinOrder` tutarlı kalır.
-- **Redis (isteğe bağlı)** — `REDIS_ADDR` veya `REDIS_HOST` (+ `:6379`) ile `PING` başarılıysa kanal `riffle:matchmaker` üzerinden çoklu instance fan-out; mesajlarda `origin` (instance UUID) ile döngü engellenir.
-- **Docker** — `apps/game-engine/dockerfile` (`dev` / `prod` hedefleri), Compose’da `8080:8080`, `JWT_SECRET`, `WEBSOCKET_ALLOWED_ORIGINS` (`CORS_ORIGIN`), `depends_on: active-game-redis`.
+- **Reconnect** — If a new socket opens with the same `clientId`, the previous connection is closed and the handler waits until cleanup completes; `joinOrder` stays consistent.
+- **Redis (optional)** — If `PING` succeeds against `REDIS_ADDR` or `REDIS_HOST` (+ `:6379`), multi-instance fan-out uses channel `riffle:matchmaker`; `origin` (instance UUID) prevents publish loops.
+- **Docker** — `apps/game-engine/dockerfile` (`dev` / `prod` targets), Compose exposes `8080:8080`, sets `JWT_SECRET`, `WEBSOCKET_ALLOWED_ORIGINS` (from `CORS_ORIGIN`), `depends_on: active-game-redis`.
 
-### İstemci (vanilla JS)
+### Client (vanilla JS)
 
-- Varsayılan lobi hâlâ **localStorage + `storage` olayı** ile çalışır (MVP).
-- Gerçek matchmaker için: URL’de **`?ws=1`** veya `localStorage.setItem("riffle_use_ws_matchmaker", "1")`.
-- Özel WebSocket tabanı: `localStorage.riffle_matchmaker_ws` veya `window.__RIFFLE_MATCHMAKER_WS__` (aksi halde `ws(s)://<host>:8080/ws`).
-- Kategori akışında host “Start”ta `sendMatchmakerStartGame()` ile sunucuya `start_game` gönderilir (`category-game.js` → `room-sim.js`).
-
----
-
-## Yapılacaklar / önerilen sıradaki adımlar
-
-### Kısa vadeli
-
-1. **Hata mesajlarının UI’da gösterilmesi** — WebSocket’ten gelen `type: "error"` için kullanıcıya toast / metin (şu an sunucu gönderiyor; istemci genelde yok sayıyor).
-2. **Bağlantı durumu** — `onclose` / `onerror` sonrası “Yeniden bağlan” veya kısa geri sayım ile otomatik reconnect (oda kodu korunarak).
-3. **Çeviri (i18n)** — Hata metinleri TR/EN `i18n` sözlüğüne taşınabilir.
-
-### Orta vadeli
-
-4. **Gerçek çok oyunculu oyun senkronu** — Lobi matchmaker’da; soru/süre/skor için ya aynı WS kanalı genişletilir ya da oyun motoru için ayrı protokol / servis tanımlanır.
-5. **Redis sertifikası / ACL** — Prod’da Redis şifreli erişim veya ACL ile `go-redis` kimlik doğrulaması.
-6. **Gözlemlenebilirlik** — Prometheus metrikleri (bağlantı sayısı, oda sayısı, Redis publish hataları), yapılandırılmış loglar.
-
-### Uzun vadeli
-
-7. **Kalıcı oda durumu** — Tam otorite için Redis (veya başka store) + TTL; şu an bellek + isteğe bağlı fan-out.
-8. **Yük dengeleme** — Sticky session veya tam Redis-otoriteli durum modeli; birden fazla matchmaker replikası için net strateji dokümante edilmeli.
+- Default lobby still uses **localStorage + `storage` events** (MVP).
+- For the real matchmaker: **`?ws=1`** in the URL or `localStorage.setItem("riffle_use_ws_matchmaker", "1")`.
+- Custom WebSocket base URL: `localStorage.riffle_matchmaker_ws` or `window.__RIFFLE_MATCHMAKER_WS__` (otherwise `ws(s)://<host>:8080/ws`).
+- On categories flow, the host’s “Start” calls `sendMatchmakerStartGame()` so the server receives `start_game` (`category-game.js` → `room-sim.js`).
 
 ---
 
-## İlgili dosyalar
+## Planned / suggested next steps
 
-| Alan | Konum |
-|------|--------|
-| Go giriş noktası | `apps/game-engine/cmd/matchmaker/main.go` |
-| Hub / WS / Redis | `apps/game-engine/internal/hub/hub.go` |
+### Short term
+
+1. **Surface errors in the UI** — For WebSocket messages with `type: "error"`, show a toast or inline text (the server already sends them; the client often ignores them today).
+2. **Connection lifecycle** — After `onclose` / `onerror`, offer “Reconnect” or a short countdown with automatic reconnect (keeping the room code).
+3. **i18n** — Move error copy into the TR/EN `i18n` dictionary.
+
+### Medium term
+
+4. **Real-time game sync** — Lobby is on the matchmaker; for questions, timers, and scores, either extend the same WebSocket protocol or define a separate protocol / service for the game engine.
+5. **Redis TLS / ACL** — In production, encrypted Redis access or ACL-backed authentication for `go-redis`.
+6. **Observability** — Prometheus metrics (connections, rooms, Redis publish failures), structured logging.
+
+### Long term
+
+7. **Durable room state** — Full authority may require Redis (or another store) plus TTL; today state is in-memory with optional fan-out.
+8. **Load balancing** — Sticky sessions or a fully Redis-authoritative state model; document a clear strategy for multiple matchmaker replicas.
+
+---
+
+## Related files
+
+| Area | Location |
+|------|----------|
+| Go entrypoint | `apps/game-engine/cmd/matchmaker/main.go` |
+| Hub / WebSocket / Redis | `apps/game-engine/internal/hub/hub.go` |
 | JWT | `apps/game-engine/internal/auth/jwt.go` |
 | Docker | `apps/game-engine/dockerfile` |
-| Compose (servis) | `ops/compose/common/services.yml` (`matchmaker`) |
+| Compose (service) | `ops/compose/common/services.yml` (`matchmaker`) |
 
 ---
 
-*Son güncelleme: matchmaker reconnect + `start_game` hataları + Redis fan-out ve bu dokümanın eklenmesiyle uyumlu.*
+*Last updated: aligned with matchmaker reconnect handling, `start_game` errors, Redis fan-out, and this document.*
