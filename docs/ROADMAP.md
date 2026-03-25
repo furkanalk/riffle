@@ -86,7 +86,7 @@ Still intentionally narrow or simulated: full online matchmaking at scale, autho
 
 > *Establishing a production-ready container baseline.*
 
-- [ ] **Phase 1: Local Orchestration**
+- [x] **Phase 1: Local Orchestration**
   - [x] Docker Compose modularization (common/dev/prod layers).
   - [x] Environment simplification to Dev + Prod.
 
