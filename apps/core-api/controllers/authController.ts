@@ -22,6 +22,18 @@ const BLOCKED_USERNAMES = new Set([
   "undefined",
 ]);
 
+// Simple placeholder to reduce obviously harmful usernames.
+// Extend this list over time (or replace with a more robust moderation system).
+const BLOCKED_SUBSTRINGS = [
+  "sex",
+  "porn",
+  "xxx",
+  "fuck",
+  "shit",
+  "bitch",
+  "asshole",
+];
+
 const JWT_SECRET = process.env.JWT_SECRET ?? "riffle_dev_jwt_secret";
 const TOKEN_EXPIRES_IN = (process.env.TOKEN_EXPIRES_IN ?? "1d") as SignOptions["expiresIn"];
 
@@ -78,6 +90,11 @@ export async function register(
 
   if (BLOCKED_USERNAMES.has(username.toLowerCase())) {
     reply.code(400).send({ error: "This username is reserved." });
+    return;
+  }
+
+  if (BLOCKED_SUBSTRINGS.some((s) => username.toLowerCase().includes(s))) {
+    reply.code(400).send({ error: "Please choose a different username." });
     return;
   }
 
@@ -193,6 +210,11 @@ export async function updateProfile(req: FastifyRequest, reply: FastifyReply): P
     }
     if (BLOCKED_USERNAMES.has(u.toLowerCase())) {
       reply.code(400).send({ error: "This username is reserved." });
+      return;
+    }
+
+    if (BLOCKED_SUBSTRINGS.some((s) => u.toLowerCase().includes(s))) {
+      reply.code(400).send({ error: "Please choose a different username." });
       return;
     }
   }
