@@ -59,7 +59,7 @@ body {
   grid-template-columns: auto 1fr auto;
   gap: 0.75rem;
   align-items: center;
-  padding: 0.7rem 1rem;
+  padding: calc(0.7rem + env(safe-area-inset-top)) 1rem calc(0.7rem + env(safe-area-inset-bottom));
   background: rgba(8, 8, 16, 0.76);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
@@ -151,7 +151,7 @@ body {
   z-index: 10;
   max-width: 980px;
   margin: 0 auto;
-  padding: 5.5rem 1rem 2rem;
+  padding: calc(5.5rem + env(safe-area-inset-top)) 1rem 2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -335,6 +335,8 @@ body {
   background: linear-gradient(165deg, rgba(32, 13, 58, 0.95), rgba(12, 12, 28, 0.95));
   box-shadow: 0 20px 55px rgba(0, 0, 0, 0.45);
   position: relative;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
 }
 
 .panel-surface {
