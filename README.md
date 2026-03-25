@@ -27,7 +27,7 @@ RIFFLE — INFO
 Genre        : Rock • Metal (more TBD)
 Architecture : Microservices (Monorepo Managed)
 Platform     : Web • Mobile (Planned)
-Version      : v0.5.1-alpha
+Version      : v0.5.0-alpha
 
 "Test your music knowledge under pressure."
 ```
@@ -171,19 +171,20 @@ node -e "console.log(require('crypto').randomBytes(16).toString('hex'))"
 
 ## Progress
 
-- **Current Stage:** `Stage 4`
-- **Active Phase:** Phase 1–2: Compose Orchestration + Edge & Security
+- **Current build:** `v0.5.0` (workspace; alpha-quality)
+- **Current stage:** **Stage 4** — Infrastructure Foundation (with overlapping work in Stages 2–3 and early experiments in Stage 6)
+- **Active focus:** Docker Compose dev/prod layers, **Core API** (Fastify, auth, PostgreSQL, in-memory rate limits on sensitive routes), **Go matchmaker** (HTTP health + WebSocket `/ws`, optional Redis fan-out), **client** (vanilla JS, i18n EN/TR, avatars, leaderboards, localStorage lobby MVP and optional `?ws=1` matchmaker)
 
 ```text
 Stage 1: Proof of Concept (PoC)       ██████████ 100%
-Stage 2: Gameplay Depth & UX          ██░░░░░░░░  20%  (advanced mechanics & polish pending)
-Stage 3: Platform Architecture        ████████░░  80%  (monorepo, services, tooling done)
-Stage 4: Infrastructure Foundation    █████░░░░░  50%  ← current
-Stage 5: Production Operations        ░░░░░░░░░░   0%  (CI/CD delivery planned)
-Stage 6: Expansion & Integrity        ░░░░░░░░░░   0%  (mobile & anti-cheat planned)
+Stage 2: Gameplay Depth & UX        ███░░░░░░░ ~35%  (modes, leaderboards, UX polish partial)
+Stage 3: Platform Architecture       ████████░░ ~85%  (monorepo, services, tooling; Go matchmaker shipped)
+Stage 4: Infrastructure Foundation  ██████░░░░ ~60%  (compose, Caddy prod, basic rate limits; hardening TBD)
+Stage 5: Production Operations       ██░░░░░░░░ ~15%  (Prom/Grafana/Loki in prod stack; CI/CD TBD)
+Stage 6: Expansion & Integrity       █░░░░░░░░░ ~10%  (lobby groundwork; full online sync & anti-cheat TBD)
 ```
 
-Explore the **[Project Roadmap](./docs/ROADMAP.md)** and **[Changelog](./docs/CHANGELOG.md)** for a complete history.
+Explore the **[Project Roadmap](./docs/ROADMAP.md)** (full checklist), **[Matchmaker](./docs/MATCHMAKER.md)** (WebSocket service), and **[Changelog](./docs/CHANGELOG.md)**.
 
 ## License
 
