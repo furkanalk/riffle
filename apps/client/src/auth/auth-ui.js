@@ -1,4 +1,5 @@
 import { mountAvatarPicker } from "../ui/avatar-picker.js";
+import { getLang, t } from "../core/i18n.js";
 
 export function initAuthUI() {
   const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -555,7 +556,7 @@ export function initAuthUI() {
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        <span>Processing...</span>
+                        <span>${t("auth.processing", getLang())}</span>
                     </div>
                 `;
         return;
@@ -565,9 +566,9 @@ export function initAuthUI() {
       btn.classList.add("hover:shadow-lg", "hover:-translate-y-1");
 
       if (btn.id === "btn-login-submit") {
-        btn.textContent = "ENTER THE ARENA";
+        btn.textContent = t("auth.submitLogin", getLang());
       } else if (btn.id === "btn-register-submit") {
-        btn.textContent = "CREATE LEGEND";
+        btn.textContent = t("auth.submitRegister", getLang());
       }
     });
   }

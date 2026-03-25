@@ -7,9 +7,11 @@ import { applyModeLayout } from "./mode-layout.js";
 import { initRoomSim } from "../lobby/room-sim.js";
 import "./menu-navigation.js";
 import { selectedCategories } from "./state.js";
+import { applyCategoriesLanguage, getLang } from "../core/i18n.js";
 
 // Init DOM
 document.addEventListener("DOMContentLoaded", async () => {
+  applyCategoriesLanguage(getLang());
   await maybeShowGuestAvatarGate();
   applyModeLayout();
   init();
