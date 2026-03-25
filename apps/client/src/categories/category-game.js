@@ -2,8 +2,9 @@
 import { getEffectiveAvatarId } from "../core/user-manager.js";
 import {
   getRoomIdForGame,
-  persistRoomPlayersForGame,
   markRoomStartedForGame,
+  persistRoomPlayersForGame,
+  sendMatchmakerStartGame,
 } from "../lobby/room-sim.js";
 import { isQuickPlayMode, QUICK_PLAY_FIXED } from "./quick-play.js";
 import { gameMode, selectedCategories } from "./state.js";
@@ -22,6 +23,7 @@ function startGame() {
       alert("Room is not ready yet. Please wait for other players.");
       return;
     }
+    sendMatchmakerStartGame();
     markRoomStartedForGame();
   }
 
@@ -94,7 +96,9 @@ function startGame() {
   console.log(`Game settings saved for ${gameMode} mode with avatar: ${selectedAvatar}`);
 
   // Redirect to the game page
-  window.location.href = roomId ? `game.html?mode=${gameMode}&room=${roomId}` : `game.html?mode=${gameMode}`;
+  window.location.href = roomId
+    ? `game.html?mode=${gameMode}&room=${roomId}`
+    : `game.html?mode=${gameMode}`;
 }
 
 export { startGame };

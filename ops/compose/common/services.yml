@@ -48,11 +48,16 @@ services:
       target: ${DOCKER_STAGE:-dev}
     container_name: service-matchmaker
     environment:
+      PORT: 8080
+      JWT_SECRET: ${JWT_SECRET}
+      WEBSOCKET_ALLOWED_ORIGINS: ${CORS_ORIGIN}
       REDIS_HOST: active-game-redis
       MTLS_ENABLED: ${MTLS_ENABLED}
       MTLS_CA_PATH: ${MTLS_CA_PATH}
       MTLS_CERT_PATH: ${MTLS_CERT_PATH}
       MTLS_KEY_PATH: ${MTLS_KEY_PATH}
+    ports:
+      - "8080:8080"
     volumes:
       - ../../secrets/certs:/app/certs:ro
     networks:

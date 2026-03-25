@@ -1,5 +1,5 @@
-import { getUser } from "../core/user-manager.js";
 import { gameMode, selectedCategories } from "../categories/state.js";
+import { getUser } from "../core/user-manager.js";
 
 const CLIENT_ID_KEY = "riffle_client_id";
 const ROOM_STORAGE_PREFIX = "riffle_room_";
@@ -176,6 +176,60 @@ function syncStartButtonState() {
 
 let syncTimer = null;
 
+/** Active WebSocket to the Go matchmaker (when `?ws=1` or localStorage flag). */
+let matchmakerWs = null;
+
+function shouldUseMatchmakerWs() {
+  try {
+    const p = new URLSearchParams(window.location.search);
+    if (p.get("ws") === "1") return true;
+    if (localStorage.getItem("riffle_use_ws_matchmaker") === "1") return true;
+  } catch {
+    /* ignore */
+  }
+  return false;
+}
+
+function matchmakerWsEndpoint() {
+  try {
+    const manual = localStorage.getItem("riffle_matchmaker_ws");
+    if (manual) {
+      return manual.replace(/\/$/, "");
+    }
+  } catch {
+    /* ignore */
+  }
+  if (typeof window !== "undefined" && window.__RIFFLE_MATCHMAKER_WS__) {
+    return String(window.__RIFFLE_MATCHMAKER_WS__).replace(/\/$/, "");
+  }
+  const proto = location.protocol === "https:" ? "wss:" : "ws:";
+  return `${proto}//${location.hostname}:8080/ws`;
+}
+
+function mapServerRoomToLocal(msg) {
+  return {
+    roomId: msg.roomId,
+    hostClientId: msg.hostClientId,
+    requiredCount: msg.requiredCount,
+    players: Array.isArray(msg.players) ? msg.players : [],
+    started: Boolean(msg.started),
+    updatedAt: Date.now(),
+    createdAt: Date.now(),
+  };
+}
+
+/**
+ * Notify the Go matchmaker that the host is starting (no-op for localStorage lobby).
+ */
+export function sendMatchmakerStartGame() {
+  if (!matchmakerWs || matchmakerWs.readyState !== WebSocket.OPEN) return;
+  matchmakerWs.send(JSON.stringify({ type: "start_game" }));
+}
+
+export function isMatchmakerWsLobby() {
+  return Boolean(matchmakerWs);
+}
+
 function normalizeRoomCode(code) {
   return String(code ?? "")
     .trim()
@@ -184,7 +238,7 @@ function normalizeRoomCode(code) {
     .slice(0, 6);
 }
 
-function setupRoomCodeControls(roomId) {
+function setupRoomCodeControls(roomId, opts = {}) {
   const input = document.getElementById("room-code-input");
   const joinBtn = document.getElementById("room-join-btn");
   const createBtn = document.getElementById("room-create-btn");
@@ -198,6 +252,7 @@ function setupRoomCodeControls(roomId) {
     if (nextRoomId) url.searchParams.set("room", nextRoomId);
     else url.searchParams.delete("room");
     url.searchParams.set("mode", gameMode);
+    if (opts.preserveWs) url.searchParams.set("ws", "1");
     window.location.href = url.toString();
   };
 
@@ -216,11 +271,84 @@ function setupRoomCodeControls(roomId) {
   });
 }
 
+function initMatchmakerWsLobby() {
+  const myClientId = getOrCreateClientId();
+  const user = getUser();
+  const username = getEffectiveUsername(user);
+  const avatar = user.avatar || "avatar1";
+
+  let roomId = getRoomIdFromUrl();
+  if (!roomId) {
+    roomId = generateRoomId();
+    setRoomIdInUrl(roomId);
+  }
+
+  const invite = document.getElementById("invite-link");
+  if (invite) {
+    const baseUrl = new URL(window.location.href);
+    baseUrl.searchParams.set("room", roomId);
+    baseUrl.searchParams.set("mode", gameMode);
+    baseUrl.searchParams.set("ws", "1");
+    invite.value = baseUrl.toString();
+  }
+
+  setupRoomCodeControls(roomId, { preserveWs: true });
+
+  const params = new URLSearchParams({
+    room: roomId,
+    name: username,
+    avatar,
+    clientId: myClientId,
+    required: String(computeRequiredPlayers()),
+  });
+  const token = localStorage.getItem("token");
+  if (token) params.set("token", token);
+
+  const wsUrl = `${matchmakerWsEndpoint()}?${params.toString()}`;
+  matchmakerWs = new WebSocket(wsUrl);
+
+  matchmakerWs.onmessage = (ev) => {
+    let msg;
+    try {
+      msg = JSON.parse(ev.data);
+    } catch {
+      return;
+    }
+    if (msg.type === "room_state") {
+      const room = mapServerRoomToLocal(msg);
+      saveRoom(roomId, room);
+      renderPlayersList(room, myClientId);
+      syncStartButtonState();
+    }
+    if (msg.type === "game_started") {
+      const url = new URL(window.location.href);
+      if (url.pathname.includes("game.html")) return;
+      const gameUrl = new URL("./game.html", window.location.href);
+      gameUrl.searchParams.set("mode", gameMode);
+      gameUrl.searchParams.set("room", roomId);
+      window.location.href = gameUrl.toString();
+    }
+  };
+
+  matchmakerWs.onerror = () => {
+    console.warn("[matchmaker] WebSocket error — is the Go service running on :8080?");
+  };
+
+  matchmakerWs.onclose = () => {
+    matchmakerWs = null;
+  };
+}
+
 export function initRoomSim() {
   // Only in multiplayer lobby panels.
   if (!["versus", "team", "coop"].includes(gameMode)) return;
   const playersList = document.getElementById("players-list");
   if (!playersList) return;
+
+  if (shouldUseMatchmakerWs()) {
+    initMatchmakerWsLobby();
+    return;
+  }
 
   const myClientId = getOrCreateClientId();
   const user = getUser();
@@ -252,7 +380,8 @@ export function initRoomSim() {
 
   const existing = room.players.find((p) => p.clientId === myClientId);
   if (!existing) {
-    const color = room.players.length < COLOR_POOL.length ? COLOR_POOL[room.players.length] : "purple-500";
+    const color =
+      room.players.length < COLOR_POOL.length ? COLOR_POOL[room.players.length] : "purple-500";
     room.players.push({
       clientId: myClientId,
       username,
@@ -363,4 +492,3 @@ export function markRoomStartedForGame() {
   saveRoom(roomId, room);
   return true;
 }
-
