@@ -135,6 +135,26 @@
       </div>
 
     </div>
+
+    <!-- Main menu leaderboard preview (quick glance) -->
+    <section class="mt-6">
+      <div id="main-leaderboard-preview" class="main-leaderboard-preview">
+        <div class="flex items-center justify-between gap-3 mb-2">
+          <h3 id="main-leaderboard-title" class="text-lg font-extrabold text-white">Leaderboard Preview</h3>
+          <select id="main-leaderboard-mode" class="field-select" aria-label="Preview mode">
+            <option value="solo">Marathon (solo)</option>
+            <option value="versus">Solo VS</option>
+            <option value="team">Team VS</option>
+            <option value="coop">Co-op</option>
+            <option value="custom">Custom</option>
+            <option value="chaos">Chaos</option>
+          </select>
+        </div>
+        <p id="main-leaderboard-desc" class="text-purple-200 text-sm mb-3">Top 3 scores for selected mode.</p>
+        <div id="main-leaderboard-list" class="flex flex-col gap-3"></div>
+        <div id="main-leaderboard-empty" class="text-purple-200 text-sm hidden">No scores yet for this mode.</div>
+      </div>
+    </section>
   </main>
 
   <!-- ── AUTH PANEL ─────────────────────────────────────────────────────── -->

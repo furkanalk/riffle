@@ -39,6 +39,11 @@ const DICT = {
       guestAvatarSub: "Pick a look for this session.",
       guestAvatarContinue: "Continue",
     },
+    mainLeaderboard: {
+      title: "Leaderboard Preview",
+      desc: "Top 3 scores for selected mode.",
+      empty: "No scores yet for this mode.",
+    },
   },
   tr: {
     header: {
@@ -77,6 +82,11 @@ const DICT = {
       guestAvatarTitle: "Avatarını seç",
       guestAvatarSub: "Bu oturum için bir görünüm seç.",
       guestAvatarContinue: "Devam",
+    },
+    mainLeaderboard: {
+      title: "Lider Tablosu Önizleme",
+      desc: "Seçilen moda göre ilk 3 skor.",
+      empty: "Bu mod için henüz skor yok.",
     },
   },
 };
@@ -149,6 +159,22 @@ export function applyIndexLanguage(lang = getLang()) {
     if (modeLabel) setText(modeLabel, t("leaderboard.modeLabel", lang));
 
     const sel = leaderboardPanel.querySelector("#leaderboard-mode");
+    if (sel) {
+      sel.querySelectorAll("option").forEach((opt) => {
+        const v = opt.value;
+        const mapped = DICT[lang].leaderboard.modes[v];
+        if (mapped) opt.textContent = mapped;
+      });
+    }
+  }
+
+  const mainLeaderboard = document.getElementById("main-leaderboard-preview");
+  if (mainLeaderboard) {
+    setText(document.getElementById("main-leaderboard-title"), t("mainLeaderboard.title", lang));
+    setText(document.getElementById("main-leaderboard-desc"), t("mainLeaderboard.desc", lang));
+    setText(document.getElementById("main-leaderboard-empty"), t("mainLeaderboard.empty", lang));
+
+    const sel = document.getElementById("main-leaderboard-mode");
     if (sel) {
       sel.querySelectorAll("option").forEach((opt) => {
         const v = opt.value;
