@@ -1,7 +1,7 @@
 <h1 align="center">🎸 Riffle: Music Trivia</h1>
 
 <p align="center">
-  <img src="https://imgur.com/dkZQodk.png" width="180" alt="Riffle Logo">
+  <img src="https://i.imgur.com/gcf0UUg.png" width="180" alt="Riffle Logo">
 </p>
 
 <p align="center">
