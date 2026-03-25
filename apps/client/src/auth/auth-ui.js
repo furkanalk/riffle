@@ -191,6 +191,9 @@ export function initAuthUI() {
     inputs.forEach((item) => {
       item.input.addEventListener("input", validateAll);
     });
+
+    // Ensure correct initial disabled/enabled state.
+    validateAll();
   }
 
   // Simple check for non-empty fields (to enable/disable submit button)
@@ -198,9 +201,11 @@ export function initAuthUI() {
     const isValid = inputs.every((i) => i.input.value.trim() !== "");
     btn.disabled = !isValid;
     if (isValid) {
+      btn.classList.remove("btn--disabled");
       btn.classList.remove("opacity-50", "cursor-not-allowed");
       btn.classList.add("hover:shadow-lg", "hover:-translate-y-1");
     } else {
+      btn.classList.add("btn--disabled");
       btn.classList.add("opacity-50", "cursor-not-allowed");
       btn.classList.remove("hover:shadow-lg", "hover:-translate-y-1");
     }
@@ -244,10 +249,8 @@ export function initAuthUI() {
 
     setupLiveFeedback(inputs, btn, "register");
 
-    inputs.forEach((i) => {
-      i.input.addEventListener("input", () => simpleCheck(btn, inputs));
-    });
-    simpleCheck(btn, inputs);
+    // NOTE: Don't call simpleCheck here; it would override regex validation
+    // (non-empty check vs. full validation check).
   }
 
   // --- API REQUESTS ---
