@@ -176,6 +176,46 @@ function syncStartButtonState() {
 
 let syncTimer = null;
 
+function normalizeRoomCode(code) {
+  return String(code ?? "")
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "")
+    .slice(0, 6);
+}
+
+function setupRoomCodeControls(roomId) {
+  const input = document.getElementById("room-code-input");
+  const joinBtn = document.getElementById("room-join-btn");
+  const createBtn = document.getElementById("room-create-btn");
+
+  if (!input || !joinBtn || !createBtn) return;
+
+  input.value = roomId || "";
+
+  const go = (nextRoomId) => {
+    const url = new URL(window.location.href);
+    if (nextRoomId) url.searchParams.set("room", nextRoomId);
+    else url.searchParams.delete("room");
+    url.searchParams.set("mode", gameMode);
+    window.location.href = url.toString();
+  };
+
+  joinBtn.addEventListener("click", () => {
+    const code = normalizeRoomCode(input.value);
+    if (!/^[A-Z0-9]{6}$/.test(code)) {
+      alert("Invalid room code. Expected 6 characters (A-Z, 0-9).");
+      return;
+    }
+    go(code);
+  });
+
+  createBtn.addEventListener("click", () => {
+    // Create means: reload without a room param, so host sim will generate a new room.
+    go(null);
+  });
+}
+
 export function initRoomSim() {
   // Only in multiplayer lobby panels.
   if (!["versus", "team", "coop"].includes(gameMode)) return;
@@ -240,6 +280,8 @@ export function initRoomSim() {
     baseUrl.searchParams.set("mode", gameMode);
     invite.value = baseUrl.toString();
   }
+
+  setupRoomCodeControls(roomId);
 
   renderPlayersList(room, myClientId);
   syncStartButtonState();
