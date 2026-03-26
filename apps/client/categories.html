@@ -43,6 +43,11 @@
 
   <!-- ── HEADER ─────────────────────────────────────────────────────────── -->
   <header class="site-header">
+    <button id="mobile-history-back" class="mobile-history-back" type="button" aria-label="Go back">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+    </button>
     <a href="./index.html" class="site-brand">
       <img class="site-brand__logo" src="./assets/logo-new.png" alt="Redora logo" width="34" height="34" />
       <span class="site-brand__text">
@@ -60,14 +65,6 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
         Settings
-      </button>
-      <button id="tab-chat" class="htab bg-purple-600 bg-opacity-40">
-        <svg xmlns="http://www.w3.org/2000/svg" class="htab__icon" fill="none" viewBox="0 0 24 24"
-          stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-        </svg>
-        Lobby
       </button>
     </div>
 
@@ -90,10 +87,10 @@
 
         <!-- Page hero -->
         <div class="page-hero">
-          <div class="page-hero__icon">🏃</div>
+          <div id="page-hero-icon" class="page-hero__icon">🏃</div>
           <div>
-            <h1 class="page-hero__title">Marathon Mode</h1>
-            <p class="page-hero__sub">Endless run — guess songs, survive as long as you can.</p>
+            <h1 id="page-hero-title" class="page-hero__title">Marathon Mode</h1>
+            <p id="page-hero-sub" class="page-hero__sub">Endless run - guess songs, survive as long as you can.</p>
           </div>
         </div>
 
@@ -131,7 +128,6 @@
                 <option value="10" selected>10 Questions</option>
                 <option value="15">15 Questions</option>
                 <option value="20">20 Questions</option>
-                <option value="unlimited">Unlimited (Marathon Only)</option>
               </select>
               <div id="marathon-unlimited-display" class="hidden field-unlimited">
                 ∞ Unlimited Questions
@@ -289,17 +285,23 @@
 
         <!-- Start button (mobile — shown below categories) -->
         <div class="start-mobile">
-          <button id="start-game" class="start-btn" disabled>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Start Game
-          </button>
-          <p class="start-hint">Select at least one category to start</p>
+          <div id="marathon-actions-mobile">
+            <button id="start-game" class="start-btn" disabled>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Start Game
+            </button>
+            <p class="start-hint">Select at least one category to start</p>
+          </div>
+          <div id="multiplayer-actions-mobile" class="team-actions mt-3 hidden">
+            <button id="settings-create-game" class="start-btn start-btn--secondary w-full" type="button">Create Game</button>
+            <button id="settings-search-game" class="start-btn start-btn--secondary w-full" type="button">Search Game</button>
+          </div>
         </div>
 
       </div><!-- /page-main -->
@@ -378,17 +380,23 @@
         </div>
 
         <!-- Desktop start button -->
-        <button id="start-game-desktop" class="start-btn w-full mt-4" disabled
-          onclick="document.getElementById('start-game').click()">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          Start Game
-        </button>
-        <p class="start-hint text-center mt-2" id="start-hint-desktop">Select at least one category</p>
+        <div id="marathon-actions-desktop">
+          <button id="start-game-desktop" class="start-btn w-full mt-4" disabled
+            onclick="document.getElementById('start-game').click()">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Start Game
+          </button>
+          <p class="start-hint text-center mt-2" id="start-hint-desktop">Select at least one category</p>
+        </div>
+        <div id="multiplayer-actions-desktop" class="team-actions mt-3 hidden">
+          <button id="settings-create-game-desktop" class="start-btn start-btn--secondary w-full" type="button">Create Game</button>
+          <button id="settings-search-game-desktop" class="start-btn start-btn--secondary w-full" type="button">Search Game</button>
+        </div>
 
       </aside>
 
@@ -397,9 +405,9 @@
     <!-- ── CHAT / LOBBY PANEL ──────────────────────────────────────────── -->
     <div id="chat-panel" class="hidden page-layout--full">
 
-      <div class="page-layout">
+      <div class="page-layout lobby-centered-wrap">
         <!-- Players -->
-        <div class="settings-card flex-1">
+        <div class="settings-card flex-1 lobby-centered-card lobby-card">
           <h2 class="card-title">
             <svg xmlns="http://www.w3.org/2000/svg" class="card-title__icon" fill="none" viewBox="0 0 24 24"
               stroke="currentColor">
@@ -408,31 +416,42 @@
             </svg>
             Players
           </h2>
-          <ul id="players-list" class="space-y-2">
-            <li class="player-row">
-              <span class="online-dot online-dot--green"></span>
-              <span class="text-white font-medium">You (Host)</span>
-              <span class="status-pill status-pill--green ml-auto">Ready</span>
+          <button id="lobby-back-settings" class="lobby-back-link" type="button">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+            </svg>
+            <span>Back to Settings</span>
+          </button>
+          <ul id="players-list" class="players-strip">
+            <li class="player-chip">
+              <span class="player-chip__avatar-wrap">
+                <img class="player-chip__avatar" src="./src/img/avatars/avatar1.png" alt="">
+              </span>
+              <span class="player-chip__name">You • Host</span>
             </li>
-            <li class="player-row">
-              <span class="online-dot online-dot--yellow"></span>
-              <span class="text-gray-400">Waiting for players…</span>
-              <span class="status-pill status-pill--yellow ml-auto">Connecting</span>
+            <li class="player-chip player-chip--placeholder">
+              <span class="player-chip__avatar-wrap">
+                <span class="player-chip__avatar player-chip__avatar--empty">+</span>
+              </span>
+              <span class="player-chip__name">Waiting...</span>
             </li>
           </ul>
 
-          <!-- Invite -->
           <div class="invite-box mt-4">
             <div class="text-xs text-purple-400 block mb-1">Room code</div>
-            <div class="flex items-center gap-2">
-              <input id="room-code-input" type="text"
+            <div class="room-code-row">
+              <input id="room-code-input" type="password"
                 class="flex-1 bg-transparent text-white text-sm outline-none px-2 py-2 rounded"
-                placeholder="e.g. ABCDEF" maxlength="6" autocomplete="off" spellcheck="false" />
-              <button id="room-join-btn" class="copy-btn px-3 py-2" type="button">Join</button>
-              <button id="room-create-btn" class="copy-btn px-3 py-2" type="button">Create</button>
+                placeholder="------" maxlength="6" autocomplete="off" spellcheck="false" readonly />
+              <button id="toggle-room-code-visibility" class="copy-btn" type="button" title="Show room code">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M12 5c5.23 0 9.11 3.44 10.5 6.5C21.11 14.56 17.23 18 12 18S2.89 14.56 1.5 11.5C2.89 8.44 6.77 5 12 5zm0 2C8.23 7 5.21 9.24 3.92 11.5 5.2 13.76 8.23 16 12 16s6.79-2.24 8.08-4.5C18.8 9.24 15.77 7 12 7zm0 1.75A2.75 2.75 0 1112 14.25 2.75 2.75 0 0112 8.75z" />
+                </svg>
+              </button>
             </div>
             <div class="text-[11px] text-purple-200 mt-2">
-              This is a local MVP. Invite links work in the same browser/session.
+              Share this code or invite link with your friends.
             </div>
           </div>
 
@@ -441,6 +460,11 @@
             <div class="flex items-center gap-2">
               <input type="text" readonly id="invite-link" value="https://riffle.game/join/ABCDEF"
                 class="flex-1 bg-transparent text-white text-sm outline-none min-w-0 truncate">
+              <button id="share-invite" class="copy-btn" title="Share link">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18 16a3 3 0 00-2.24 1.01l-6.21-3.11a3.02 3.02 0 000-1.8l6.2-3.1A3 3 0 1015 7a2.98 2.98 0 00.07.64l-6.2 3.1a3 3 0 100 4.52l6.2 3.1A3 3 0 1018 16z"/>
+                </svg>
+              </button>
               <button id="copy-invite" class="copy-btn" title="Copy link">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
@@ -450,39 +474,102 @@
               </button>
             </div>
           </div>
-        </div>
 
-        <!-- Chat -->
-        <div class="settings-card flex-1 flex flex-col">
-          <h2 class="card-title">
-            <svg xmlns="http://www.w3.org/2000/svg" class="card-title__icon" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            </svg>
-            Game Lobby Chat
-          </h2>
-          <div id="chat-messages" class="chat-messages">
-            <div class="chat-system-msg">
-              <span class="text-purple-400 font-semibold text-sm">System</span>
-              <span class="text-white ml-2">Welcome! Invite friends or start when ready.</span>
+          <div id="team-setup" class="invite-box mt-4 hidden">
+            <div class="text-xs text-purple-400 block mb-2">Arena Teams</div>
+            <div class="arena-split-layout">
+              <div id="arena-team-blue" class="arena-team-zone arena-team-zone--blue">
+                <div class="arena-team-zone__title">Blue Team</div>
+                <ul id="team-a-seats" class="arena-team-list"></ul>
+              </div>
+              <div id="arena-team-red" class="arena-team-zone arena-team-zone--red">
+                <div class="arena-team-zone__title">Red Team</div>
+                <ul id="team-b-seats" class="arena-team-list"></ul>
+              </div>
+            </div>
+            <div class="arena-waiting mt-2">
+              <div class="arena-waiting__title">Waiting Area</div>
+              <ul id="team-waiting-list" class="arena-waiting-list"></ul>
+            </div>
+            <div class="text-[11px] text-purple-200 mt-2">Tap left/right arena to join a team.</div>
+          </div>
+
+          <div class="invite-box mt-4">
+            <div class="text-xs text-purple-400 block mb-2">Lobby Chat</div>
+            <div id="chat-messages" class="chat-messages">
+              <div class="chat-system-msg">
+                <span class="text-purple-400 font-semibold text-sm">System</span>
+                <span class="text-white ml-2">Lobby is live. Invite players and chat here.</span>
+              </div>
+            </div>
+            <div class="chat-input-row mt-2">
+              <input type="text" id="chat-input" placeholder="Type a message..." class="chat-input">
+              <button id="send-message" class="chat-send" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path
+                    d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                </svg>
+              </button>
             </div>
           </div>
-          <div class="chat-input-row">
-            <input type="text" id="chat-input" placeholder="Type a message…" class="chat-input">
-            <button id="send-message" class="chat-send">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path
-                  d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+
+          <div class="lobby-start-wrap">
+            <button id="lobby-start-game" class="start-btn w-full" type="button"
+              onclick="document.getElementById('start-game').click()" disabled>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
+              Start Game
             </button>
+            <p id="lobby-start-hint" class="start-hint text-center mt-2">Select categories and wait for players</p>
           </div>
         </div>
+
       </div>
 
     </div><!-- /chat-panel -->
 
   </main>
+
+  <div id="match-search-overlay" class="mobile-select-sheet hidden">
+    <div class="mobile-select-sheet__backdrop" data-close-match-search="1"></div>
+    <div class="mobile-select-sheet__panel">
+      <div class="mobile-select-sheet__head">
+        <h3 class="mobile-select-sheet__title">Searching game...</h3>
+        <button id="cancel-match-search" type="button" class="mobile-select-sheet__close" aria-label="Cancel search">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="chat-system-msg">
+        <span class="text-purple-400 font-semibold text-sm">Matchmaker</span>
+        <span class="text-white ml-2">Finding players with same mode and categories...</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="team-pick-modal" class="mobile-select-sheet hidden">
+    <div class="mobile-select-sheet__backdrop" data-close-team-pick="1"></div>
+    <div class="mobile-select-sheet__panel team-pick-panel">
+      <div class="mobile-select-sheet__head">
+        <h3 class="mobile-select-sheet__title">Pick your team</h3>
+        <button id="team-pick-close" type="button" class="mobile-select-sheet__close" aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div id="team-pick-players" class="team-pick-players"></div>
+      <div class="team-pick-actions">
+        <button id="team-pick-blue" type="button" class="team-pick-btn team-pick-btn--blue">Join Blue</button>
+        <button id="team-pick-red" type="button" class="team-pick-btn team-pick-btn--red">Join Red</button>
+      </div>
+    </div>
+  </div>
 
   <script type="module" src="./src/categories/module-import.js"></script>
 

@@ -1,5 +1,5 @@
 // GUEST & USER MANAGEMENT
-import { AVATAR_IDS, DEFAULT_AVATAR_ID } from "./avatars.js";
+import { AVATAR_IDS, DEFAULT_AVATAR_ID, getDailyGuestAvatarIds } from "./avatars.js";
 
 // Rock & Metal Theme Adjectives
 const adjectives = [
@@ -110,6 +110,11 @@ function generateGuestId() {
   return `${adj}${noun}#${number}`;
 }
 
+function pickRandomGuestAvatar() {
+  const guestSet = getDailyGuestAvatarIds();
+  return guestSet[Math.floor(Math.random() * guestSet.length)] || DEFAULT_AVATAR_ID;
+}
+
 /** Registered user avatar from API, otherwise guest selection in localStorage. */
 export function getEffectiveAvatarId() {
   const token = localStorage.getItem("token");
@@ -122,8 +127,11 @@ export function getEffectiveAvatarId() {
     }
   }
   const g = localStorage.getItem("selectedAvatar");
-  if (g && AVATAR_IDS.includes(g)) return g;
-  return DEFAULT_AVATAR_ID;
+  const dailyGuestIds = getDailyGuestAvatarIds();
+  if (g && dailyGuestIds.includes(g)) return g;
+  const randomGuestAvatar = pickRandomGuestAvatar();
+  localStorage.setItem("selectedAvatar", randomGuestAvatar);
+  return randomGuestAvatar;
 }
 
 // Get current user (registered or guest)

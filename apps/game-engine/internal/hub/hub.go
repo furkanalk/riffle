@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"hash/fnv"
 	"log"
 	"net/http"
 	"os"
@@ -124,11 +125,18 @@ func (h *Hub) deleteRoomIfEmpty(roomID string) {
 // ServeWS upgrades to WebSocket and registers the client.
 func (h *Hub) ServeWS(w http.ResponseWriter, r *http.Request, upgrader websocket.Upgrader) {
 	q := r.URL.Query()
-	rawRoom := strings.TrimSpace(q.Get("room"))
-	roomID := NormalizeRoomCode(rawRoom)
-	if len(roomID) != 6 || !roomCodeRe.MatchString(roomID) {
-		http.Error(w, `{"error":"invalid room"}`, http.StatusBadRequest)
-		return
+	searchMode := strings.TrimSpace(q.Get("search")) == "1"
+	matchSig := strings.TrimSpace(q.Get("sig"))
+	roomID := ""
+	if searchMode && matchSig != "" {
+		roomID = SignatureToRoomCode(matchSig)
+	} else {
+		rawRoom := strings.TrimSpace(q.Get("room"))
+		roomID = NormalizeRoomCode(rawRoom)
+		if len(roomID) != 6 || !roomCodeRe.MatchString(roomID) {
+			http.Error(w, `{"error":"invalid room"}`, http.StatusBadRequest)
+			return
+		}
 	}
 
 	clientID := strings.TrimSpace(q.Get("clientId"))
@@ -231,6 +239,17 @@ func NormalizeRoomCode(s string) string {
 		}
 	}
 	return b.String()
+}
+
+// SignatureToRoomCode hashes matchmaking signature to a stable 6-char room id.
+func SignatureToRoomCode(sig string) string {
+	h := fnv.New32a()
+	_, _ = h.Write([]byte(strings.ToLower(strings.TrimSpace(sig))))
+	v := strings.ToUpper(strconv.FormatUint(uint64(h.Sum32()), 36))
+	if len(v) >= 6 {
+		return v[:6]
+	}
+	return (v + "AAAAAA")[:6]
 }
 
 func (h *Hub) broadcastRoomStateFor(room *Room) {

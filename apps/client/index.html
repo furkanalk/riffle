@@ -139,7 +139,11 @@
 
     </div>
 
-    <section class="spotlight-section" aria-label="About Riffle and creators">
+    <button id="learn-more-btn" type="button" class="learn-more-btn">
+      Learn More
+    </button>
+
+    <section class="spotlight-section spotlight-section--desktop" aria-label="About Riffle and creators">
       <div class="spotlight-card spotlight-card--about">
         <p class="spotlight-eyebrow">What is Riffle?</p>
         <h3 class="spotlight-title">Fast music trivia for rock & metal fans.</h3>
@@ -176,6 +180,55 @@
     </section>
 
   </main>
+
+  <div id="learn-more-panel" class="mobile-info-overlay hidden">
+    <div class="mobile-info-sheet">
+      <div class="mobile-info-head">
+        <h2 class="mobile-info-title">About Riffle</h2>
+        <button id="close-learn-more" type="button" class="mobile-info-close" aria-label="Close learn more panel">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="mobile-info-content">
+        <article class="spotlight-card spotlight-card--about">
+          <p class="spotlight-eyebrow">What is Riffle?</p>
+          <h3 class="spotlight-title">Fast music trivia for rock & metal fans.</h3>
+          <p class="spotlight-text">
+            10-second previews, instant choices, pure adrenaline. Jump in, trust your ears, climb your score.
+          </p>
+        </article>
+
+        <article class="spotlight-card">
+          <p class="spotlight-eyebrow">How to play</p>
+          <h4 class="spotlight-subtitle">3 quick steps</h4>
+          <p class="spotlight-text">Pick a mode, choose categories, hit Start and guess before time runs out.</p>
+        </article>
+
+        <article class="spotlight-card">
+          <p class="spotlight-eyebrow">Credits</p>
+          <h4 class="spotlight-subtitle">Built by Redora</h4>
+          <p class="spotlight-text">
+            Publisher: <strong>Redora</strong><br>
+            Creator: <strong>Furkan Alkilic</strong>
+          </p>
+        </article>
+
+        <article class="spotlight-card spotlight-card--support">
+          <p class="spotlight-eyebrow">Support</p>
+          <h4 class="spotlight-subtitle">Buy Me a Coffee</h4>
+          <p class="spotlight-text">If you enjoy Riffle, your support helps us ship more modes and features.</p>
+          <a class="spotlight-donate-btn" href="https://buymeacoffee.com/" target="_blank" rel="noopener noreferrer">
+            Donate
+          </a>
+        </article>
+      </div>
+
+      <button id="learn-more-back-home" type="button" class="mobile-info-back-btn">Main Menu</button>
+    </div>
+  </div>
 
   <!-- ── AUTH PANEL ─────────────────────────────────────────────────────── -->
   <div id="auth-panel" class="auth-overlay hidden">

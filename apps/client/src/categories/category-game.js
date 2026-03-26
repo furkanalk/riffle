@@ -6,8 +6,56 @@ import {
   persistRoomPlayersForGame,
   sendMatchmakerStartGame,
 } from "../lobby/room-sim.js";
-import { isQuickPlayMode, QUICK_PLAY_FIXED } from "./quick-play.js";
+import { getQuickPlayFixed, isQuickPlayMode } from "./quick-play.js";
 import { gameMode, selectedCategories } from "./state.js";
+
+function ensureTeamSelectedBeforeStart(roomId) {
+  if (gameMode !== "team" || !roomId) return true;
+  const raw = localStorage.getItem(`riffle_room_${roomId}`);
+  if (!raw) return true;
+  let room;
+  try {
+    room = JSON.parse(raw);
+  } catch {
+    return true;
+  }
+  if (!room || !Array.isArray(room.players)) return true;
+  const myClientId = localStorage.getItem("riffle_client_id");
+  const me = room.players.find((p) => p.clientId === myClientId);
+  if (!me) return true;
+  if (me.team === "A" || me.team === "B") return true;
+
+  const modal = document.getElementById("team-pick-modal");
+  const players = document.getElementById("team-pick-players");
+  const closeBtn = document.getElementById("team-pick-close");
+  const blueBtn = document.getElementById("team-pick-blue");
+  const redBtn = document.getElementById("team-pick-red");
+  if (!modal || !players || !blueBtn || !redBtn) return true;
+
+  const renderPlayers = () => {
+    const names = room.players.map((p) => (p.clientId === myClientId ? "You" : p.username || "Guest"));
+    players.innerHTML = names.map((n) => `<span class="team-pick-player">${n}</span>`).join("");
+  };
+  renderPlayers();
+
+  const close = () => modal.classList.add("hidden");
+  const pick = (team) => {
+    me.team = team;
+    room.updatedAt = Date.now();
+    localStorage.setItem(`riffle_room_${roomId}`, JSON.stringify(room));
+    close();
+    startGame();
+  };
+
+  blueBtn.onclick = () => pick("A");
+  redBtn.onclick = () => pick("B");
+  closeBtn.onclick = close;
+  modal.onclick = (e) => {
+    if (e.target && e.target.dataset && e.target.dataset.closeTeamPick === "1") close();
+  };
+  modal.classList.remove("hidden");
+  return false;
+}
 
 // Start the game
 function startGame() {
@@ -17,6 +65,8 @@ function startGame() {
   }
 
   const roomId = ["versus", "team", "coop"].includes(gameMode) ? getRoomIdForGame() : null;
+  if (!ensureTeamSelectedBeforeStart(roomId)) return;
+  const quickRules = getQuickPlayFixed(gameMode);
   if (roomId) {
     const ok = persistRoomPlayersForGame();
     if (!ok) {
@@ -29,7 +79,7 @@ function startGame() {
 
   const answerVisibility = (() => {
     if (gameMode === "solo") return "visible";
-    if (isQuickPlayMode()) return QUICK_PLAY_FIXED.answerVisibility;
+    if (isQuickPlayMode()) return quickRules.answerVisibility;
     return document.getElementById("answer-visibility")
       ? document.getElementById("answer-visibility").value
       : "visible";
@@ -49,11 +99,11 @@ function startGame() {
   const timeEl = document.getElementById("time-limit");
   const roundsValue = (() => {
     if (gameMode === "solo") return "unlimited";
-    if (isQuickPlayMode()) return QUICK_PLAY_FIXED.rounds;
+    if (isQuickPlayMode()) return quickRules.rounds;
     return roundCountSelect.value;
   })();
   const timeLimitValue = (() => {
-    if (isQuickPlayMode()) return QUICK_PLAY_FIXED.timeLimit;
+    if (isQuickPlayMode()) return quickRules.timeLimit;
     return parseInt(timeEl.value, 10);
   })();
 

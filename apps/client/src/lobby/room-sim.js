@@ -4,6 +4,8 @@ import { getUser } from "../core/user-manager.js";
 const CLIENT_ID_KEY = "riffle_client_id";
 const ROOM_STORAGE_PREFIX = "riffle_room_";
 const ROOM_PLAYERS_STORAGE_KEY = "riffleRoomPlayers";
+const MAX_CHAT_MESSAGES = 60;
+const previousRoomPlayers = new Map();
 
 const COLOR_POOL = ["purple-500", "blue-500", "green-500", "yellow-500", "fuchsia-500", "cyan-500"];
 
@@ -69,11 +71,16 @@ function getEffectiveUsername(u) {
   return u?.username ? String(u.username).slice(0, 40) : "Guest";
 }
 
+function getSafeAvatarId(avatarId) {
+  const id = String(avatarId || "").trim();
+  return /^avatar\d+$/.test(id) ? id : "avatar1";
+}
+
 function getRoomPlayersRoster(room) {
   const players = Array.isArray(room?.players) ? room.players : [];
   const roster = players.slice(0, COLOR_POOL.length).map((p, i) => ({
     name: p.username || `Player ${i + 1}`,
-    avatar: p.avatar || "avatar1",
+    avatar: getSafeAvatarId(p.avatar),
     color: p.color || COLOR_POOL[i] || "purple-500",
     score: 0,
   }));
@@ -83,57 +90,146 @@ function getRoomPlayersRoster(room) {
 function renderPlayersList(room, myClientId) {
   const list = document.getElementById("players-list");
   if (!list) return;
+  list.classList.remove("hidden");
 
   const players = Array.isArray(room?.players) ? room.players : [];
-  const required = room?.requiredCount ?? computeRequiredPlayers();
+  const teamPerSideEl = document.getElementById("team-players-per-side");
+  const perSide = Math.max(1, Math.min(5, parseInt(teamPerSideEl?.value || "5", 10) || 5));
+  const required = gameMode === "team" ? perSide * 2 : room?.requiredCount ?? Math.max(2, computeRequiredPlayers());
 
   list.innerHTML = "";
+  list.className = gameMode === "team" ? "players-strip players-strip--two-rows" : "players-strip";
+  if (gameMode === "team") {
+    list.style.setProperty("--slots-per-row", String(perSide));
+  } else {
+    list.style.removeProperty("--slots-per-row");
+  }
 
-  if (players.length === 0) {
+  const renderPlayerChip = (p, isPlaceholder = false) => {
     const li = document.createElement("li");
-    li.className = "player-row";
+    li.className = `player-chip${isPlaceholder ? " player-chip--placeholder" : ""}`;
+    if (isPlaceholder) {
+      li.innerHTML = `
+        <span class="player-chip__avatar-wrap">
+          <span class="player-chip__avatar player-chip__avatar--empty">+</span>
+        </span>
+        <span class="player-chip__name">Waiting...</span>
+      `;
+      return li;
+    }
+    const isHost = p.clientId === room.hostClientId;
+    const isMe = p.clientId === myClientId;
+    const avatarId = getSafeAvatarId(p.avatar);
     li.innerHTML = `
-      <span class="online-dot online-dot--yellow"></span>
-      <span class="text-gray-400">Waiting for players…</span>
-      <span class="status-pill status-pill--yellow ml-auto">Connecting</span>
+      <span class="player-chip__avatar-wrap">
+        <img class="player-chip__avatar" src="./src/img/avatars/${avatarId}.png" alt="" onerror="this.onerror=null;this.src='./src/img/avatars/avatar1.png';">
+      </span>
+      <span class="player-chip__name">${isMe ? "You" : getEffectiveUsername(p)}${isHost ? " • Host" : ""}</span>
     `;
-    list.appendChild(li);
+    return li;
+  };
+
+  players.forEach((p) => list.appendChild(renderPlayerChip(p)));
+  const missing = Math.max(0, required - players.length);
+  for (let i = 0; i < missing; i++) list.appendChild(renderPlayerChip(null, true));
+}
+
+function renderRoomChat(room, myClientId) {
+  const messagesContainer = document.getElementById("chat-messages");
+  if (!messagesContainer) return;
+  messagesContainer.innerHTML = "";
+  const msgs = Array.isArray(room?.chat) ? room.chat.slice(-MAX_CHAT_MESSAGES) : [];
+
+  if (msgs.length === 0) {
+    const sys = document.createElement("div");
+    sys.className = "chat-system-msg";
+    sys.innerHTML =
+      '<span class="text-purple-400 font-semibold text-sm">System</span><span class="text-white ml-2">Lobby is live. Invite players and chat here.</span>';
+    messagesContainer.appendChild(sys);
     return;
   }
 
-  players.forEach((p) => {
-    const isHost = p.clientId === room.hostClientId;
-    const isMe = p.clientId === myClientId;
-    const dotClass = p.ready ? "online-dot--green" : "online-dot--yellow";
-    const statusClass = p.ready ? "status-pill--green" : "status-pill--yellow";
-    const statusLabel = p.ready ? "Ready" : "Waiting";
+  msgs.forEach((m) => {
+    if (m.system) {
+      const sys = document.createElement("div");
+      sys.className = "chat-system-msg";
+      sys.innerHTML = `<span class="text-purple-400 font-semibold text-sm">System</span><span class="text-white ml-2">${String(
+        m.text || ""
+      )
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")}</span>`;
+      messagesContainer.appendChild(sys);
+      return;
+    }
 
-    const displayName = isMe ? "You" : getEffectiveUsername(p);
-    const suffix = isHost ? " (Host)" : "";
+    const who = m.clientId === myClientId ? "You" : getEffectiveUsername({ username: m.username });
+    const avatarId = getSafeAvatarId(m.avatar);
+    const safeText = String(m.text || "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;");
+    const time = new Date(Number(m.at) || Date.now()).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
-    const li = document.createElement("li");
-    li.className = "player-row";
-    li.dataset.clientId = p.clientId;
-    li.innerHTML = `
-      <span class="online-dot ${dotClass}"></span>
-      <span class="${isMe ? "text-white font-medium" : "text-gray-300"}">${displayName}${suffix}</span>
-      <span class="status-pill ${statusClass} ml-auto">${statusLabel}</span>
+    const row = document.createElement("div");
+    row.className = `chat-message-row${m.clientId === myClientId ? " chat-message-row--me" : ""}`;
+    row.innerHTML = `
+      <span class="chat-message-avatar-wrap">
+        <img class="chat-message-avatar" src="./src/img/avatars/${avatarId}.png" alt="">
+      </span>
+      <div class="chat-message-body">
+        <div class="chat-message-meta">
+          <span class="chat-message-name">${who}</span>
+          <span class="chat-message-time">${time}</span>
+        </div>
+        <div class="chat-message-text">${safeText}</div>
+      </div>
     `;
-    list.appendChild(li);
+    messagesContainer.appendChild(row);
   });
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
 
-  // If lobby not full, show a subtle placeholder count.
-  if (players.length < required) {
-    const li = document.createElement("li");
-    li.className = "player-row";
-    li.style.opacity = "0.85";
-    li.innerHTML = `
-      <span class="online-dot online-dot--yellow"></span>
-      <span class="text-gray-400">Waiting for ${required - players.length} more…</span>
-      <span class="status-pill status-pill--yellow ml-auto">Connecting</span>
-    `;
-    list.appendChild(li);
-  }
+function syncPresenceMessages(room, myClientId) {
+  if (!room?.roomId || !Array.isArray(room.players)) return;
+
+  const key = room.roomId;
+  const prevIds = previousRoomPlayers.get(key) || [];
+  const nextIds = room.players.map((p) => p.clientId);
+  previousRoomPlayers.set(key, nextIds);
+  if (prevIds.length === 0) return;
+
+  const joinedPlayers = room.players.filter((p) => !prevIds.includes(p.clientId));
+  const leftIds = prevIds.filter((id) => !nextIds.includes(id));
+  if (joinedPlayers.length === 0 && leftIds.length === 0) return;
+
+  if (!Array.isArray(room.chat)) room.chat = [];
+  joinedPlayers.forEach((p) => {
+    const name = p.clientId === myClientId ? "You" : getEffectiveUsername(p);
+    room.chat.push({ system: true, text: `${name} joined the lobby.`, at: Date.now() });
+  });
+  leftIds.forEach(() => {
+    room.chat.push({ system: true, text: "A player left the lobby.", at: Date.now() });
+  });
+  room.chat = room.chat.slice(-MAX_CHAT_MESSAGES);
+  room.updatedAt = Date.now();
+  saveRoom(room.roomId, room);
+}
+
+function ensureTeamAssignments(room) {
+  if (!Array.isArray(room?.players)) return;
+  room.players.forEach((p) => {
+    if (p.team !== "A" && p.team !== "B") p.team = null;
+  });
+}
+
+function renderTeamSetup(room, myClientId) {
+  const wrap = document.getElementById("team-setup");
+  if (!wrap) return;
+  wrap.classList.add("hidden");
 }
 
 function syncStartButtonState() {
@@ -207,11 +303,13 @@ function matchmakerWsEndpoint() {
 }
 
 function mapServerRoomToLocal(msg) {
+  const existing = loadRoom(msg.roomId);
   return {
     roomId: msg.roomId,
     hostClientId: msg.hostClientId,
     requiredCount: msg.requiredCount,
     players: Array.isArray(msg.players) ? msg.players : [],
+    chat: Array.isArray(existing?.chat) ? existing.chat : [],
     started: Boolean(msg.started),
     updatedAt: Date.now(),
     createdAt: Date.now(),
@@ -230,45 +328,130 @@ export function isMatchmakerWsLobby() {
   return Boolean(matchmakerWs);
 }
 
-function normalizeRoomCode(code) {
-  return String(code ?? "")
-    .trim()
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, "")
-    .slice(0, 6);
+function buildMatchSignature() {
+  const cats = [...selectedCategories].sort().join(",") || "any";
+  const mode = String(gameMode || "solo");
+  const timeLimit = document.getElementById("time-limit")?.value || "15";
+  return `${mode}|${cats}|${timeLimit}`;
 }
 
 function setupRoomCodeControls(roomId, opts = {}) {
   const input = document.getElementById("room-code-input");
-  const joinBtn = document.getElementById("room-join-btn");
-  const createBtn = document.getElementById("room-create-btn");
+  const toggleCodeBtn = document.getElementById("toggle-room-code-visibility");
+  const shareBtn = document.getElementById("share-invite");
+  const createGameBtn = document.getElementById("game-create-btn");
+  const searchGameBtn = document.getElementById("game-search-btn");
+  const searchOverlay = document.getElementById("match-search-overlay");
+  const cancelSearchBtn = document.getElementById("cancel-match-search");
+  if (!input) return;
 
-  if (!input || !joinBtn || !createBtn) return;
+  const code = String(roomId || "").toUpperCase().slice(0, 6);
+  input.value = code ? `#${code}` : "";
 
-  input.value = roomId || "";
-
-  const go = (nextRoomId) => {
+  const go = (nextRoomId, extra = {}) => {
     const url = new URL(window.location.href);
     if (nextRoomId) url.searchParams.set("room", nextRoomId);
     else url.searchParams.delete("room");
     url.searchParams.set("mode", gameMode);
-    if (opts.preserveWs) url.searchParams.set("ws", "1");
+    if (opts.preserveWs || extra.ws) url.searchParams.set("ws", "1");
+    if (extra.search) url.searchParams.set("search", "1");
+    else url.searchParams.delete("search");
+    if (extra.sig) url.searchParams.set("sig", extra.sig);
+    else url.searchParams.delete("sig");
     window.location.href = url.toString();
   };
 
-  joinBtn.addEventListener("click", () => {
-    const code = normalizeRoomCode(input.value);
-    if (!/^[A-Z0-9]{6}$/.test(code)) {
-      alert("Invalid room code. Expected 6 characters (A-Z, 0-9).");
-      return;
+  const shareInvite = async () => {
+    const link = document.getElementById("invite-link")?.value;
+    if (!link) return;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "Join my Riffle room", text: "Join my room!", url: link });
+        return;
+      } catch {
+        // fallback to clipboard
+      }
     }
-    go(code);
+    try {
+      await navigator.clipboard.writeText(link);
+      alert("Invite link copied!");
+    } catch {
+      alert("Could not share invite link.");
+    }
+  };
+
+  shareBtn?.addEventListener("click", shareInvite);
+
+  createGameBtn?.addEventListener("click", () => {
+    go(null, { ws: true });
   });
 
-  createBtn.addEventListener("click", () => {
-    // Create means: reload without a room param, so host sim will generate a new room.
-    go(null);
+  searchGameBtn?.addEventListener("click", () => {
+    const sig = buildMatchSignature();
+    if (searchOverlay) searchOverlay.classList.remove("hidden");
+    setTimeout(() => {
+      go(null, { ws: true, search: true, sig });
+    }, 350);
   });
+
+  const closeSearchOverlay = () => {
+    searchOverlay?.classList.add("hidden");
+  };
+  cancelSearchBtn?.addEventListener("click", closeSearchOverlay);
+  searchOverlay?.addEventListener("click", (e) => {
+    if (e.target && e.target.dataset && e.target.dataset.closeMatchSearch === "1") closeSearchOverlay();
+  });
+
+  toggleCodeBtn?.addEventListener("click", () => {
+    const hidden = input.type === "password";
+    input.type = hidden ? "text" : "password";
+    toggleCodeBtn.title = hidden ? "Hide room code" : "Show room code";
+  });
+}
+
+function setupRoomChat(roomId, myClientId, username) {
+  const input = document.getElementById("chat-input");
+  const sendBtn = document.getElementById("send-message");
+  if (!input || !sendBtn) return;
+
+  const send = () => {
+    const text = input.value.trim();
+    if (!text) return;
+    const currentRoomId = roomId || getRoomIdFromUrl();
+    if (!currentRoomId) return;
+
+    // In websocket search flow, users may type before the first room_state arrives.
+    // Create a minimal local room so chat remains usable immediately.
+    const room = loadRoom(currentRoomId) || {
+      roomId: currentRoomId,
+      hostClientId: null,
+      requiredCount: computeRequiredPlayers(),
+      players: [],
+      chat: [],
+      started: false,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+    if (!Array.isArray(room.chat)) room.chat = [];
+    room.chat.push({
+      clientId: myClientId,
+      username,
+      avatar: getUser()?.avatar || "avatar1",
+      text: text.slice(0, 240),
+      at: Date.now(),
+    });
+    room.chat = room.chat.slice(-MAX_CHAT_MESSAGES);
+    room.updatedAt = Date.now();
+    saveRoom(currentRoomId, room);
+    renderRoomChat(room, myClientId);
+    input.value = "";
+  };
+
+  window.riffleLobbySendChat = send;
+  sendBtn.onclick = send;
+  input.onkeypress = (e) => {
+    if (e.key === "Enter") send();
+  };
 }
 
 function initMatchmakerWsLobby() {
@@ -278,33 +461,67 @@ function initMatchmakerWsLobby() {
   const avatar = user.avatar || "avatar1";
 
   let roomId = getRoomIdFromUrl();
+  const paramsFromUrl = new URLSearchParams(window.location.search);
+  const isSearch = paramsFromUrl.get("search") === "1";
+  const sig = paramsFromUrl.get("sig") || "";
   if (!roomId) {
-    roomId = generateRoomId();
-    setRoomIdInUrl(roomId);
-  }
-
-  const invite = document.getElementById("invite-link");
-  if (invite) {
-    const baseUrl = new URL(window.location.href);
-    baseUrl.searchParams.set("room", roomId);
-    baseUrl.searchParams.set("mode", gameMode);
-    baseUrl.searchParams.set("ws", "1");
-    invite.value = baseUrl.toString();
+    if (!isSearch) {
+      roomId = generateRoomId();
+      setRoomIdInUrl(roomId);
+    }
   }
 
   setupRoomCodeControls(roomId, { preserveWs: true });
+  if (roomId) setupRoomChat(roomId, myClientId, username);
+  renderPlayersList(
+    {
+      roomId: roomId || "__pending__",
+      hostClientId: myClientId,
+      requiredCount: computeRequiredPlayers(),
+      players: [
+        {
+          clientId: myClientId,
+          username,
+          avatar,
+          ready: true,
+        },
+      ],
+    },
+    myClientId
+  );
+  renderTeamSetup(
+    {
+      roomId: roomId || "__pending__",
+      requiredCount: computeRequiredPlayers(),
+      players: [],
+    },
+    myClientId
+  );
+  if (roomId) {
+    const cachedRoom = loadRoom(roomId);
+    if (cachedRoom) {
+      renderPlayersList(cachedRoom, myClientId);
+      renderTeamSetup(cachedRoom, myClientId);
+      renderRoomChat(cachedRoom, myClientId);
+      syncStartButtonState();
+    }
+  }
 
-  const params = new URLSearchParams({
-    room: roomId,
+  const wsParams = new URLSearchParams({
     name: username,
     avatar,
     clientId: myClientId,
     required: String(computeRequiredPlayers()),
   });
+  if (roomId) wsParams.set("room", roomId);
+  if (isSearch && sig) {
+    wsParams.set("search", "1");
+    wsParams.set("sig", sig);
+  }
   const token = localStorage.getItem("token");
-  if (token) params.set("token", token);
+  if (token) wsParams.set("token", token);
 
-  const wsUrl = `${matchmakerWsEndpoint()}?${params.toString()}`;
+  const wsUrl = `${matchmakerWsEndpoint()}?${wsParams.toString()}`;
   matchmakerWs = new WebSocket(wsUrl);
 
   matchmakerWs.onmessage = (ev) => {
@@ -315,10 +532,26 @@ function initMatchmakerWsLobby() {
       return;
     }
     if (msg.type === "room_state") {
+      roomId = msg.roomId || roomId;
+      if (roomId) setRoomIdInUrl(roomId);
+      if (roomId) setupRoomChat(roomId, myClientId, username);
       const room = mapServerRoomToLocal(msg);
       saveRoom(roomId, room);
+      syncPresenceMessages(room, myClientId);
       renderPlayersList(room, myClientId);
+      renderTeamSetup(room, myClientId);
+      renderRoomChat(loadRoom(roomId), myClientId);
       syncStartButtonState();
+      const invite = document.getElementById("invite-link");
+      if (invite && roomId) {
+        const baseUrl = new URL(window.location.href);
+        baseUrl.searchParams.set("room", roomId);
+        baseUrl.searchParams.set("mode", gameMode);
+        baseUrl.searchParams.set("ws", "1");
+        baseUrl.searchParams.delete("search");
+        baseUrl.searchParams.delete("sig");
+        invite.value = baseUrl.toString();
+      }
     }
     if (msg.type === "game_started") {
       const url = new URL(window.location.href);
@@ -371,12 +604,15 @@ export function initRoomSim() {
       updatedAt: Date.now(),
       requiredCount: computeRequiredPlayers(),
       players: [],
+      chat: [],
       started: false,
     };
   }
 
   room.requiredCount = computeRequiredPlayers();
   if (!Array.isArray(room.players)) room.players = [];
+  if (!Array.isArray(room.chat)) room.chat = [];
+  ensureTeamAssignments(room);
 
   const existing = room.players.find((p) => p.clientId === myClientId);
   if (!existing) {
@@ -411,9 +647,27 @@ export function initRoomSim() {
   }
 
   setupRoomCodeControls(roomId);
+  setupRoomChat(roomId, myClientId, username);
 
   renderPlayersList(room, myClientId);
+  syncPresenceMessages(room, myClientId);
+  renderTeamSetup(room, myClientId);
+  renderRoomChat(room, myClientId);
   syncStartButtonState();
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("search") === "1") {
+    document.getElementById("tab-chat")?.click();
+    const messages = document.getElementById("chat-messages");
+    if (messages) {
+      const div = document.createElement("div");
+      div.className = "chat-system-msg";
+      div.innerHTML =
+        '<span class="text-purple-400 font-semibold text-sm">Matchmaker</span><span class="text-white ml-2">Matchmaking active. Waiting for compatible players...</span>';
+      messages.appendChild(div);
+      messages.scrollTop = messages.scrollHeight;
+    }
+  }
 
   // If host started, redirect all lobby tabs.
   const maybeRedirectToGame = (nextRoom) => {
@@ -433,7 +687,10 @@ export function initRoomSim() {
   window.addEventListener("storage", (e) => {
     if (e.key === `${ROOM_STORAGE_PREFIX}${roomId}`) {
       const nextRoom = loadRoom(roomId);
+      syncPresenceMessages(nextRoom, myClientId);
       renderPlayersList(nextRoom, myClientId);
+      renderTeamSetup(nextRoom, myClientId);
+      renderRoomChat(nextRoom, myClientId);
       syncStartButtonState();
       maybeRedirectToGame(nextRoom);
     }
@@ -442,7 +699,10 @@ export function initRoomSim() {
   if (syncTimer) clearInterval(syncTimer);
   syncTimer = setInterval(() => {
     const nextRoom = loadRoom(roomId);
+    syncPresenceMessages(nextRoom, myClientId);
     renderPlayersList(nextRoom, myClientId);
+    renderTeamSetup(nextRoom, myClientId);
+    renderRoomChat(nextRoom, myClientId);
     syncStartButtonState();
     maybeRedirectToGame(nextRoom);
   }, 700);

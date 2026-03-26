@@ -2,6 +2,11 @@
 
 // Send chat message
 function sendChatMessage() {
+  if (typeof window.riffleLobbySendChat === "function") {
+    window.riffleLobbySendChat();
+    return;
+  }
+
   const input = document.getElementById("chat-input");
   const text = input.value.trim();
   if (!text) return;

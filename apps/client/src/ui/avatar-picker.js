@@ -2,13 +2,15 @@ import { AVATAR_IDS, DEFAULT_AVATAR_ID, avatarImgSrcFromRoot, isValidAvatarId } 
 
 /**
  * @param {HTMLElement} container
- * @param {{ selectedId?: string, onPick?: (id: string) => void }} [opts]
+ * @param {{ selectedId?: string, onPick?: (id: string) => void, allowedIds?: string[] }} [opts]
  * @returns {{ getSelected: () => string }}
  */
 export function mountAvatarPicker(container, opts = {}) {
+  const allowedIds = Array.isArray(opts.allowedIds) && opts.allowedIds.length > 0 ? opts.allowedIds : AVATAR_IDS;
   let current = isValidAvatarId(opts.selectedId) ? opts.selectedId : DEFAULT_AVATAR_ID;
+  if (!allowedIds.includes(current)) current = allowedIds[0] || DEFAULT_AVATAR_ID;
 
-  container.innerHTML = AVATAR_IDS.map((id) => {
+  container.innerHTML = allowedIds.map((id) => {
     const sel = id === current;
     const border = sel
       ? "selected border-purple-500"

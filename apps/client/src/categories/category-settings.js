@@ -1,7 +1,7 @@
 import { getAllGenres } from "../core/music.js";
 import { sendChatMessage } from "./category-chat.js";
 import { filterCategories, toggleCategory } from "./category-filters.js"; // Importların doğru olduğundan emin ol
-import { isQuickPlayMode } from "./quick-play.js";
+import { getQuickPlayFixed, isQuickPlayMode } from "./quick-play.js";
 import { gameMode, selectedCategories } from "./state.js";
 
 // --- CONSTANTS ---
@@ -20,6 +20,29 @@ const VISIBILITY_LABELS = {
   visible: "Answers Visible to All",
   hidden: "Answers Hidden Until Round End",
   individual: "Answers Only Visible to Answerer",
+};
+
+const MODE_META = {
+  solo: {
+    icon: "🏃",
+    title: "Marathon Mode",
+    subtitle: "Endless run - one life, checkpoint boosts every 10 questions.",
+  },
+  coop: {
+    icon: "🤝",
+    title: "Co-op Mode",
+    subtitle: "Play together and keep the team streak alive.",
+  },
+  versus: {
+    icon: "⚔️",
+    title: "Solo VS Mode",
+    subtitle: "Fast duel format with quick rounds and instant scoring.",
+  },
+  team: {
+    icon: "🏆",
+    title: "Team VS Mode",
+    subtitle: "Two teams, short timers, tactical answer reveals.",
+  },
 };
 
 // --- HELPERS ---
@@ -68,6 +91,7 @@ function setupGameModeSettings() {
   };
 
   const isMarathon = gameMode === "solo" || gameMode === "marathon";
+  applyModePageMeta();
 
   if (isMarathon) {
     configureMarathonMode(els);
@@ -83,6 +107,16 @@ function setupGameModeSettings() {
   loadSavedModeSettings();
 }
 
+function applyModePageMeta() {
+  const mode = MODE_META[gameMode] || MODE_META.solo;
+  const iconEl = getEl("page-hero-icon");
+  const titleEl = getEl("page-hero-title");
+  const subEl = getEl("page-hero-sub");
+  if (iconEl) iconEl.textContent = mode.icon;
+  if (titleEl) titleEl.textContent = mode.title;
+  if (subEl) subEl.textContent = mode.subtitle;
+}
+
 function configureTeamSizeFields() {
   const coopWrap = getEl("coop-team-size-container");
   const teamWrap = getEl("team-vs-size-container");
@@ -96,10 +130,14 @@ function configureTeamSizeFields() {
 function configureQuickPlayLayout() {
   const marathon = gameMode === "solo" || gameMode === "marathon";
   const quick = isQuickPlayMode();
+  const quickRules = getQuickPlayFixed(gameMode);
   document.body.classList.toggle("mode-quick-play", quick);
 
   const banner = getEl("quick-play-banner");
-  if (banner) banner.classList.toggle("hidden", !quick);
+  if (banner) {
+    banner.classList.toggle("hidden", !quick);
+    if (quick) banner.textContent = quickRules.banner;
+  }
 
   if (marathon) return;
 
@@ -118,9 +156,9 @@ function configureQuickPlayLayout() {
     const rc = getEl("round-count");
     const tl = getEl("time-limit");
     const av = getEl("answer-visibility");
-    if (rc) rc.value = "10";
-    if (tl) tl.value = "15";
-    if (av) av.value = "visible";
+    if (rc) rc.value = quickRules.rounds;
+    if (tl) tl.value = String(quickRules.timeLimit);
+    if (av) av.value = quickRules.answerVisibility;
   }
 }
 
@@ -201,19 +239,19 @@ function switchTab(tab) {
   if (tab === "settings") {
     els.settingsPanel.classList.remove("hidden");
     els.chatPanel.classList.add("hidden");
-    els.settingsTab.classList.add(...activeClass);
-    els.settingsTab.classList.remove(...inactiveClass);
-    els.chatTab.classList.add(...inactiveClass);
-    els.chatTab.classList.remove(...activeClass);
+    els.settingsTab?.classList.add(...activeClass);
+    els.settingsTab?.classList.remove(...inactiveClass);
+    els.chatTab?.classList.add(...inactiveClass);
+    els.chatTab?.classList.remove(...activeClass);
     return;
   }
 
   els.settingsPanel.classList.add("hidden");
   els.chatPanel.classList.remove("hidden");
-  els.chatTab.classList.add(...activeClass);
-  els.chatTab.classList.remove(...inactiveClass);
-  els.settingsTab.classList.add(...inactiveClass);
-  els.settingsTab.classList.remove(...activeClass);
+  els.chatTab?.classList.add(...activeClass);
+  els.chatTab?.classList.remove(...inactiveClass);
+  els.settingsTab?.classList.add(...inactiveClass);
+  els.settingsTab?.classList.remove(...activeClass);
 }
 
 // --- SUMMARY UPDATE LOGIC ---

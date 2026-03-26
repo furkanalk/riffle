@@ -1,5 +1,7 @@
 import { mountAvatarPicker } from "../ui/avatar-picker.js";
 import { getLang, t } from "../core/i18n.js";
+import { logoutUser } from "../core/user-manager.js";
+import { getDailyGuestAvatarIds } from "../core/avatars.js";
 
 export function initAuthUI() {
   const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -343,8 +345,8 @@ export function initAuthUI() {
 
   // Check login status on load
   function checkLoginStatus() {
-    const raw = localStorage.getItem("user");
-    const token = localStorage.getItem("token");
+    const raw = localStorage.getItem("user") || localStorage.getItem("user_profile");
+    const token = localStorage.getItem("token") || localStorage.getItem("auth_token");
     if (raw && token) {
       try {
         const user = JSON.parse(raw);
@@ -379,7 +381,10 @@ export function initAuthUI() {
   // Update UI after login
   function updateUI(user) {
     // Hide guest buttons
-    if (elements.guestButtons) elements.guestButtons.classList.add("hidden");
+    if (elements.guestButtons) {
+      elements.guestButtons.classList.add("hidden");
+      elements.guestButtons.style.display = "none";
+    }
 
     // Show profile button and set username
     if (elements.userProfileBtn) elements.userProfileBtn.classList.remove("hidden");
@@ -389,9 +394,23 @@ export function initAuthUI() {
 
   // Show guest mode
   function showGuestMode() {
-    if (elements.guestButtons) elements.guestButtons.classList.remove("hidden");
-    if (elements.userProfileBtn) elements.userProfileBtn.classList.add("hidden");
-    showGuestHeaderAvatar();
+    if (elements.guestButtons) {
+      elements.guestButtons.classList.remove("hidden");
+      elements.guestButtons.style.display = "";
+    }
+    if (elements.userProfileBtn) {
+      elements.userProfileBtn.classList.remove("hidden");
+      if (elements.userDisplayName) {
+        const guestName = localStorage.getItem("guest_name") || "Guest";
+        elements.userDisplayName.textContent = guestName;
+      }
+    }
+    const guestAvatar = localStorage.getItem("selectedAvatar");
+    if (guestAvatar) {
+      updateHeaderAvatar({ avatar: guestAvatar });
+    } else {
+      showGuestHeaderAvatar();
+    }
   }
 
   async function saveProfileAvatar(avatarId) {
@@ -458,19 +477,64 @@ export function initAuthUI() {
 
   function openProfilePanel() {
     if (!elements.profilePanel || !elements.profileAvatarGrid) return;
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    if (elements.profileUsername) elements.profileUsername.value = user.username || "";
+    const token = localStorage.getItem("token") || localStorage.getItem("auth_token");
+    const userRaw = localStorage.getItem("user") || localStorage.getItem("user_profile") || "{}";
+    const user = JSON.parse(userRaw);
+    const isLoggedIn = Boolean(token && user?.username);
+
+    if (elements.profileUsername) {
+      if (isLoggedIn) {
+        elements.profileUsername.value = user.username || "";
+        elements.profileUsername.disabled = false;
+      } else {
+        elements.profileUsername.value = localStorage.getItem("guest_name") || "Guest";
+        elements.profileUsername.disabled = true;
+      }
+    }
+    if (elements.profileUsernameSave) {
+      elements.profileUsernameSave.style.display = isLoggedIn ? "" : "none";
+    }
     if (elements.profileUsernameMsg) {
-      elements.profileUsernameMsg.classList.add("hidden");
-      elements.profileUsernameMsg.textContent = "";
+      if (isLoggedIn) {
+        elements.profileUsernameMsg.classList.add("hidden");
+        elements.profileUsernameMsg.textContent = "";
+      } else {
+        elements.profileUsernameMsg.textContent = "You need to log in first to edit your username.";
+        elements.profileUsernameMsg.classList.remove("hidden");
+      }
     }
     elements.profileAvatarGrid.innerHTML = "";
-    mountAvatarPicker(elements.profileAvatarGrid, {
-      selectedId: user.avatar || "avatar1",
-      onPick: (id) => {
-        saveProfileAvatar(id);
-      },
-    });
+    if (isLoggedIn) {
+      mountAvatarPicker(elements.profileAvatarGrid, {
+        selectedId: user.avatar || "avatar1",
+        onPick: (id) => {
+          saveProfileAvatar(id);
+        },
+      });
+    } else {
+      const guestAvatarSet = getDailyGuestAvatarIds();
+      const guestAvatar = localStorage.getItem("selectedAvatar") || guestAvatarSet[0] || "avatar1";
+      mountAvatarPicker(elements.profileAvatarGrid, {
+        selectedId: guestAvatar,
+        allowedIds: guestAvatarSet,
+        onPick: (id) => {
+          localStorage.setItem("selectedAvatar", id);
+          if (elements.userDisplayName) {
+            const guestName = localStorage.getItem("guest_name") || "Guest";
+            elements.userDisplayName.textContent = guestName;
+          }
+          updateHeaderAvatar({ avatar: id });
+        },
+      });
+      const desc = document.createElement("p");
+      desc.className = "profile-lock-note";
+      desc.innerHTML =
+        '<strong>Guest mode:</strong> You can pick from 3 featured daily avatars. <span>Log in to unlock all avatars and username edit.</span>';
+      elements.profileAvatarGrid.insertAdjacentElement("afterend", desc);
+    }
+    if (elements.profileLogoutBtn) {
+      elements.profileLogoutBtn.style.display = isLoggedIn ? "" : "none";
+    }
     elements.profilePanel.classList.remove("hidden");
   }
 
@@ -481,9 +545,7 @@ export function initAuthUI() {
 
   // Logout
   function logout() {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    window.location.reload(); // Refresh to renew state
+    logoutUser();
   }
 
   // --- UI Helper Functions ---
