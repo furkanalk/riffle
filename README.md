@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  <strong>Real-time competitive music quiz engine powered by Modern Web Technologies.</strong><br>
+  <strong>Real-time competitive music quiz game powered by Redora.</strong><br>
   Designed for scalability, performance, heavy concurrency, and shred. Rock on!
 </p>
 
@@ -28,7 +28,7 @@ RIFFLE — INFO
 Genre        : Rock • Metal (more TBD)
 Architecture : Microservices (Monorepo Managed)
 Platform     : Web • Mobile (Planned)
-Version      : v0.5.0-alpha
+Version      : v0.7.0-alpha
 
 "Test your music knowledge under pressure."
 ```
