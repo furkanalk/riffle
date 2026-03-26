@@ -33,7 +33,9 @@ function ensureTeamSelectedBeforeStart(roomId) {
   if (!modal || !players || !blueBtn || !redBtn) return true;
 
   const renderPlayers = () => {
-    const names = room.players.map((p) => (p.clientId === myClientId ? "You" : p.username || "Guest"));
+    const names = room.players.map((p) =>
+      p.clientId === myClientId ? "You" : p.username || "Guest"
+    );
     players.innerHTML = names.map((n) => `<span class="team-pick-player">${n}</span>`).join("");
   };
   renderPlayers();
@@ -51,7 +53,7 @@ function ensureTeamSelectedBeforeStart(roomId) {
   redBtn.onclick = () => pick("B");
   closeBtn.onclick = close;
   modal.onclick = (e) => {
-    if (e.target && e.target.dataset && e.target.dataset.closeTeamPick === "1") close();
+    if (e.target?.dataset?.closeTeamPick === "1") close();
   };
   modal.classList.remove("hidden");
   return false;

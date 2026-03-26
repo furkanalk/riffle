@@ -5,7 +5,10 @@ function escapeHtml(s) {
 }
 
 export function initLeaderboard() {
-  const openBtn = document.getElementById("leaderboard-btn");
+  const openBtns = [
+    document.getElementById("leaderboard-btn"),
+    document.getElementById("menu-leaderboard-btn"),
+  ].filter(Boolean);
   const panel = document.getElementById("leaderboard-panel");
   const closeBtn = document.getElementById("close-leaderboard");
   const modeSel = document.getElementById("leaderboard-mode");
@@ -65,9 +68,11 @@ export function initLeaderboard() {
     }
   }
 
-  openBtn?.addEventListener("click", () => {
-    panel?.classList.remove("hidden");
-    load();
+  openBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      panel?.classList.remove("hidden");
+      load();
+    });
   });
   closeBtn?.addEventListener("click", () => panel?.classList.add("hidden"));
   panel?.addEventListener("click", (e) => {

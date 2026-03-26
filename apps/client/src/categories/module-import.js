@@ -1,13 +1,13 @@
+import { initRoomSim } from "../lobby/room-sim.js";
 import { sendChatMessage } from "./category-chat.js";
 import { debugCategories, filterCategories, loadCategories } from "./category-filters.js";
 import { startGame } from "./category-game.js";
 import { setupGameModeSettings, switchTab, updateSelectionsSummary } from "./category-settings.js";
 import { maybeShowGuestAvatarGate } from "./guest-avatar-gate.js";
 import { applyModeLayout } from "./mode-layout.js";
-import { initRoomSim } from "../lobby/room-sim.js";
 import "./menu-navigation.js";
-import { gameMode, selectedCategories } from "./state.js";
 import { applyCategoriesLanguage, getLang } from "../core/i18n.js";
+import { gameMode, selectedCategories } from "./state.js";
 
 // Init DOM
 document.addEventListener("DOMContentLoaded", async () => {
@@ -63,7 +63,11 @@ function initLobbyStartMirror() {
 
   new MutationObserver(sync).observe(realBtn, { attributes: true, attributeFilter: ["disabled"] });
   if (sourceHint) {
-    new MutationObserver(sync).observe(sourceHint, { childList: true, subtree: true, characterData: true });
+    new MutationObserver(sync).observe(sourceHint, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
   }
   sync();
 }
@@ -194,7 +198,8 @@ function initMobileSelectSheet() {
   const openSheetForSelect = (selectEl) => {
     activeSelect = selectEl;
     const labelText =
-      selectEl.closest(".setting-field")?.querySelector(".field-label")?.textContent?.trim() || "Select";
+      selectEl.closest(".setting-field")?.querySelector(".field-label")?.textContent?.trim() ||
+      "Select";
     if (titleEl) titleEl.textContent = labelText;
     if (!optionsEl) return;
 
@@ -248,7 +253,7 @@ function initMobileSelectSheet() {
 
   closeBtn?.addEventListener("click", closeSheet);
   sheet.addEventListener("click", (e) => {
-    if (e.target && e.target.dataset && e.target.dataset.closeSheet === "1") closeSheet();
+    if (e.target?.dataset?.closeSheet === "1") closeSheet();
   });
 }
 
@@ -351,8 +356,12 @@ function initMatchEntryActions() {
     window.location.href = url.toString();
   };
 
-  createBtns.forEach((btn) => btn.addEventListener("click", () => go({ search: false })));
-  searchBtns.forEach((btn) => btn.addEventListener("click", () => go({ search: true })));
+  createBtns.forEach((btn) => {
+    btn.addEventListener("click", () => go({ search: false }));
+  });
+  searchBtns.forEach((btn) => {
+    btn.addEventListener("click", () => go({ search: true }));
+  });
 
   const p = new URLSearchParams(window.location.search);
   if (p.get("lobby") === "1" || p.get("search") === "1") {

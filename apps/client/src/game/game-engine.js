@@ -1,6 +1,7 @@
 // game-engine.js
-import { getEffectiveAvatarId } from "../core/user-manager.js";
+
 import { getTracksFromGenre, resetPlayedTracks } from "../core/music.js";
+import { getEffectiveAvatarId } from "../core/user-manager.js";
 import { AudioManager } from "./audio-manager.js";
 import { ScoreManager } from "./score-manager.js";
 import { TimerManager } from "./timer-manager.js";

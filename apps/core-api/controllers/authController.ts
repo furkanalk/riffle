@@ -24,15 +24,7 @@ const BLOCKED_USERNAMES = new Set([
 
 // Simple placeholder to reduce obviously harmful usernames.
 // Extend this list over time (or replace with a more robust moderation system).
-const BLOCKED_SUBSTRINGS = [
-  "sex",
-  "porn",
-  "xxx",
-  "fuck",
-  "shit",
-  "bitch",
-  "asshole",
-];
+const BLOCKED_SUBSTRINGS = ["sex", "porn", "xxx", "fuck", "shit", "bitch", "asshole"];
 
 const JWT_SECRET = process.env.JWT_SECRET ?? "riffle_dev_jwt_secret";
 const TOKEN_EXPIRES_IN = (process.env.TOKEN_EXPIRES_IN ?? "1d") as SignOptions["expiresIn"];
@@ -198,11 +190,7 @@ export async function updateProfile(req: FastifyRequest, reply: FastifyReply): P
 
   if (hasUsername) {
     const u = clip(String(body.username), MAX_USERNAME_LEN);
-    if (
-      u.length < MIN_USERNAME_LEN ||
-      u.length > MAX_USERNAME_LEN ||
-      !USERNAME_PATTERN.test(u)
-    ) {
+    if (u.length < MIN_USERNAME_LEN || u.length > MAX_USERNAME_LEN || !USERNAME_PATTERN.test(u)) {
       reply.code(400).send({
         error: "Username must be 3–20 characters: letters, numbers, and underscores only.",
       });

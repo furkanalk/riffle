@@ -51,8 +51,7 @@ export async function initMainLeaderboardPreview() {
 
       const small = (rank, entry, themeKey) => {
         const colorClass = themeKey === "amber" ? "text-amber-700" : "text-gray-300";
-        const borderClass =
-          themeKey === "amber" ? "border-amber-700/80" : "border-gray-300/80";
+        const borderClass = themeKey === "amber" ? "border-amber-700/80" : "border-gray-300/80";
 
         return `
         <div class="flex flex-col items-center gap-2 flex-1">
@@ -87,4 +86,3 @@ export async function initMainLeaderboardPreview() {
   modeSel.addEventListener("change", load);
   await load();
 }
-

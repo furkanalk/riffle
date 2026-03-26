@@ -1,4 +1,9 @@
-import { AVATAR_IDS, DEFAULT_AVATAR_ID, avatarImgSrcFromRoot, isValidAvatarId } from "../core/avatars.js";
+import {
+  AVATAR_IDS,
+  avatarImgSrcFromRoot,
+  DEFAULT_AVATAR_ID,
+  isValidAvatarId,
+} from "../core/avatars.js";
 
 /**
  * @param {HTMLElement} container
@@ -6,23 +11,24 @@ import { AVATAR_IDS, DEFAULT_AVATAR_ID, avatarImgSrcFromRoot, isValidAvatarId } 
  * @returns {{ getSelected: () => string }}
  */
 export function mountAvatarPicker(container, opts = {}) {
-  const allowedIds = Array.isArray(opts.allowedIds) && opts.allowedIds.length > 0 ? opts.allowedIds : AVATAR_IDS;
+  const allowedIds =
+    Array.isArray(opts.allowedIds) && opts.allowedIds.length > 0 ? opts.allowedIds : AVATAR_IDS;
   let current = isValidAvatarId(opts.selectedId) ? opts.selectedId : DEFAULT_AVATAR_ID;
   if (!allowedIds.includes(current)) current = allowedIds[0] || DEFAULT_AVATAR_ID;
 
-  container.innerHTML = allowedIds.map((id) => {
-    const sel = id === current;
-    const border = sel
-      ? "selected border-purple-500"
-      : "border-purple-900 border-opacity-30";
-    const n = id.replace("avatar", "");
-    return `<button type="button" class="avatar-option ${border}" data-avatar="${id}" aria-pressed="${sel}">
+  container.innerHTML = allowedIds
+    .map((id) => {
+      const sel = id === current;
+      const border = sel ? "selected border-purple-500" : "border-purple-900 border-opacity-30";
+      const n = id.replace("avatar", "");
+      return `<button type="button" class="avatar-option ${border}" data-avatar="${id}" aria-pressed="${sel}">
       <div class="avatar-img-wrap">
         <img src="${avatarImgSrcFromRoot(id)}" alt="" class="avatar-img" />
       </div>
       <span class="avatar-name">Avatar ${n}</span>
     </button>`;
-  }).join("");
+    })
+    .join("");
 
   container.querySelectorAll(".avatar-option").forEach((el) => {
     el.addEventListener("click", () => {

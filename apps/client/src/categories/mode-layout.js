@@ -5,7 +5,10 @@ export function applyModeLayout() {
   const params = new URLSearchParams(window.location.search);
   const rawMode = params.get("mode") || "";
 
-  document.body.classList.toggle("mode-marathon-solo", gameMode === "solo" || rawMode === "marathon");
+  document.body.classList.toggle(
+    "mode-marathon-solo",
+    gameMode === "solo" || rawMode === "marathon"
+  );
 
   const invite = document.getElementById("invite-link");
   if (invite) {

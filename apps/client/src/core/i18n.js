@@ -205,4 +205,3 @@ export function initLanguageControl() {
     applyIndexLanguage(sel.value);
   });
 }
-

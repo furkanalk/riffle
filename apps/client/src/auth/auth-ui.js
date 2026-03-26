@@ -1,7 +1,7 @@
-import { mountAvatarPicker } from "../ui/avatar-picker.js";
+import { getDailyGuestAvatarIds } from "../core/avatars.js";
 import { getLang, t } from "../core/i18n.js";
 import { logoutUser } from "../core/user-manager.js";
-import { getDailyGuestAvatarIds } from "../core/avatars.js";
+import { mountAvatarPicker } from "../ui/avatar-picker.js";
 
 export function initAuthUI() {
   const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -10,6 +10,7 @@ export function initAuthUI() {
     // Buttons Containers
     guestButtons: document.getElementById("guest-buttons"),
     userProfileBtn: document.getElementById("user-profile-btn"),
+    desktopAuthCta: document.getElementById("desktop-auth-cta"),
 
     // Trigger Buttons
     loginBtn: document.getElementById("login-btn"),
@@ -59,6 +60,7 @@ export function initAuthUI() {
   // Login button click to open login panel
   if (elements.loginBtn) {
     elements.loginBtn.addEventListener("click", () => {
+      elements.guestButtons?.classList.remove("guest-buttons--open");
       switchAuthTab("login");
       openPanel();
     });
@@ -67,6 +69,7 @@ export function initAuthUI() {
   // Signup button click to open register panel
   if (elements.signupBtn) {
     elements.signupBtn.addEventListener("click", () => {
+      elements.guestButtons?.classList.remove("guest-buttons--open");
       switchAuthTab("register");
       openPanel();
     });
@@ -75,9 +78,48 @@ export function initAuthUI() {
   // Profile button opens profile panel (logged-in)
   if (elements.userProfileBtn) {
     elements.userProfileBtn.addEventListener("click", () => {
-      openProfilePanel();
+      const token = localStorage.getItem("token") || localStorage.getItem("auth_token");
+      if (token) {
+        openProfilePanel();
+        return;
+      }
+      if (elements.guestButtons) {
+        const isMobile = window.matchMedia("(max-width: 640px)").matches;
+        // If the user came here from the Settings card, open profile in read-only mode.
+        if (window.riffleOpenProfileFromSettings === true) {
+          window.riffleOpenProfileFromSettings = false;
+          elements.guestButtons?.classList.remove("guest-buttons--open");
+          openProfilePanel();
+          return;
+        }
+        if (isMobile) {
+          // Mobile guest UX: show the auth overlay directly (Login / Sign Up).
+          switchAuthTab("login");
+          openPanel();
+          return;
+        }
+      }
+      // Desktop guest fallback: open auth panel.
+      switchAuthTab("login");
+      openPanel();
     });
   }
+
+  // Close guest dropdown when clicking outside.
+  document.addEventListener("click", (e) => {
+    const isMobile = window.matchMedia("(max-width: 640px)").matches;
+    if (!isMobile) return;
+    if (!elements.guestButtons?.classList.contains("guest-buttons--open")) return;
+    const target = e.target;
+    if (
+      elements.userProfileBtn &&
+      target instanceof Node &&
+      elements.userProfileBtn.contains(target)
+    )
+      return;
+    if (target instanceof Node && elements.guestButtons.contains(target)) return;
+    elements.guestButtons.classList.remove("guest-buttons--open");
+  });
 
   if (elements.closeProfile) {
     elements.closeProfile.addEventListener("click", closeProfilePanel);
@@ -390,20 +432,35 @@ export function initAuthUI() {
     if (elements.userProfileBtn) elements.userProfileBtn.classList.remove("hidden");
     if (elements.userDisplayName) elements.userDisplayName.textContent = user.username;
     updateHeaderAvatar(user);
+
+    if (elements.desktopAuthCta) {
+      // Desktop header CTA should show the username.
+      elements.desktopAuthCta.textContent = user.username;
+      elements.desktopAuthCta.classList.remove("hidden");
+    }
   }
 
   // Show guest mode
   function showGuestMode() {
+    const isMobile = window.matchMedia("(max-width: 640px)").matches;
+    const guestName = localStorage.getItem("guest_name") || "Guest";
+
+    // Desktop guest: hide Login/Sign Up buttons; use CTA text instead.
+    // Mobile guest: hide them too; Profile button opens auth overlay directly.
     if (elements.guestButtons) {
-      elements.guestButtons.classList.remove("hidden");
-      elements.guestButtons.style.display = "";
+      elements.guestButtons.classList.add("hidden");
+      elements.guestButtons.style.display = "none";
     }
+
+    if (elements.desktopAuthCta) {
+      // Let the guest username show on the profile button instead.
+      elements.desktopAuthCta.classList.add("hidden");
+    }
+
     if (elements.userProfileBtn) {
+      // Show guest username on both desktop and mobile.
       elements.userProfileBtn.classList.remove("hidden");
-      if (elements.userDisplayName) {
-        const guestName = localStorage.getItem("guest_name") || "Guest";
-        elements.userDisplayName.textContent = guestName;
-      }
+      if (elements.userDisplayName) elements.userDisplayName.textContent = guestName;
     }
     const guestAvatar = localStorage.getItem("selectedAvatar");
     if (guestAvatar) {
@@ -482,6 +539,9 @@ export function initAuthUI() {
     const user = JSON.parse(userRaw);
     const isLoggedIn = Boolean(token && user?.username);
 
+    // Prevent duplicated guest lock notes when profile panel is reopened.
+    elements.profilePanel.querySelectorAll(".profile-lock-note").forEach((n) => n.remove());
+
     if (elements.profileUsername) {
       if (isLoggedIn) {
         elements.profileUsername.value = user.username || "";
@@ -529,7 +589,7 @@ export function initAuthUI() {
       const desc = document.createElement("p");
       desc.className = "profile-lock-note";
       desc.innerHTML =
-        '<strong>Guest mode:</strong> You can pick from 3 featured daily avatars. <span>Log in to unlock all avatars and username edit.</span>';
+        "<strong>Guest mode:</strong> You can pick from 4 featured daily avatars. <span>Log in to unlock all avatars and username edit.</span>";
       elements.profileAvatarGrid.insertAdjacentElement("afterend", desc);
     }
     if (elements.profileLogoutBtn) {

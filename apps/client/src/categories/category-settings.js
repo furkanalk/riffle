@@ -351,11 +351,15 @@ document.addEventListener("DOMContentLoaded", () => {
   setupGameModeSettings();
   updateSelectionsSummary();
 
-  ["round-count", "time-limit", "answer-visibility", "coop-team-size", "team-players-per-side"].forEach(
-    (id) => {
-      getEl(id)?.addEventListener("change", updateSelectionsSummary);
-    }
-  );
+  [
+    "round-count",
+    "time-limit",
+    "answer-visibility",
+    "coop-team-size",
+    "team-players-per-side",
+  ].forEach((id) => {
+    getEl(id)?.addEventListener("change", updateSelectionsSummary);
+  });
 
   const categoriesGrid = getEl("categories-grid");
   if (categoriesGrid) {

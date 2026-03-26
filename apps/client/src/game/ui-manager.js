@@ -274,10 +274,13 @@ export class UIManager {
   }
 
   attachAnswerOwnerBadge(button) {
-    this.answerButtons.forEach((btn) => btn.querySelector(".answer-owner-badge")?.remove());
+    this.answerButtons.forEach((btn) => {
+      btn.querySelector(".answer-owner-badge")?.remove();
+    });
 
     const currentAvatar =
-      document.getElementById("player-avatar")?.getAttribute("src") || "./src/img/avatars/avatar1.png";
+      document.getElementById("player-avatar")?.getAttribute("src") ||
+      "./src/img/avatars/avatar1.png";
 
     const badge = document.createElement("span");
     badge.className = "answer-owner-badge";
@@ -303,12 +306,24 @@ export class UIManager {
     const nextRoundBtn = document.getElementById("next-round-btn");
     const albumCoverDisplay = document.getElementById("album-cover-display");
     const songInfo = document.getElementById("song-info");
+    const deezerListenBtn = document.getElementById("deezer-listen-btn");
 
     // Display album cover and song info
     if (track) {
       albumCoverDisplay.src = track.album?.cover_medium || COVER_FALLBACK;
       const displayTitle = track.cleanTitle || this.cleanSongTitle(track.title);
       songInfo.textContent = `${displayTitle} by ${track.artist}`;
+    }
+
+    // Deezer CTA (opens the track in a new tab)
+    if (deezerListenBtn) {
+      const deezerTrackId = track?.id;
+      if (deezerTrackId) {
+        deezerListenBtn.href = `https://www.deezer.com/track/${encodeURIComponent(String(deezerTrackId))}`;
+        deezerListenBtn.classList.remove("hidden");
+      } else {
+        deezerListenBtn.classList.add("hidden");
+      }
     }
 
     // Set result message based on last answer
@@ -732,7 +747,7 @@ export class UIManager {
   }
 
   // Setup UI based on game mode
-  setupGameMode(gameMode, settings, players) {
+  setupGameMode(gameMode, _settings, players) {
     const fullModeLabel =
       {
         solo: "Marathon Mode",

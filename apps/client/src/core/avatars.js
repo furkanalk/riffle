@@ -1,11 +1,9 @@
 /** @type {readonly string[]} */
-export const AVATAR_IDS = Object.freeze(
-  Array.from({ length: 10 }, (_, i) => `avatar${i + 1}`)
-);
+export const AVATAR_IDS = Object.freeze(Array.from({ length: 10 }, (_, i) => `avatar${i + 1}`));
 
 /**
- * Daily rotating guest avatar set (3 avatars).
- * Deterministic by UTC date so all guests see same 3 each day.
+ * Daily rotating guest avatar set (4 avatars).
+ * Deterministic by UTC date so all guests see same 4 each day.
  */
 export function getDailyGuestAvatarIds(date = new Date()) {
   const daySeed = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
@@ -14,7 +12,7 @@ export function getDailyGuestAvatarIds(date = new Date()) {
     const key = ((daySeed / 86400000 + 1) * (idx + 37) * 2654435761) % 1000003;
     return { id, key };
   }).sort((a, b) => a.key - b.key);
-  return Object.freeze(decorated.slice(0, 3).map((x) => x.id));
+  return Object.freeze(decorated.slice(0, 4).map((x) => x.id));
 }
 
 /** Non-featured avatars (registered users still see all avatars). */

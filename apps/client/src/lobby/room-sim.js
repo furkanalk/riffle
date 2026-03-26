@@ -95,7 +95,10 @@ function renderPlayersList(room, myClientId) {
   const players = Array.isArray(room?.players) ? room.players : [];
   const teamPerSideEl = document.getElementById("team-players-per-side");
   const perSide = Math.max(1, Math.min(5, parseInt(teamPerSideEl?.value || "5", 10) || 5));
-  const required = gameMode === "team" ? perSide * 2 : room?.requiredCount ?? Math.max(2, computeRequiredPlayers());
+  const required =
+    gameMode === "team"
+      ? perSide * 2
+      : (room?.requiredCount ?? Math.max(2, computeRequiredPlayers()));
 
   list.innerHTML = "";
   list.className = gameMode === "team" ? "players-strip players-strip--two-rows" : "players-strip";
@@ -129,7 +132,9 @@ function renderPlayersList(room, myClientId) {
     return li;
   };
 
-  players.forEach((p) => list.appendChild(renderPlayerChip(p)));
+  players.forEach((p) => {
+    list.appendChild(renderPlayerChip(p));
+  });
   const missing = Math.max(0, required - players.length);
   for (let i = 0; i < missing; i++) list.appendChild(renderPlayerChip(null, true));
 }
@@ -226,7 +231,7 @@ function ensureTeamAssignments(room) {
   });
 }
 
-function renderTeamSetup(room, myClientId) {
+function renderTeamSetup(_room, _myClientId) {
   const wrap = document.getElementById("team-setup");
   if (!wrap) return;
   wrap.classList.add("hidden");
@@ -345,7 +350,9 @@ function setupRoomCodeControls(roomId, opts = {}) {
   const cancelSearchBtn = document.getElementById("cancel-match-search");
   if (!input) return;
 
-  const code = String(roomId || "").toUpperCase().slice(0, 6);
+  const code = String(roomId || "")
+    .toUpperCase()
+    .slice(0, 6);
   input.value = code ? `#${code}` : "";
 
   const go = (nextRoomId, extra = {}) => {
@@ -399,7 +406,7 @@ function setupRoomCodeControls(roomId, opts = {}) {
   };
   cancelSearchBtn?.addEventListener("click", closeSearchOverlay);
   searchOverlay?.addEventListener("click", (e) => {
-    if (e.target && e.target.dataset && e.target.dataset.closeMatchSearch === "1") closeSearchOverlay();
+    if (e.target?.dataset?.closeMatchSearch === "1") closeSearchOverlay();
   });
 
   toggleCodeBtn?.addEventListener("click", () => {
