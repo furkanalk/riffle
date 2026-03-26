@@ -186,6 +186,7 @@ export class UIManager {
     this.answerButtons.forEach((btn) => {
       btn.classList.remove("correct", "wrong", "selected", "timeout-correct");
       btn.disabled = false;
+      btn.querySelector(".answer-owner-badge")?.remove();
     });
   }
 
@@ -213,11 +214,12 @@ export class UIManager {
   }
 
   // Update round information display
-  updateRoundInfo(currentRound, totalRounds, isUnlimited = false) {
+  updateRoundInfo(currentRound, totalRounds, isUnlimited = false, checkpointInterval = 10) {
     const roundInfo = document.getElementById("round-info");
     if (roundInfo) {
       if (isUnlimited) {
-        roundInfo.textContent = `Question ${currentRound}`;
+        const progressToCheckpoint = checkpointInterval - ((currentRound - 1) % checkpointInterval);
+        roundInfo.textContent = `Question ${currentRound} · +1 life in ${progressToCheckpoint}`;
       } else {
         roundInfo.textContent = `Question ${currentRound}/${totalRounds}`;
       }
@@ -255,6 +257,7 @@ export class UIManager {
   // Mark button as selected and correct/wrong
   markButtonSelected(selectedButton, isCorrect, correctAnswer) {
     selectedButton.classList.add("selected");
+    this.attachAnswerOwnerBadge(selectedButton);
 
     if (isCorrect) {
       selectedButton.classList.add("correct");
@@ -268,6 +271,18 @@ export class UIManager {
     this.answerButtons.forEach((btn) => {
       btn.disabled = true;
     });
+  }
+
+  attachAnswerOwnerBadge(button) {
+    this.answerButtons.forEach((btn) => btn.querySelector(".answer-owner-badge")?.remove());
+
+    const currentAvatar =
+      document.getElementById("player-avatar")?.getAttribute("src") || "./src/img/avatars/avatar1.png";
+
+    const badge = document.createElement("span");
+    badge.className = "answer-owner-badge";
+    badge.innerHTML = `<img src="${currentAvatar}" alt="" class="answer-owner-badge__img">`;
+    button.appendChild(badge);
   }
 
   // Handle timeout UI (show correct answer with special styling)
@@ -363,16 +378,16 @@ export class UIManager {
     if (scoreData.gameMode === "solo" || scoreData.gameMode === "marathon") {
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td class="py-2">
-          <div class="flex items-center">
-            <div class="h-6 w-6 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 p-0.5 mr-2">
-              <img src="src/img/avatars/${scoreData.avatar || "avatar1"}.png" alt="Your Avatar" class="rounded-full">
+        <td class="py-2 pr-2">
+          <div class="flex items-center gap-2 whitespace-nowrap">
+            <div class="h-7 w-7 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 p-0.5 shrink-0">
+              <img src="./src/img/avatars/${scoreData.avatar || "avatar1"}.png" alt="" class="rounded-full h-full w-full object-cover">
             </div>
-            You
+            <span class="font-semibold text-white">You</span>
           </div>
         </td>
-        <td class="py-2 text-center">${scoreData.score}</td>
-        <td class="py-2 text-right">
+        <td class="py-2 text-center font-bold">${scoreData.score}</td>
+        <td class="py-2 text-right font-semibold">
           ${
             lastAnswerCorrect
               ? "+1"
@@ -387,25 +402,27 @@ export class UIManager {
       // Add Marathon mode info row
       const infoRow = document.createElement("tr");
       infoRow.innerHTML = `
-        <td class="py-2 text-sm text-gray-400">Streak</td>
-        <td class="py-2 text-center">
-          ${
-            lastAnswerCorrect
-              ? scoreData.rounds > 1
-                ? "Continues!"
-                : "Started!"
-              : timedOut
-                ? "Timed Out!"
-                : "Broken!"
-          }
-        </td>
-        <td class="py-2 text-right">
-          <span class="inline-flex items-center bg-gray-800 rounded-full px-3 py-1 text-sm">
+        <td colspan="3" class="py-2">
+          <div class="flex items-center justify-between gap-3 rounded-lg bg-gray-900/45 px-3 py-2">
+            <div class="text-sm text-purple-200">
+              <span class="text-gray-400 mr-1">Streak:</span>
+              <span class="font-semibold text-white">${
+                lastAnswerCorrect
+                  ? scoreData.rounds > 1
+                    ? "Continues!"
+                    : "Started!"
+                  : timedOut
+                    ? "Timed Out!"
+                    : "Broken!"
+              }</span>
+            </div>
+            <span class="inline-flex items-center bg-gray-800 rounded-full px-3 py-1 text-sm shrink-0">
             <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
               <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"></path>
             </svg>
             ${scoreData.remainingLives}
-          </span>
+            </span>
+          </div>
         </td>
       `;
       scoreTable.appendChild(infoRow);
@@ -745,10 +762,6 @@ export class UIManager {
     if (gameMode === "solo") {
       document.getElementById("timer-container").classList.add("hidden");
       document.getElementById("players-container").classList.add("hidden");
-
-      if (settings.rounds === "unlimited") {
-        document.getElementById("round-info").classList.add("hidden");
-      }
     } else {
       document.getElementById("timer-container").classList.remove("hidden");
 

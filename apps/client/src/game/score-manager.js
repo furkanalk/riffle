@@ -77,6 +77,15 @@ export class ScoreManager {
     return this.remainingLives;
   }
 
+  // Award a life on marathon checkpoints.
+  addLife(points = 1) {
+    if (this.lives === Infinity) return this.remainingLives;
+    this.remainingLives += points;
+    const livesCount = document.getElementById("lives-count");
+    if (livesCount) livesCount.textContent = this.remainingLives;
+    return this.remainingLives;
+  }
+
   // Check if game over (no lives left)
   isGameOver() {
     return this.lives !== Infinity && this.remainingLives <= 0;

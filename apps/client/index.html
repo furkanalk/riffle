@@ -10,7 +10,8 @@
   <link rel="icon" type="image/png" sizes="16x16" href="./public/favicon/favicon-16x16.png">
   <link rel="manifest" href="./public/favicon/site.webmanifest">
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap"
+    rel="stylesheet" />
   <link rel="stylesheet" href="./src/css/main-menu-responsive.css" />
 </head>
 
@@ -23,17 +24,14 @@
 
   <!-- ── HEADER ─────────────────────────────────────────────────────────── -->
   <header class="site-header">
-    <a href="/" class="site-logo">
-      <img class="site-logo__mark" src="./public/favicon/favicon-32x32.png" alt="" width="28" height="28" />
-      <span>Riffle</span>
+    <a href="/" class="site-brand">
+      <img class="site-brand__logo" src="./assets/logo-new.png" alt="Redora logo" width="34" height="34" />
+      <span class="site-brand__text">
+        <span class="site-brand__by">by</span> Redora
+      </span>
     </a>
 
     <div class="header-actions">
-      <select id="language-select" class="lang-select">
-        <option value="en">EN</option>
-        <option value="tr">TR</option>
-      </select>
-
       <button type="button" id="leaderboard-btn" class="btn btn--ghost leaderboard-header-btn">
         Leaderboard
       </button>
@@ -63,7 +61,10 @@
     <!-- Hero -->
     <section class="hero">
       <span class="hero-badge">🎵 Rock &amp; Metal Trivia</span>
-      <h1 class="hero-title">Riffle</h1>
+      <h1 class="hero-title">
+        <img class="hero-title__logo" src="./public/favicon/favicon-original.png" alt="" width="128" height="128" />
+        <span>Riffle</span>
+      </h1>
       <p class="hero-sub">Guess the song. Beat your friends. Climb the leaderboard.</p>
     </section>
 
@@ -75,7 +76,8 @@
         <div class="mode-card__icon">🏃</div>
         <div class="mode-card__body">
           <h3 class="mode-card__title">Marathon Mode</h3>
-          <p class="mode-card__desc">Endless music journey. Grow your score with every correct guess — lose lives when you go wrong.</p>
+          <p class="mode-card__desc">Endless music journey. Grow your score with every correct guess — lose lives when
+            you go wrong.</p>
         </div>
         <div class="mode-card__bar"></div>
       </a>
@@ -85,7 +87,8 @@
         <div class="mode-card__icon">🤝</div>
         <div class="mode-card__body">
           <h3 class="mode-card__title">Coop Mode</h3>
-          <p class="mode-card__desc">Team up with friends and guess songs together. Collaborate to reach the highest score.</p>
+          <p class="mode-card__desc">Team up with friends and guess songs together. Collaborate to reach the highest
+            score.</p>
         </div>
         <div class="mode-card__bar"></div>
       </a>
@@ -136,25 +139,42 @@
 
     </div>
 
-    <!-- Main menu leaderboard preview (quick glance) -->
-    <section class="mt-6">
-      <div id="main-leaderboard-preview" class="main-leaderboard-preview">
-        <div class="flex items-center justify-between gap-3 mb-2">
-          <h3 id="main-leaderboard-title" class="text-lg font-extrabold text-white">Leaderboard Preview</h3>
-          <select id="main-leaderboard-mode" class="field-select" aria-label="Preview mode">
-            <option value="solo">Marathon (solo)</option>
-            <option value="versus">Solo VS</option>
-            <option value="team">Team VS</option>
-            <option value="coop">Co-op</option>
-            <option value="custom">Custom</option>
-            <option value="chaos">Chaos</option>
-          </select>
-        </div>
-        <p id="main-leaderboard-desc" class="text-purple-200 text-sm mb-3">Top 3 scores for selected mode.</p>
-        <div id="main-leaderboard-list" class="flex flex-col gap-3"></div>
-        <div id="main-leaderboard-empty" class="text-purple-200 text-sm hidden">No scores yet for this mode.</div>
+    <section class="spotlight-section" aria-label="About Riffle and creators">
+      <div class="spotlight-card spotlight-card--about">
+        <p class="spotlight-eyebrow">What is Riffle?</p>
+        <h3 class="spotlight-title">Fast music trivia for rock & metal fans.</h3>
+        <p class="spotlight-text">
+          10-second previews, instant choices, pure adrenaline. Jump in, trust your ears, climb your score.
+        </p>
+      </div>
+
+      <div class="spotlight-grid">
+        <article class="spotlight-card">
+          <p class="spotlight-eyebrow">How to play</p>
+          <h4 class="spotlight-subtitle">3 quick steps</h4>
+          <p class="spotlight-text">Pick a mode, choose categories, hit Start and guess before time runs out.</p>
+        </article>
+
+        <article class="spotlight-card">
+          <p class="spotlight-eyebrow">Credits</p>
+          <h4 class="spotlight-subtitle">Built by Redora</h4>
+          <p class="spotlight-text">
+            Publisher: <strong>Redora</strong><br>
+            Creator: <strong>Furkan Alkilic</strong>
+          </p>
+        </article>
+
+        <article class="spotlight-card spotlight-card--support">
+          <p class="spotlight-eyebrow">Support</p>
+          <h4 class="spotlight-subtitle">Buy Me a Coffee</h4>
+          <p class="spotlight-text">If you enjoy Riffle, your support helps us ship more modes and features.</p>
+          <a class="spotlight-donate-btn" href="https://buymeacoffee.com/" target="_blank" rel="noopener noreferrer">
+            Donate
+          </a>
+        </article>
       </div>
     </section>
+
   </main>
 
   <!-- ── AUTH PANEL ─────────────────────────────────────────────────────── -->
@@ -204,7 +224,8 @@
           <input type="password" id="reg-password" class="field__input" placeholder="Make it strong" />
           <p id="err-password" class="field__error hidden"></p>
         </div>
-        <button type="submit" id="btn-register-submit" disabled class="btn btn--submit btn--submit-register btn--disabled">
+        <button type="submit" id="btn-register-submit" disabled
+          class="btn btn--submit btn--submit-register btn--disabled">
           CREATE LEGEND
         </button>
       </form>
@@ -232,6 +253,13 @@
           </button>
         </div>
         <p id="profile-username-msg" class="field__error hidden" role="status"></p>
+      </div>
+      <div class="field profile-username-block">
+        <label class="field__label" for="language-select">Language</label>
+        <select id="language-select" class="field__input">
+          <option value="en">English</option>
+          <option value="tr">Turkce</option>
+        </select>
       </div>
       <p class="profile-desc">Choose your avatar</p>
       <div id="profile-avatar-grid" class="avatar-grid profile-avatar-grid"></div>

@@ -29,6 +29,7 @@ export class GameEngine {
     this.playedTracks = [];
     this.currentPlaylistTracks = [];
     this.answerSelected = false;
+    this.marathonCheckpointInterval = 10;
   }
 
   // Initialize the game
@@ -76,6 +77,8 @@ export class GameEngine {
       if (this.settings.rounds && this.settings.rounds !== "unlimited") {
         this.totalRounds = parseInt(this.settings.rounds, 10);
         document.getElementById("max-score").textContent = this.totalRounds;
+      } else if (this.gameMode === "solo") {
+        document.getElementById("max-score").textContent = "∞";
       }
     }
 
@@ -135,7 +138,8 @@ export class GameEngine {
       this.uiManager.updateRoundInfo(
         currentRound,
         this.totalRounds,
-        this.settings.rounds === "unlimited"
+        this.settings.rounds === "unlimited",
+        this.marathonCheckpointInterval
       );
 
       // Reset UI for new round
@@ -434,6 +438,15 @@ export class GameEngine {
     if (this.scoreManager.isGameOver()) {
       this.showRoundCompletionScreen(true);
       return;
+    }
+
+    // Marathon checkpoint: every 10 completed questions grants +1 life.
+    if (
+      this.gameMode === "solo" &&
+      this.scoreManager.getCurrentRound() > 0 &&
+      this.scoreManager.getCurrentRound() % this.marathonCheckpointInterval === 0
+    ) {
+      this.scoreManager.addLife(1);
     }
 
     // Show round completion screen

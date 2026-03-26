@@ -59,7 +59,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.625rem 1.25rem;
+  height: 4rem;
+  padding: 0 1.5rem;
   background: rgba(8, 8, 16, 0.75);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -67,22 +68,36 @@ body {
   gap: 0.75rem;
 }
 
-.site-logo {
+.site-brand {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 1rem;
-  font-weight: 900;
+  gap: 0.45rem;
   color: #fff;
   text-decoration: none;
-  letter-spacing: -0.02em;
   flex-shrink: 0;
 }
-.site-logo__mark {
-  width: 1.5rem;
-  height: 1.5rem;
+.site-brand__logo {
+  width: 2rem;
+  height: 2rem;
   flex-shrink: 0;
   display: block;
+  filter: drop-shadow(0 2px 8px rgba(124, 58, 237, 0.35));
+}
+.site-brand__text {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+}
+.site-brand__by {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #c4b5fd;
+  font-weight: 800;
 }
 
 .back-link {
@@ -329,6 +344,27 @@ main {
   margin-bottom: 0.75rem;
 }
 @media (max-width: 480px) {
+  .site-header {
+    height: 3.5rem;
+    padding: 0 0.85rem;
+  }
+  .site-brand__logo {
+    width: 1.65rem;
+    height: 1.65rem;
+  }
+  .site-brand__text {
+    font-size: 0.88rem;
+  }
+  .site-brand__by {
+    font-size: 0.58rem;
+  }
+  .htab {
+    padding: 0.34rem 0.65rem;
+    font-size: 0.7rem;
+  }
+  .back-link {
+    font-size: 0.68rem;
+  }
   .avatar-grid {
     grid-template-columns: repeat(2, 1fr);
   }

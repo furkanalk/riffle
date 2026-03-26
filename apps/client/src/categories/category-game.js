@@ -42,9 +42,8 @@ function startGame() {
   const coopTeamSize = coopTeamSizeEl ? coopTeamSizeEl.value : "5";
   const teamPlayersPerSide = teamPerSideEl ? teamPerSideEl.value : "5";
 
-  // Get lives setting for marathon mode
-  const lives =
-    gameMode === "solo" ? document.getElementById("lives-count").value : "not-applicable";
+  // Marathon uses fixed single-life checkpoint system.
+  const lives = gameMode === "solo" ? "1" : "not-applicable";
 
   const roundCountSelect = document.getElementById("round-count");
   const timeEl = document.getElementById("time-limit");

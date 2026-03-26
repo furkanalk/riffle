@@ -59,7 +59,6 @@ function initSettingsListeners() {
     "question-type",
     "time-limit",
     "answer-visibility",
-    "lives-count",
     "coop-team-size",
     "team-players-per-side",
   ]) {

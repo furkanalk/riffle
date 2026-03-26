@@ -173,8 +173,6 @@ function loadSavedModeSettings() {
       else safeSet("round-count", settings.rounds);
     }
 
-    if (settings.lives && isMarathon) safeSet("lives-count", settings.lives);
-
     if (settings.coopTeamSize) safeSet("coop-team-size", settings.coopTeamSize);
     if (settings.teamPlayersPerSide) safeSet("team-players-per-side", settings.teamPlayersPerSide);
 
@@ -271,7 +269,7 @@ function updateSettingsSummary() {
 
   const qEl = getEl("selection-questions");
   if (qEl) {
-    if (isMarathon) qEl.textContent = "Unlimited Questions (Marathon Mode)";
+    if (isMarathon) qEl.textContent = "Unlimited Questions (Checkpoint every 10)";
     else {
       const val = getEl("round-count")?.value;
       qEl.textContent = val === "unlimited" ? "Unlimited Questions" : `${val} Questions`;
@@ -304,10 +302,7 @@ function updateSettingsSummary() {
       setVisibility(livesCont, false);
     } else {
       setVisibility(livesCont, true, { display: "flex" });
-      const val = getEl("lives-count")?.value || "3";
-      if (val === "0") livesLabel.textContent = "No Lives - One Strike Out";
-      else if (val === "unlimited") livesLabel.textContent = "Unlimited Lives (Practice)";
-      else livesLabel.textContent = `${val} Lives`;
+      livesLabel.textContent = "One Life Mode · +1 life every 10 questions";
     }
   }
 }
@@ -318,7 +313,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupGameModeSettings();
   updateSelectionsSummary();
 
-  ["round-count", "time-limit", "lives-count", "answer-visibility", "coop-team-size", "team-players-per-side"].forEach(
+  ["round-count", "time-limit", "answer-visibility", "coop-team-size", "team-players-per-side"].forEach(
     (id) => {
       getEl(id)?.addEventListener("change", updateSelectionsSummary);
     }
