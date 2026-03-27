@@ -3,6 +3,48 @@
 import { getAllGenres } from "../core/music.js";
 import { selectedCategories } from "./state.js";
 
+const TYPE_META = {
+  rock: { label: "Rock", accentClass: "is-rock", icon: "🎸" },
+  metal: { label: "Metal", accentClass: "is-metal", icon: "🤘" },
+  mixed: { label: "Mixed", accentClass: "is-mixed", icon: "🎚️" },
+  turkish: { label: "Turkish", accentClass: "is-turkish", icon: "🇹🇷" },
+  artist: { label: "Artist", accentClass: "is-artist", icon: "🎤" },
+};
+
+function getTypeMeta(categoryType) {
+  const normalized = (categoryType || "mixed").toLowerCase();
+  if (normalized.includes("rock")) return TYPE_META.rock;
+  if (normalized.includes("metal")) return TYPE_META.metal;
+  if (normalized.includes("turkish")) return TYPE_META.turkish;
+  if (normalized.includes("artist")) return TYPE_META.artist;
+  return TYPE_META.mixed;
+}
+
+function getEraLabel(genre, categoryType) {
+  const era = String(genre?.era || "").toLowerCase();
+  const name = String(genre?.name || "").toLowerCase();
+
+  if (categoryType.includes("artist")) return "Artist focus";
+  if (era && name.includes(era)) return "Catalog pick";
+  if (genre?.era) return `${String(genre.era).toUpperCase()} era`;
+  return "All-time picks";
+}
+
+function syncCategoryCardStates() {
+  document.querySelectorAll(".category-card").forEach((card) => {
+    const id = card.dataset.id;
+    const selected = id ? selectedCategories.includes(id) : false;
+    card.classList.toggle("is-selected", selected);
+    card.setAttribute("aria-pressed", String(selected));
+    const check = card.querySelector(".category-check");
+    if (check) check.classList.toggle("is-checked", selected);
+  });
+}
+
+function normalizeEra(era) {
+  return String(era || "").toLowerCase();
+}
+
 // Load music categories
 export function loadCategories() {
   const categoriesGrid = document.getElementById("categories-grid");
@@ -14,49 +56,31 @@ export function loadCategories() {
   categoriesGrid.innerHTML = "";
 
   genres.forEach((genre, index) => {
-    // Veri yapısındaki 'category' alanını kullanıyoruz
     const categoryType = (genre.category || genre.type || "mixed").toLowerCase();
+    const typeMeta = getTypeMeta(categoryType);
+    const eraLabel = getEraLabel(genre, categoryType);
 
     const card = document.createElement("div");
-    card.className = `category-card bg-black bg-opacity-60 border border-purple-600 rounded-xl p-5 cursor-pointer transition-all duration-300 transform hover:scale-105 opacity-0`;
-    card.style.width = "200px";
-    card.style.height = "160px";
+    card.className = `category-card category-card--catalog ${typeMeta.accentClass} opacity-0`;
+    card.tabIndex = 0;
+    card.setAttribute("role", "button");
+    card.setAttribute("aria-pressed", "false");
 
-    // Set proper data attribute
     card.dataset.id = genre.id;
     card.dataset.category = categoryType;
-
-    // Icon Logic
-    let icon = "";
-    if (categoryType.includes("rock")) {
-      icon =
-        '<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-2 mx-auto text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>';
-    } else if (categoryType.includes("metal")) {
-      icon =
-        '<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-2 mx-auto text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
-    } else if (categoryType.includes("turkish")) {
-      icon =
-        '<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-2 mx-auto text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" /></svg>';
-    } else if (categoryType.includes("artist")) {
-      icon =
-        '<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-2 mx-auto text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>';
-    } else {
-      icon =
-        '<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-2 mx-auto text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>';
-    }
+    card.dataset.era = normalizeEra(genre.era);
 
     card.innerHTML = `
-      <div class="h-full flex flex-col pointer-events-none">
-        <div class="text-center mb-3 relative">
-          <span class="category-check inline-block w-6 h-6 rounded-full border-2 border-purple-500 absolute top-0 right-0 transition-colors duration-300"></span>
-          ${icon}
+      <div class="category-card__body">
+        <div class="category-card__cover" aria-hidden="true">
+          <span class="category-card__cover-icon">${typeMeta.icon}</span>
         </div>
-        <h3 class="text-white text-center font-bold text-lg mb-1">${genre.name}</h3>
-        <div class="mt-auto pt-2">
-          <div class="text-xs text-purple-300 text-center px-2 py-1 bg-purple-900 bg-opacity-30 rounded-full inline-block mx-auto">
-            ${categoryType === "artist" ? "Artist" : (genre.era || categoryType).toUpperCase()}
-          </div>
+        <div class="category-card__head">
+          <span class="category-check" aria-hidden="true"></span>
+          <span class="category-card__type">${typeMeta.label}</span>
         </div>
+        <h3 class="category-card__title">${genre.name}</h3>
+        <p class="category-card__subtitle">${eraLabel}</p>
       </div>
     `;
 
@@ -71,9 +95,13 @@ export function loadCategories() {
     );
 
     // Pre-select check
-    if (selectedCategories?.includes(genre.id)) {
+    syncCategoryCardStates();
+
+    card.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
       toggleCategory(genre.id);
-    }
+    });
   });
 }
 
@@ -87,14 +115,11 @@ export function toggleCategory(id) {
   if (index > -1) {
     // Remove
     selectedCategories.splice(index, 1);
-    card.classList.remove("bg-purple-900", "bg-opacity-30");
-    card.querySelector(".category-check").classList.remove("bg-purple-500");
   } else {
     // Add
     selectedCategories.push(id);
-    card.classList.add("bg-purple-900", "bg-opacity-30");
-    card.querySelector(".category-check").classList.add("bg-purple-500");
   }
+  syncCategoryCardStates();
 
   // Animation for panel
   const selectionsPanel = document.getElementById("selections-panel");
@@ -108,20 +133,25 @@ export function toggleCategory(id) {
 
 // Filter categories by type
 export function filterCategories(filter) {
+  const typeFilter = String(filter || window.currentTypeFilter || "all").toLowerCase();
+  const eraFilter = String(window.currentEraFilter || "all").toLowerCase();
   const cards = document.querySelectorAll(".category-card");
+  const emptyState = document.getElementById("categories-empty-state");
   const cardsArray = Array.from(cards);
 
-  window.currentFilter = filter;
-  console.log(`Filtering by: ${filter}`);
+  window.currentTypeFilter = typeFilter;
+  window.currentFilter = typeFilter; // keep backwards compatibility
 
   const cardsToShow = [];
   const cardsToHide = [];
 
   cardsArray.forEach((card) => {
-    // Safe access to data attribute
     const categoryType = card.dataset.category;
+    const era = card.dataset.era || "";
+    const typeMatch = typeFilter === "all" || categoryType?.includes(typeFilter);
+    const eraMatch = eraFilter === "all" || era === eraFilter;
 
-    if (filter === "all" || categoryType?.includes(filter)) {
+    if (typeMatch && eraMatch) {
       cardsToShow.push(card);
     } else {
       cardsToHide.push(card);
@@ -142,7 +172,7 @@ export function filterCategories(filter) {
   cardsToShow.forEach((card, index) => {
     setTimeout(
       () => {
-        card.style.display = "block";
+        card.style.display = "flex";
         // Trigger reflow
         void card.offsetWidth;
 
@@ -152,6 +182,15 @@ export function filterCategories(filter) {
       300 + index * 50
     );
   });
+
+  if (emptyState) {
+    emptyState.classList.toggle("hidden", cardsToShow.length > 0);
+  }
+}
+
+export function setEraFilter(era) {
+  window.currentEraFilter = String(era || "all").toLowerCase();
+  filterCategories(window.currentTypeFilter || "all");
 }
 
 // Debug function  (can be removed later)

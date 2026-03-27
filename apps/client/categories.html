@@ -263,6 +263,18 @@
             <button data-filter="artist" class="category-filter chip bg-purple-600 bg-opacity-40">Artist</button>
           </div>
 
+          <div class="filter-chips filter-chips--eras">
+            <button data-era-filter="all" class="era-filter chip chip--active">All Eras</button>
+            <button data-era-filter="60s" class="era-filter chip bg-purple-600 bg-opacity-40">60s</button>
+            <button data-era-filter="70s" class="era-filter chip bg-purple-600 bg-opacity-40">70s</button>
+            <button data-era-filter="80s" class="era-filter chip bg-purple-600 bg-opacity-40">80s</button>
+            <button data-era-filter="90s" class="era-filter chip bg-purple-600 bg-opacity-40">90s</button>
+            <button data-era-filter="00s" class="era-filter chip bg-purple-600 bg-opacity-40">00s</button>
+            <button data-era-filter="10s" class="era-filter chip bg-purple-600 bg-opacity-40">10s</button>
+            <button data-era-filter="20s" class="era-filter chip bg-purple-600 bg-opacity-40">20s</button>
+            <button data-era-filter="classic" class="era-filter chip bg-purple-600 bg-opacity-40">Classic</button>
+          </div>
+
           <!-- Scrollable category cards -->
           <div class="cat-scroll-wrap">
             <button id="scroll-left" class="scroll-btn scroll-btn--left" aria-label="Scroll left">
@@ -273,6 +285,9 @@
             </button>
             <div class="overflow-x-auto hide-scrollbar cat-scroll-inner">
               <div class="flex space-x-4 py-2" id="categories-grid"></div>
+              <div id="categories-empty-state" class="categories-empty-state hidden" role="status">
+                No categories found for this filter combo. Try another Type or Era.
+              </div>
             </div>
             <button id="scroll-right" class="scroll-btn scroll-btn--right" aria-label="Scroll right">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"

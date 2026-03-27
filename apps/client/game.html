@@ -132,7 +132,17 @@
         <div class="text-sm text-purple-200" id="song-info"></div>
       </div>
 
-      <div class="flex justify-center mb-4">
+      <div class="round-song-actions flex justify-center items-center gap-2 mb-4">
+        <button
+          id="track-fav-btn"
+          type="button"
+          class="secondary-btn track-fav-btn hidden"
+          aria-label="Add to favorites"
+          aria-pressed="false"
+          title="Add to favorites"
+        >
+          <span aria-hidden="true">★</span>
+        </button>
         <a
           id="deezer-listen-btn"
           class="secondary-btn hidden"
@@ -146,9 +156,9 @@
       
       <!-- Current Round Scoreboard -->
       <div class="mb-6">
-        <h3 class="text-xl font-bold mb-3 text-purple-300">Current Standings</h3>
+        <h3 class="text-xl font-bold mb-3 text-purple-300 round-standings-title">Current Standings</h3>
         <div class="panel-surface p-4 overflow-x-auto">
-          <table class="w-full min-w-[520px] text-white">
+          <table class="w-full text-white round-score-table">
             <thead>
               <tr class="border-b border-purple-800">
                 <th class="py-2 text-left">Player</th>
@@ -211,37 +221,64 @@
         </div>
       </div>
 
-      <!-- Mode Leaderboard -->
-      <div id="final-mode-leaderboard" class="mb-8">
-        <h3 class="text-xl font-bold mb-3 text-purple-300">Leaderboard</h3>
-        <div id="final-mode-leaderboard-loading" class="text-sm text-purple-200 mb-2">Loading…</div>
-        <div id="final-mode-leaderboard-empty" class="hidden text-sm text-purple-200">No scores yet for this mode.</div>
-        <div id="final-mode-leaderboard-podium" class="hidden"></div>
-        <div id="final-mode-leaderboard-others" class="hidden"></div>
-      </div>
-      
       <!-- Tracks Summary -->
       <div id="played-tracks-summary" class="mb-8">
         <!-- Recent tracks will be added dynamically -->
       </div>
       
-      <div class="flex flex-col sm:flex-row gap-4 justify-center mt-6">
-        <button id="replay-btn" class="primary-btn">
-          <div class="flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
-            </svg>
-            Play Again
-          </div>
+      <div class="results-actions flex gap-2 justify-center mt-6">
+        <button id="replay-btn" class="primary-btn results-action-btn" title="Play again">
+          <span class="results-action-icon" aria-hidden="true">↻</span>
+          <span class="results-action-label">Replay</span>
         </button>
-        <button id="menu-btn" class="secondary-btn">
-          <div class="flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
-            </svg>
-            Return to Main Menu
-          </div>
+        <button
+          id="open-final-leaderboard"
+          type="button"
+          class="secondary-btn results-action-btn"
+          title="View leaderboard"
+        >
+          <span class="results-action-icon" aria-hidden="true">🏆</span>
+          <span class="results-action-label">Leaderboard</span>
         </button>
+        <button id="menu-btn" class="secondary-btn results-action-btn" title="Return to main menu">
+          <span class="results-action-icon" aria-hidden="true">⌂</span>
+          <span class="results-action-label">Menu</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="fav-auth-modal" class="fixed inset-0 modal-overlay hidden fav-auth-overlay">
+    <div class="modal-card fav-auth-card max-w-sm w-full mx-4 relative">
+      <h3 class="text-xl font-bold text-white mb-2 text-center">Login required</h3>
+      <p class="text-sm text-purple-200 text-center mb-4">
+        You need to log in to add songs to favorites.
+      </p>
+      <div class="flex items-center justify-center gap-2">
+        <button id="fav-auth-login-btn" type="button" class="primary-btn">Login</button>
+        <button id="fav-auth-close-btn" type="button" class="secondary-btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="final-leaderboard-popup" class="fixed inset-0 modal-overlay hidden leaderboard-popup-overlay">
+    <div class="modal-card leaderboard-popup-card max-w-3xl w-full mx-4 relative">
+      <button
+        id="close-final-leaderboard"
+        type="button"
+        class="auth-close"
+        aria-label="Close leaderboard popup"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+      <div id="final-mode-leaderboard" class="mb-2">
+        <h3 class="text-xl font-bold mb-3 text-purple-300">Leaderboard</h3>
+        <div id="final-mode-leaderboard-loading" class="text-sm text-purple-200 mb-2">Loading…</div>
+        <div id="final-mode-leaderboard-empty" class="hidden text-sm text-purple-200">No scores yet for this mode.</div>
+        <div id="final-mode-leaderboard-podium" class="hidden"></div>
+        <div id="final-mode-leaderboard-others" class="hidden"></div>
       </div>
     </div>
   </div>

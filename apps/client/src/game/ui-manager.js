@@ -17,6 +17,40 @@ const COVER_FALLBACK =
       "</svg>"
   );
 
+const FAV_TRACKS_KEY = "riffle_favorite_tracks_v1";
+
+function getFavoritesStorageKey() {
+  try {
+    const rawUser = localStorage.getItem("user") || localStorage.getItem("user_profile") || "{}";
+    const user = JSON.parse(rawUser);
+    const suffix = user?.id ?? user?.username ?? "guest";
+    return `${FAV_TRACKS_KEY}:${String(suffix)}`;
+  } catch {
+    return `${FAV_TRACKS_KEY}:guest`;
+  }
+}
+
+function getFavoriteTrackKey(track) {
+  if (track?.id !== undefined && track?.id !== null) {
+    return `deezer:${String(track.id)}`;
+  }
+  return `${String(track?.title || "").trim()}::${String(track?.artist || "").trim()}`;
+}
+
+function readFavoriteTracks() {
+  try {
+    const raw = localStorage.getItem(getFavoritesStorageKey());
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeFavoriteTracks(items) {
+  localStorage.setItem(getFavoritesStorageKey(), JSON.stringify(items));
+}
+
 export class UIManager {
   constructor() {
     this.answerButtons = document.querySelectorAll(".answer-btn");
@@ -307,6 +341,7 @@ export class UIManager {
     const albumCoverDisplay = document.getElementById("album-cover-display");
     const songInfo = document.getElementById("song-info");
     const deezerListenBtn = document.getElementById("deezer-listen-btn");
+    const favBtn = document.getElementById("track-fav-btn");
 
     // Display album cover and song info
     if (track) {
@@ -324,6 +359,69 @@ export class UIManager {
       } else {
         deezerListenBtn.classList.add("hidden");
       }
+    }
+
+    if (favBtn) {
+      const token = localStorage.getItem("token") || localStorage.getItem("auth_token");
+      const isLoggedIn = Boolean(token);
+      const hasTrackData = Boolean(track?.title && track?.artist);
+
+      const trackKey = getFavoriteTrackKey(track);
+      const favorites = readFavoriteTracks();
+      const isFav = favorites.some((item) => item.key === trackKey);
+
+      if (hasTrackData) {
+        favBtn.classList.remove("hidden");
+        favBtn.classList.toggle("is-active", isFav);
+        favBtn.classList.toggle("is-disabled", !isLoggedIn);
+        favBtn.setAttribute("aria-pressed", isFav ? "true" : "false");
+        favBtn.setAttribute(
+          "title",
+          !isLoggedIn
+            ? "Log in to favorite songs"
+            : isFav
+              ? "Remove from favorites"
+              : "Add to favorites"
+        );
+      } else {
+        favBtn.classList.add("hidden");
+      }
+
+      favBtn.onclick = () => {
+        const authToken = localStorage.getItem("token") || localStorage.getItem("auth_token");
+        if (!authToken) {
+          this.openFavAuthModal();
+          return;
+        }
+        if (!track?.title || !track?.artist) return;
+
+        const current = readFavoriteTracks();
+        const currentKey = getFavoriteTrackKey(track);
+        const idx = current.findIndex((item) => item.key === currentKey);
+        let next = current;
+        let nowFav = false;
+
+        if (idx >= 0) {
+          next = [...current.slice(0, idx), ...current.slice(idx + 1)];
+          nowFav = false;
+        } else {
+          const favoriteEntry = {
+            key: currentKey,
+            id: track.id ?? null,
+            title: track.cleanTitle || this.cleanSongTitle(track.title) || track.title,
+            artist: track.artist,
+            addedAt: Date.now(),
+          };
+          next = [favoriteEntry, ...current].slice(0, 100);
+          nowFav = true;
+        }
+
+        writeFavoriteTracks(next);
+        favBtn.classList.toggle("is-active", nowFav);
+        favBtn.classList.remove("is-disabled");
+        favBtn.setAttribute("aria-pressed", nowFav ? "true" : "false");
+        favBtn.setAttribute("title", nowFav ? "Remove from favorites" : "Add to favorites");
+      };
     }
 
     // Set result message based on last answer
@@ -386,6 +484,30 @@ export class UIManager {
     this.addQuickFadeInStyle();
   }
 
+  openFavAuthModal() {
+    const modal = document.getElementById("fav-auth-modal");
+    const loginBtn = document.getElementById("fav-auth-login-btn");
+    const closeBtn = document.getElementById("fav-auth-close-btn");
+    if (!modal || !loginBtn || !closeBtn) return;
+
+    const closeModal = () => {
+      modal.classList.add("hidden");
+      modal.classList.remove("show-modal");
+    };
+
+    modal.classList.remove("hidden");
+    setTimeout(() => modal.classList.add("show-modal"), 10);
+
+    loginBtn.onclick = () => {
+      localStorage.setItem("riffle_open_login_on_home", "1");
+      window.location.href = "./index.html";
+    };
+    closeBtn.onclick = closeModal;
+    modal.onclick = (e) => {
+      if (e.target === modal) closeModal();
+    };
+  }
+
   // Update score table in round completion screen
   updateScoreTable(scoreTable, scoreData, lastAnswerCorrect, timedOut) {
     scoreTable.innerHTML = "";
@@ -394,7 +516,7 @@ export class UIManager {
       const row = document.createElement("tr");
       row.innerHTML = `
         <td class="py-2 pr-2">
-          <div class="flex items-center gap-2 whitespace-nowrap">
+          <div class="flex items-center gap-2">
             <div class="h-7 w-7 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 p-0.5 shrink-0">
               <img src="./src/img/avatars/${scoreData.avatar || "avatar1"}.png" alt="" class="rounded-full h-full w-full object-cover">
             </div>
@@ -490,6 +612,34 @@ export class UIManager {
     // Set up button handlers
     document.getElementById("replay-btn").onclick = onReplay;
     document.getElementById("menu-btn").onclick = onMenu;
+    const openLeaderboardBtn = document.getElementById("open-final-leaderboard");
+    const leaderboardPopup = document.getElementById("final-leaderboard-popup");
+    const closeLeaderboardBtn = document.getElementById("close-final-leaderboard");
+
+    if (leaderboardPopup) {
+      leaderboardPopup.classList.add("hidden");
+      leaderboardPopup.classList.remove("show-modal");
+      leaderboardPopup.onclick = (e) => {
+        if (e.target === leaderboardPopup) {
+          leaderboardPopup.classList.add("hidden");
+          leaderboardPopup.classList.remove("show-modal");
+        }
+      };
+    }
+
+    if (openLeaderboardBtn && leaderboardPopup) {
+      openLeaderboardBtn.onclick = () => {
+        leaderboardPopup.classList.remove("hidden");
+        setTimeout(() => leaderboardPopup.classList.add("show-modal"), 10);
+      };
+    }
+
+    if (closeLeaderboardBtn && leaderboardPopup) {
+      closeLeaderboardBtn.onclick = () => {
+        leaderboardPopup.classList.add("hidden");
+        leaderboardPopup.classList.remove("show-modal");
+      };
+    }
 
     const guestCta = document.getElementById("guest-save-cta");
     if (guestCta) {

@@ -330,6 +330,85 @@ body.no-scroll {
   width: 100%;
   margin-top: 1rem;
 }
+
+.profile-favorites {
+  margin-top: 1rem;
+}
+
+.profile-favorites-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #f5f3ff;
+  margin-bottom: 0.5rem;
+}
+
+.profile-favorites-empty {
+  color: #c4b5fd;
+  font-size: 0.78rem;
+}
+
+.profile-favorites-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.profile-favorite-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  border: 1px solid rgba(167, 139, 250, 0.24);
+  border-radius: 0.7rem;
+  padding: 0.58rem 0.65rem;
+  background: rgba(17, 9, 36, 0.52);
+}
+
+.profile-favorite-main {
+  min-width: 0;
+}
+
+.profile-favorite-title {
+  font-size: 0.8rem;
+  color: #f5f3ff;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-favorite-artist {
+  font-size: 0.72rem;
+  color: #c4b5fd;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-favorite-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-shrink: 0;
+}
+
+.profile-favorite-link,
+.profile-favorite-remove {
+  border-radius: 0.55rem;
+  border: 1px solid rgba(167, 139, 250, 0.34);
+  background: rgba(124, 58, 237, 0.16);
+  color: #e9d5ff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.36rem 0.48rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.profile-favorite-link:hover,
+.profile-favorite-remove:hover {
+  background: rgba(124, 58, 237, 0.28);
+}
 .profile-box {
   max-width: 26rem;
   max-height: 90vh;

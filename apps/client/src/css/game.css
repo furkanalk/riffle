@@ -376,10 +376,45 @@ body {
   overflow-y: auto;
 }
 
+.leaderboard-popup-overlay {
+  z-index: 70;
+}
+
+.leaderboard-popup-card {
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+
+.results-actions {
+  flex-wrap: wrap;
+}
+
+.results-action-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.results-action-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.results-action-label {
+  white-space: nowrap;
+}
+
 .panel-surface {
   border-radius: 0.85rem;
   background: rgba(0, 0, 0, 0.35);
   border: 1px solid rgba(167, 139, 250, 0.16);
+}
+
+.round-score-table {
+  min-width: 520px;
 }
 
 .primary-btn,
@@ -395,6 +430,50 @@ body {
   border: 1px solid rgba(167, 139, 250, 0.35);
   background: linear-gradient(135deg, #7c3aed, #4f46e5);
   color: #fff;
+}
+
+.track-fav-btn {
+  min-width: 2.75rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.track-fav-btn span {
+  display: inline-block;
+  transform: translateY(-1px);
+}
+
+.track-fav-btn.is-active {
+  border-color: rgba(250, 204, 21, 0.8);
+  color: #facc15;
+  box-shadow: 0 0 16px rgba(250, 204, 21, 0.35);
+}
+
+.track-fav-btn.is-disabled {
+  opacity: 0.65;
+  position: relative;
+}
+
+.track-fav-btn.is-disabled::after {
+  content: "🔒";
+  position: absolute;
+  right: -0.18rem;
+  top: -0.32rem;
+  font-size: 0.62rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.45));
+}
+
+.fav-auth-overlay {
+  z-index: 80;
+}
+
+.fav-auth-card {
+  max-width: 22rem;
+  padding: 1rem;
 }
 .secondary-btn {
   border: 1px solid rgba(129, 140, 248, 0.4);
@@ -575,6 +654,50 @@ body {
 }
 
 @media (max-width: 640px) {
+  .round-standings-title {
+    text-align: center;
+  }
+
+  .round-song-actions {
+    gap: 0.45rem;
+  }
+
+  .track-fav-btn {
+    min-width: 2.45rem;
+    width: 2.45rem;
+    height: 2.45rem;
+    font-size: 1rem;
+  }
+
+  .track-fav-btn.is-disabled::after {
+    right: -0.15rem;
+    top: -0.28rem;
+    font-size: 0.58rem;
+  }
+
+  .fav-auth-card {
+    padding: 0.88rem;
+  }
+
+  .round-score-table {
+    min-width: 0;
+  }
+
+  .round-score-table th,
+  .round-score-table td {
+    font-size: 0.82rem;
+  }
+
+  .round-score-table th {
+    padding-top: 0.45rem;
+    padding-bottom: 0.45rem;
+  }
+
+  .round-score-table td {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
   .game-header {
     height: 3.5rem;
     padding: 0 0.85rem;
@@ -608,5 +731,172 @@ body {
   .round-pill {
     font-size: 0.65rem;
     padding: 0.12rem 0.48rem;
+  }
+
+  /* Mobile: keep Game Over modal inside viewport without page scroll. */
+  #results-modal {
+    padding-top: 0.35rem !important;
+    padding-bottom: 0.35rem !important;
+    align-items: center;
+  }
+
+  #results-content {
+    padding: 0.9rem !important;
+    max-height: calc(100vh - 0.7rem);
+    overflow: hidden;
+  }
+
+  #results-content h2 {
+    margin-top: 0.2rem !important;
+    margin-bottom: 0.45rem !important;
+    font-size: 1.55rem !important;
+  }
+
+  #final-score {
+    font-size: 2.45rem !important;
+    margin-bottom: 0.25rem !important;
+  }
+
+  #score-message {
+    font-size: 0.9rem !important;
+    margin-top: 0.35rem !important;
+    margin-bottom: 0.35rem !important;
+  }
+
+  #results-content #game-stats {
+    margin-bottom: 0.5rem !important;
+  }
+
+  #results-content #game-stats .grid {
+    gap: 0.42rem !important;
+    margin-top: 0.4rem !important;
+    margin-bottom: 0.4rem !important;
+  }
+
+  #results-content #game-stats .grid > div {
+    padding: 0.45rem 0.35rem !important;
+  }
+
+  #results-content #game-stats .grid > div p:first-child {
+    font-size: 0.62rem !important;
+  }
+
+  #results-content #game-stats .grid > div p:last-child {
+    font-size: 1rem !important;
+  }
+
+  #final-scoreboard {
+    margin-bottom: 0.55rem !important;
+  }
+
+  #final-scoreboard h3,
+  #final-mode-leaderboard h3 {
+    font-size: 0.95rem !important;
+    margin-bottom: 0.35rem !important;
+  }
+
+  #final-scoreboard h3 {
+    text-align: center;
+  }
+
+  #final-scoreboard .panel-surface {
+    padding: 0.5rem !important;
+    overflow-x: hidden;
+  }
+
+  #final-scoreboard table {
+    width: 100%;
+    min-width: 0 !important;
+    table-layout: fixed;
+  }
+
+  #final-scoreboard th,
+  #final-scoreboard td {
+    font-size: 0.75rem;
+    padding-top: 0.3rem !important;
+    padding-bottom: 0.3rem !important;
+  }
+
+  #final-scoreboard th:nth-child(1),
+  #final-scoreboard td:nth-child(1) {
+    width: 40%;
+  }
+
+  #final-scoreboard th:nth-child(2),
+  #final-scoreboard td:nth-child(2),
+  #final-scoreboard th:nth-child(3),
+  #final-scoreboard td:nth-child(3) {
+    width: 30%;
+  }
+
+  #final-scoreboard th:nth-child(2),
+  #final-scoreboard td:nth-child(2),
+  #final-scoreboard th:nth-child(3),
+  #final-scoreboard td:nth-child(3) {
+    text-align: center !important;
+  }
+
+  #final-scoreboard td .flex.items-center {
+    gap: 0.35rem;
+    min-width: 0;
+  }
+
+  #final-scoreboard td .flex.items-center > div:last-child,
+  #final-scoreboard td .flex.items-center > span:last-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #final-mode-leaderboard {
+    margin-bottom: 0.55rem !important;
+  }
+
+  #final-mode-leaderboard-others,
+  #played-tracks-summary {
+    display: none !important;
+  }
+
+  #results-content .primary-btn,
+  #results-content .secondary-btn {
+    padding: 0.58rem 0.8rem;
+    font-size: 0.82rem;
+  }
+
+  .results-actions {
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 0.4rem;
+  }
+
+  .results-actions .primary-btn,
+  .results-actions .secondary-btn {
+    font-size: 0.7rem;
+    padding: 0.5rem 0.45rem;
+    min-height: 2.35rem;
+  }
+
+  .results-action-icon {
+    font-size: 0.92rem;
+  }
+
+  #open-final-leaderboard .results-action-label {
+    display: none;
+  }
+
+  #open-final-leaderboard {
+    justify-content: center;
+    padding-left: 0.35rem;
+    padding-right: 0.35rem;
+  }
+
+  #menu-btn .results-action-icon {
+    display: none;
+  }
+
+  .leaderboard-popup-card {
+    max-height: calc(100vh - 1rem);
+    padding: 0.9rem !important;
   }
 }

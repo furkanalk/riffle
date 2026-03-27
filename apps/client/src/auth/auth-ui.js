@@ -47,7 +47,12 @@ export function initAuthUI() {
     profileUsername: document.getElementById("profile-username"),
     profileUsernameSave: document.getElementById("profile-username-save"),
     profileUsernameMsg: document.getElementById("profile-username-msg"),
+    profileFavoritesSection: document.getElementById("profile-favorites-section"),
+    profileFavoritesList: document.getElementById("profile-favorites-list"),
+    profileFavoritesEmpty: document.getElementById("profile-favorites-empty"),
   };
+
+  const FAVORITE_TRACKS_KEY = "riffle_favorite_tracks_v1";
 
   // if loginBtn or userProfileBtn not found, exit
   if (!elements.loginBtn && !elements.userProfileBtn) return;
@@ -138,6 +143,26 @@ export function initAuthUI() {
 
   if (elements.profileUsernameSave) {
     elements.profileUsernameSave.addEventListener("click", saveProfileUsername);
+  }
+
+  if (elements.profileFavoritesList) {
+    elements.profileFavoritesList.addEventListener("click", (e) => {
+      const target = e.target;
+      if (!(target instanceof HTMLElement)) return;
+      const removeBtn = target.closest(".profile-favorite-remove");
+      if (!removeBtn) return;
+      const key = removeBtn.getAttribute("data-track-key");
+      if (!key) return;
+      removeFavoriteTrack(key);
+      renderFavoriteTracks();
+    });
+  }
+
+  const openLoginOnHome = localStorage.getItem("riffle_open_login_on_home");
+  if (openLoginOnHome === "1") {
+    localStorage.removeItem("riffle_open_login_on_home");
+    switchAuthTab("login");
+    openPanel();
   }
 
   // Close panel
@@ -596,7 +621,94 @@ export function initAuthUI() {
     if (elements.profileLogoutBtn) {
       elements.profileLogoutBtn.style.display = isLoggedIn ? "" : "none";
     }
+    renderFavoriteTracks();
     elements.profilePanel.classList.remove("hidden");
+  }
+
+  function readFavoriteTracks() {
+    try {
+      const raw = localStorage.getItem(getFavoritesStorageKey());
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function writeFavoriteTracks(items) {
+    localStorage.setItem(getFavoritesStorageKey(), JSON.stringify(items));
+  }
+
+  function getFavoritesStorageKey() {
+    const rawUser = localStorage.getItem("user") || localStorage.getItem("user_profile") || "{}";
+    try {
+      const user = JSON.parse(rawUser);
+      const suffix = user?.id ?? user?.username ?? "guest";
+      return `${FAVORITE_TRACKS_KEY}:${String(suffix)}`;
+    } catch {
+      return `${FAVORITE_TRACKS_KEY}:guest`;
+    }
+  }
+
+  function removeFavoriteTrack(trackKey) {
+    const current = readFavoriteTracks();
+    const next = current.filter((item) => item?.key !== trackKey);
+    writeFavoriteTracks(next);
+  }
+
+  function renderFavoriteTracks() {
+    if (!elements.profileFavoritesSection || !elements.profileFavoritesList || !elements.profileFavoritesEmpty) {
+      return;
+    }
+
+    const token = localStorage.getItem("token") || localStorage.getItem("auth_token");
+    const userRaw = localStorage.getItem("user") || localStorage.getItem("user_profile") || "{}";
+    let user = {};
+    try {
+      user = JSON.parse(userRaw);
+    } catch {
+      user = {};
+    }
+    const isLoggedIn = Boolean(token && user?.username);
+    if (!isLoggedIn) {
+      elements.profileFavoritesSection.classList.add("hidden");
+      return;
+    }
+
+    elements.profileFavoritesSection.classList.remove("hidden");
+
+    const favorites = readFavoriteTracks().slice(0, 100);
+    if (favorites.length === 0) {
+      elements.profileFavoritesList.innerHTML = "";
+      elements.profileFavoritesEmpty.classList.remove("hidden");
+      return;
+    }
+
+    elements.profileFavoritesEmpty.classList.add("hidden");
+    elements.profileFavoritesList.innerHTML = favorites
+      .map((item) => {
+        const title = escapeHtml(String(item?.title || "Unknown track"));
+        const artist = escapeHtml(String(item?.artist || "Unknown artist"));
+        const key = escapeHtml(String(item?.key || ""));
+        const deezerHref =
+          item?.id !== undefined && item?.id !== null
+            ? `https://www.deezer.com/track/${encodeURIComponent(String(item.id))}`
+            : "https://www.deezer.com/";
+
+        return `
+          <article class="profile-favorite-item">
+            <div class="profile-favorite-main">
+              <div class="profile-favorite-title">${title}</div>
+              <div class="profile-favorite-artist">${artist}</div>
+            </div>
+            <div class="profile-favorite-actions">
+              <a class="profile-favorite-link" href="${deezerHref}" target="_blank" rel="noopener noreferrer">Deezer</a>
+              <button type="button" class="profile-favorite-remove" data-track-key="${key}">Remove</button>
+            </div>
+          </article>
+        `;
+      })
+      .join("");
   }
 
   function closeProfilePanel() {
@@ -695,4 +807,10 @@ export function initAuthUI() {
       }
     });
   }
+}
+
+function escapeHtml(s) {
+  const d = document.createElement("div");
+  d.textContent = s ?? "";
+  return d.innerHTML;
 }

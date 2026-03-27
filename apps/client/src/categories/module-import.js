@@ -1,6 +1,11 @@
 import { initRoomSim } from "../lobby/room-sim.js";
 import { sendChatMessage } from "./category-chat.js";
-import { debugCategories, filterCategories, loadCategories } from "./category-filters.js";
+import {
+  debugCategories,
+  filterCategories,
+  loadCategories,
+  setEraFilter,
+} from "./category-filters.js";
 import { startGame } from "./category-game.js";
 import { setupGameModeSettings, switchTab, updateSelectionsSummary } from "./category-settings.js";
 import { maybeShowGuestAvatarGate } from "./guest-avatar-gate.js";
@@ -287,13 +292,22 @@ function initChat() {
 }
 
 function initCategoryFilters() {
-  const buttons = document.querySelectorAll(".category-filter");
+  const typeButtons = document.querySelectorAll(".category-filter");
+  const eraButtons = document.querySelectorAll(".era-filter");
 
-  buttons.forEach((btn) => {
+  typeButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
-      buttons.forEach(resetFilterButton);
+      typeButtons.forEach(resetFilterButton);
       activateFilterButton(btn);
       filterCategories(btn.dataset.filter);
+    });
+  });
+
+  eraButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      eraButtons.forEach(resetFilterButton);
+      activateFilterButton(btn);
+      setEraFilter(btn.dataset.eraFilter);
     });
   });
 }
