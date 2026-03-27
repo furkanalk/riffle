@@ -1288,7 +1288,9 @@ button.menu-card {
   cursor: pointer;
   padding: 0.25rem;
   border-radius: 0.5rem;
-  transition: color 0.2s, background 0.2s;
+  transition:
+    color 0.2s,
+    background 0.2s;
 }
 
 .desktop-about-close:hover {
@@ -1667,7 +1669,9 @@ button.menu-card {
     outline: 0 solid rgba(167, 139, 250, 0);
   }
   25% {
-    box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.55), 0 20px 60px rgba(124, 58, 237, 0.18);
+    box-shadow:
+      0 0 0 2px rgba(167, 139, 250, 0.55),
+      0 20px 60px rgba(124, 58, 237, 0.18);
     outline: 2px solid rgba(167, 139, 250, 0.35);
     outline-offset: 0.35rem;
   }

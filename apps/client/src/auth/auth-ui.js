@@ -442,7 +442,6 @@ export function initAuthUI() {
 
   // Show guest mode
   function showGuestMode() {
-    const isMobile = window.matchMedia("(max-width: 640px)").matches;
     const guestName = localStorage.getItem("guest_name") || "Guest";
 
     // Desktop guest: hide Login/Sign Up buttons; use CTA text instead.
@@ -540,7 +539,9 @@ export function initAuthUI() {
     const isLoggedIn = Boolean(token && user?.username);
 
     // Prevent duplicated guest lock notes when profile panel is reopened.
-    elements.profilePanel.querySelectorAll(".profile-lock-note").forEach((n) => n.remove());
+    elements.profilePanel.querySelectorAll(".profile-lock-note").forEach((n) => {
+      n.remove();
+    });
 
     if (elements.profileUsername) {
       if (isLoggedIn) {
