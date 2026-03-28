@@ -154,7 +154,7 @@ func (h *Hub) ServeWS(w http.ResponseWriter, r *http.Request, upgrader websocket
 	}
 	avatar := strings.TrimSpace(q.Get("avatar"))
 	if avatar == "" {
-		avatar = "avatar1"
+		avatar = "avatar-1"
 	}
 	if len(avatar) > 32 {
 		avatar = avatar[:32]

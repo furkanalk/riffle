@@ -5,7 +5,7 @@ import { query } from "../config/db";
 import type { JwtRequest } from "../middleware/jwtAuth";
 import type { UserRow } from "../models/user";
 
-const ALLOWED_AVATARS = new Set(Array.from({ length: 10 }, (_, i) => `avatar${i + 1}`));
+const ALLOWED_AVATARS = new Set(Array.from({ length: 9 }, (_, i) => `avatar-${i + 1}`));
 
 /** Reserved / misleading usernames (extend as needed). */
 const BLOCKED_USERNAMES = new Set([

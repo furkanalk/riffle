@@ -6,7 +6,7 @@ const createTablesSQL = `
     username      VARCHAR(50)  UNIQUE NOT NULL,
     email         VARCHAR(100) UNIQUE NOT NULL,
     password_hash VARCHAR(255)        NOT NULL,
-    avatar        VARCHAR(50)  DEFAULT 'avatar1',
+    avatar        VARCHAR(50)  DEFAULT 'avatar-1',
     created_at    TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
   );
 
