@@ -23,7 +23,7 @@ export async function submitScore(req: FastifyRequest, reply: FastifyReply): Pro
     return;
   }
 
-  if (!Number.isFinite(score) || score < 0 || score > MAX_SCORE) {
+  if (!Number.isFinite(score) || score < 1 || score > MAX_SCORE) {
     reply.code(400).send({ error: "Invalid score." });
     return;
   }
@@ -48,12 +48,24 @@ export async function getLeaderboard(req: FastifyRequest, reply: FastifyReply): 
   const limit = Math.min(50, Math.max(1, parseInt(q.limit ?? "10", 10) || 10));
 
   try {
+    // One row per user: their best score for this mode (avoids duplicate usernames in the list).
     const result = await query(
-      `SELECT s.score, s.game_mode, s.played_at, u.username, u.avatar
-       FROM scores s
-       INNER JOIN users u ON u.id = s.user_id
-       WHERE s.game_mode = $1
-       ORDER BY s.score DESC, s.played_at ASC
+      `WITH best_per_user AS (
+         SELECT DISTINCT ON (s.user_id)
+           s.score,
+           s.game_mode,
+           s.played_at,
+           u.username,
+           u.avatar
+         FROM scores s
+         INNER JOIN users u ON u.id = s.user_id
+         WHERE s.game_mode = $1
+           AND s.score > 0
+         ORDER BY s.user_id, s.score DESC, s.played_at ASC
+       )
+       SELECT score, game_mode, played_at, username, avatar
+       FROM best_per_user
+       ORDER BY score DESC, played_at ASC
        LIMIT $2`,
       [mode, limit]
     );
