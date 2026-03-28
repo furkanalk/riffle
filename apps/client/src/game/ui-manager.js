@@ -1,4 +1,5 @@
 // ui-manager.js
+import { avatarImgSrcFromRoot, DEFAULT_AVATAR_ID, normalizeAvatarId } from "../core/avatars.js";
 import { submitScoreIfLoggedIn } from "../core/leaderboard-submit.js";
 
 function escapeHtml(s) {
@@ -69,11 +70,34 @@ export class UIManager {
     const safeMode = String(mode ?? "solo").slice(0, 20);
 
     loadingEl.textContent = "Loading leaderboard…";
+    loadingEl.classList.remove("hidden");
     emptyEl.classList.add("hidden");
     podiumEl.classList.add("hidden");
     othersEl.classList.add("hidden");
     podiumEl.innerHTML = "";
     othersEl.innerHTML = "";
+
+    /** @param {Record<string, unknown> | undefined} entry */
+    const podiumSlot = (entry, variant) => {
+      if (!entry) {
+        return `<div class="final-lb-ghost final-lb-ghost--${variant}" aria-hidden="true"></div>`;
+      }
+      const avatar = normalizeAvatarId(entry.avatar || DEFAULT_AVATAR_ID);
+      const name = escapeHtml(entry.username || "Guest");
+      const score = escapeHtml(String(entry.score ?? 0));
+      const rankLabel = variant === "gold" ? "1st" : variant === "silver" ? "2nd" : "3rd";
+      return `
+        <div class="final-lb-slot final-lb-slot--${variant}">
+          <div class="final-lb-rank">${rankLabel}</div>
+          <div class="final-lb-ring">
+            <img src="${avatarImgSrcFromRoot(avatar)}" alt="" />
+          </div>
+          <div class="final-lb-name">${name}</div>
+          <div class="final-lb-score">${score} pts</div>
+          <div class="final-lb-pedestal"></div>
+        </div>
+      `;
+    };
 
     try {
       const res = await fetch(`/api/leaderboard?mode=${encodeURIComponent(safeMode)}&limit=10`);
@@ -89,80 +113,45 @@ export class UIManager {
 
       loadingEl.classList.add("hidden");
 
-      const top3 = entries.slice(0, 3);
+      const first = entries[0];
+      const second = entries[1];
+      const third = entries[2];
       const rest = entries.slice(3);
 
-      const card = (entry, rank, themeKey) => {
-        const avatar = entry.avatar || "avatar1";
-        const name = escapeHtml(entry.username || "Guest");
-        const score = escapeHtml(String(entry.score ?? 0));
-
-        let borderClass = "border-yellow-400";
-        let smallTextClass = "text-yellow-300";
-        let gradientFromClass = "from-yellow-400";
-
-        if (themeKey === "gray") {
-          borderClass = "border-gray-300";
-          smallTextClass = "text-gray-300";
-          gradientFromClass = "from-gray-300";
-        } else if (themeKey === "amber") {
-          borderClass = "border-amber-700";
-          smallTextClass = "text-amber-300";
-          gradientFromClass = "from-amber-700";
-        }
-
-        return `
-          <div class="w-full max-w-[16rem] text-center bg-gray-800/70 border ${borderClass} rounded-xl p-4">
-            <div class="text-sm font-bold ${smallTextClass} mb-2">${rank}</div>
-            <div class="mx-auto h-14 w-14 rounded-full bg-gradient-to-br ${gradientFromClass} to-indigo-600 p-1 flex items-center justify-center">
-              <img src="./src/img/avatars/${avatar}.png" alt="" class="rounded-full h-12 w-12 object-cover" />
-            </div>
-            <div class="mt-2 font-bold text-white text-sm truncate">${name}</div>
-            <div class="mt-1 font-extrabold text-purple-300">${score} pts</div>
-          </div>
-        `;
-      };
-
-      const podiumMarkup = `
-        <div class="flex flex-col items-center gap-3 sm:gap-4">
-          ${top3[0] ? card(top3[0], "1st", "yellow") : ""}
-          <div class="w-full flex justify-center gap-3 sm:gap-4">
-            ${top3[1] ? card(top3[1], "2nd", "gray") : ""}
-            ${top3[2] ? card(top3[2], "3rd", "amber") : ""}
-          </div>
+      podiumEl.innerHTML = `
+        <div class="final-lb-strip" role="list">
+          ${podiumSlot(second, "silver")}
+          ${podiumSlot(first, "gold")}
+          ${podiumSlot(third, "bronze")}
         </div>
       `;
-
-      podiumEl.innerHTML = podiumMarkup;
       podiumEl.classList.remove("hidden");
 
       if (rest.length > 0) {
-        const othersMarkup = rest
+        const rows = rest
           .map((e, i) => {
             const idx = i + 4;
-            const avatar = e.avatar || "avatar1";
+            const avatar = normalizeAvatarId(e.avatar || DEFAULT_AVATAR_ID);
             const name = escapeHtml(e.username || "Guest");
             const score = escapeHtml(String(e.score ?? 0));
             return `
-              <div class="bg-gray-800/60 border border-purple-800/30 rounded-xl p-3">
-                <div class="flex items-center gap-3">
-                  <div class="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 p-1 flex items-center justify-center">
-                    <img src="./src/img/avatars/${avatar}.png" alt="" class="rounded-full h-9 w-9 object-cover" />
+              <div class="final-lb-row">
+                <div class="final-lb-row-rank">${idx}</div>
+                <div class="final-lb-row-ring">
+                  <img src="${avatarImgSrcFromRoot(avatar)}" alt="" />
+                </div>
+                <div class="final-lb-row-body">
+                  <div class="final-lb-row-top">
+                    <div class="final-lb-row-name">${name}</div>
+                    <div class="final-lb-row-score">${score}</div>
                   </div>
-                  <div class="min-w-0 flex-1">
-                    <div class="flex items-baseline justify-between gap-2">
-                      <div class="font-bold text-sm text-white truncate">#${idx} ${name}</div>
-                      <div class="font-extrabold text-purple-300 text-sm">${score}</div>
-                    </div>
-                    <div class="text-xs text-purple-200 mt-1">${e.game_mode || safeMode}</div>
-                  </div>
+                  <div class="final-lb-row-mode">${escapeHtml(String(e.game_mode || safeMode))}</div>
                 </div>
               </div>
             `;
           })
           .join("");
-
-        othersEl.innerHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">${othersMarkup}</div>`;
+        othersEl.innerHTML = `<div class="final-lb-rest-grid">${rows}</div>`;
         othersEl.classList.remove("hidden");
       }
     } catch (e) {
