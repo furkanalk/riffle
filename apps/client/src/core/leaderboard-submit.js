@@ -5,6 +5,8 @@
 export async function submitScoreIfLoggedIn(scoreData) {
   const token = localStorage.getItem("token");
   if (!token) return;
+  const score = Number(scoreData.score);
+  if (!Number.isFinite(score) || score <= 0) return;
 
   try {
     const res = await fetch("/api/scores", {
@@ -15,7 +17,7 @@ export async function submitScoreIfLoggedIn(scoreData) {
       },
       body: JSON.stringify({
         gameMode: scoreData.gameMode,
-        score: scoreData.score,
+        score: Math.floor(score),
       }),
     });
     if (!res.ok) {
