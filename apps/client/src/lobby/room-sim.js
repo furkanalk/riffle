@@ -1,4 +1,5 @@
 import { gameMode, selectedCategories } from "../categories/state.js";
+import { avatarImgSrcFromRoot, DEFAULT_AVATAR_ID, normalizeAvatarId } from "../core/avatars.js";
 import { getUser } from "../core/user-manager.js";
 
 const CLIENT_ID_KEY = "riffle_client_id";
@@ -72,8 +73,7 @@ function getEffectiveUsername(u) {
 }
 
 function getSafeAvatarId(avatarId) {
-  const id = String(avatarId || "").trim();
-  return /^avatar\d+$/.test(id) ? id : "avatar1";
+  return normalizeAvatarId(avatarId);
 }
 
 function getRoomPlayersRoster(room) {
@@ -125,7 +125,7 @@ function renderPlayersList(room, myClientId) {
     const avatarId = getSafeAvatarId(p.avatar);
     li.innerHTML = `
       <span class="player-chip__avatar-wrap">
-        <img class="player-chip__avatar" src="./src/img/avatars/${avatarId}.png" alt="" onerror="this.onerror=null;this.src='./src/img/avatars/avatar1.png';">
+        <img class="player-chip__avatar" src="${avatarImgSrcFromRoot(avatarId)}" alt="" onerror="this.onerror=null;this.src='${avatarImgSrcFromRoot(DEFAULT_AVATAR_ID)}';">
       </span>
       <span class="player-chip__name">${isMe ? "You" : getEffectiveUsername(p)}${isHost ? " • Host" : ""}</span>
     `;
@@ -183,7 +183,7 @@ function renderRoomChat(room, myClientId) {
     row.className = `chat-message-row${m.clientId === myClientId ? " chat-message-row--me" : ""}`;
     row.innerHTML = `
       <span class="chat-message-avatar-wrap">
-        <img class="chat-message-avatar" src="./src/img/avatars/${avatarId}.png" alt="">
+        <img class="chat-message-avatar" src="${avatarImgSrcFromRoot(avatarId)}" alt="">
       </span>
       <div class="chat-message-body">
         <div class="chat-message-meta">
@@ -443,7 +443,7 @@ function setupRoomChat(roomId, myClientId, username) {
     room.chat.push({
       clientId: myClientId,
       username,
-      avatar: getUser()?.avatar || "avatar1",
+      avatar: getUser()?.avatar || DEFAULT_AVATAR_ID,
       text: text.slice(0, 240),
       at: Date.now(),
     });
@@ -465,7 +465,7 @@ function initMatchmakerWsLobby() {
   const myClientId = getOrCreateClientId();
   const user = getUser();
   const username = getEffectiveUsername(user);
-  const avatar = user.avatar || "avatar1";
+  const avatar = user.avatar || DEFAULT_AVATAR_ID;
 
   let roomId = getRoomIdFromUrl();
   const paramsFromUrl = new URLSearchParams(window.location.search);
@@ -593,7 +593,7 @@ export function initRoomSim() {
   const myClientId = getOrCreateClientId();
   const user = getUser();
   const username = getEffectiveUsername(user);
-  const avatar = user.avatar || "avatar1";
+  const avatar = user.avatar || DEFAULT_AVATAR_ID;
 
   let roomId = getRoomIdFromUrl();
   if (!roomId) {

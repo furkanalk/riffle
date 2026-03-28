@@ -1,4 +1,5 @@
 // score-manager.js
+import { AVATAR_IDS, DEFAULT_AVATAR_ID } from "../core/avatars.js";
 import { getEffectiveAvatarId } from "../core/user-manager.js";
 
 export class ScoreManager {
@@ -17,7 +18,7 @@ export class ScoreManager {
       name: p.name || `Player ${i + 1}`,
       score: 0,
       color: p.color || "purple-500",
-      avatar: p.avatar || "avatar1",
+      avatar: p.avatar || DEFAULT_AVATAR_ID,
     }));
     return this.players;
   }
@@ -133,18 +134,7 @@ export class ScoreManager {
   generateMockPlayers() {
     const playerNames = ["Sen", "Ahmet", "Zeynep", "Burak"];
     const playerColors = ["purple-500", "blue-500", "green-500", "yellow-500"];
-    const avatars = [
-      "avatar1",
-      "avatar2",
-      "avatar3",
-      "avatar4",
-      "avatar5",
-      "avatar6",
-      "avatar7",
-      "avatar8",
-      "avatar9",
-      "avatar10",
-    ];
+    const avatars = [...AVATAR_IDS];
 
     this.players = [];
 

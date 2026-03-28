@@ -1,5 +1,6 @@
 // game-engine.js
 
+import { avatarImgSrcFromRoot, normalizeAvatarId } from "../core/avatars.js";
 import { getTracksFromGenre, resetPlayedTracks } from "../core/music.js";
 import { getEffectiveAvatarId } from "../core/user-manager.js";
 import { AudioManager } from "./audio-manager.js";
@@ -83,10 +84,10 @@ export class GameEngine {
       }
     }
 
-    const avatar = this.settings.avatar || getEffectiveAvatarId();
+    const avatar = normalizeAvatarId(this.settings.avatar || getEffectiveAvatarId());
     const avatarElement = document.getElementById("player-avatar");
     if (avatarElement) {
-      avatarElement.src = `./src/img/avatars/${avatar}.png`;
+      avatarElement.src = avatarImgSrcFromRoot(avatar);
     }
   }
 

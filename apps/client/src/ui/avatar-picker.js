@@ -20,7 +20,7 @@ export function mountAvatarPicker(container, opts = {}) {
     .map((id) => {
       const sel = id === current;
       const border = sel ? "selected border-purple-500" : "border-purple-900 border-opacity-30";
-      const n = id.replace("avatar", "");
+      const n = id.replace(/^avatar-?/, "");
       return `<button type="button" class="avatar-option ${border}" data-avatar="${id}" aria-pressed="${sel}">
       <div class="avatar-img-wrap">
         <img src="${avatarImgSrcFromRoot(id)}" alt="" class="avatar-img" />

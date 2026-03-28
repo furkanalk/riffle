@@ -1,5 +1,5 @@
 // GUEST & USER MANAGEMENT
-import { AVATAR_IDS, DEFAULT_AVATAR_ID, getDailyGuestAvatarIds } from "./avatars.js";
+import { DEFAULT_AVATAR_ID, getDailyGuestAvatarIds, normalizeAvatarId } from "./avatars.js";
 
 // Rock & Metal Theme Adjectives
 const adjectives = [
@@ -121,14 +121,15 @@ export function getEffectiveAvatarId() {
   if (token) {
     try {
       const u = JSON.parse(localStorage.getItem("user") || "{}");
-      if (u.avatar && AVATAR_IDS.includes(u.avatar)) return u.avatar;
+      if (u.avatar) return normalizeAvatarId(u.avatar);
     } catch {
       /* ignore */
     }
   }
   const g = localStorage.getItem("selectedAvatar");
   const dailyGuestIds = getDailyGuestAvatarIds();
-  if (g && dailyGuestIds.includes(g)) return g;
+  const gNorm = g ? normalizeAvatarId(g) : null;
+  if (gNorm && dailyGuestIds.includes(gNorm)) return gNorm;
   const randomGuestAvatar = pickRandomGuestAvatar();
   localStorage.setItem("selectedAvatar", randomGuestAvatar);
   return randomGuestAvatar;
