@@ -41,7 +41,7 @@
     </div>
     <div class="score-card">
       <div class="avatar-chip">
-        <img id="player-avatar" src="./src/img/avatars/avatar1.png" alt="Player Avatar" class="rounded-full">
+        <img id="player-avatar" src="./assets/avatars/avatar-1.png" alt="Player Avatar" class="rounded-full">
       </div>
       <div class="score-main">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-400 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -161,9 +161,9 @@
           <table class="w-full text-white round-score-table">
             <thead>
               <tr class="border-b border-purple-800">
-                <th class="py-2 text-left">Player</th>
-                <th class="py-2 text-right">Score</th>
-                <th class="py-2 text-right">This Round</th>
+                <th class="py-2">Player</th>
+                <th class="py-2">Score</th>
+                <th class="py-2">This Round</th>
               </tr>
             </thead>
             <tbody id="round-score-table">
@@ -247,6 +247,14 @@
       </div>
     </div>
   </div>
+
+  <div
+    id="fav-toast"
+    class="fav-toast"
+    role="status"
+    aria-live="polite"
+    aria-hidden="true"
+  ></div>
 
   <div id="fav-auth-modal" class="fixed inset-0 modal-overlay hidden fav-auth-overlay">
     <div class="modal-card fav-auth-card max-w-sm w-full mx-4 relative">

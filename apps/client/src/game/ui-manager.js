@@ -58,6 +58,10 @@ export class UIManager {
     this.loadingScreen = document.getElementById("loading-screen");
     this.roundCompletion = document.getElementById("round-completion");
     this.resultsModal = document.getElementById("results-modal");
+    /** @type {number | undefined} */
+    this.favToastTimer;
+    /** @type {number | undefined} */
+    this.favToastHideTimer;
   }
 
   async loadFinalModeLeaderboard(mode) {
@@ -303,7 +307,7 @@ export class UIManager {
 
     const currentAvatar =
       document.getElementById("player-avatar")?.getAttribute("src") ||
-      "./src/img/avatars/avatar1.png";
+      avatarImgSrcFromRoot(DEFAULT_AVATAR_ID);
 
     const badge = document.createElement("span");
     badge.className = "answer-owner-badge";
@@ -410,6 +414,9 @@ export class UIManager {
         favBtn.classList.remove("is-disabled");
         favBtn.setAttribute("aria-pressed", nowFav ? "true" : "false");
         favBtn.setAttribute("title", nowFav ? "Remove from favorites" : "Add to favorites");
+        if (nowFav) {
+          this.showFavTopToast("Added to favorites");
+        }
       };
     }
 
@@ -473,6 +480,23 @@ export class UIManager {
     this.addQuickFadeInStyle();
   }
 
+  showFavTopToast(message) {
+    const el = document.getElementById("fav-toast");
+    if (!el) return;
+    el.textContent = message;
+    el.setAttribute("aria-hidden", "false");
+    window.clearTimeout(this.favToastTimer);
+    window.clearTimeout(this.favToastHideTimer);
+    el.classList.add("fav-toast--show");
+    this.favToastTimer = window.setTimeout(() => {
+      el.classList.remove("fav-toast--show");
+      this.favToastHideTimer = window.setTimeout(() => {
+        el.textContent = "";
+        el.setAttribute("aria-hidden", "true");
+      }, 400);
+    }, 2400);
+  }
+
   openFavAuthModal() {
     const modal = document.getElementById("fav-auth-modal");
     const loginBtn = document.getElementById("fav-auth-login-btn");
@@ -504,16 +528,16 @@ export class UIManager {
     if (scoreData.gameMode === "solo" || scoreData.gameMode === "marathon") {
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td class="py-2 pr-2">
-          <div class="flex items-center gap-2">
-            <div class="h-7 w-7 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 p-0.5 shrink-0">
-              <img src="./src/img/avatars/${scoreData.avatar || "avatar1"}.png" alt="" class="rounded-full h-full w-full object-cover">
+        <td class="py-2">
+          <div class="flex items-center justify-center gap-2">
+            <div class="standings-avatar-wrap">
+              <img src="${avatarImgSrcFromRoot(normalizeAvatarId(scoreData.avatar || DEFAULT_AVATAR_ID))}" alt="">
             </div>
             <span class="font-semibold text-white">You</span>
           </div>
         </td>
         <td class="py-2 text-center font-bold">${scoreData.score}</td>
-        <td class="py-2 text-right font-semibold">
+        <td class="py-2 text-center font-semibold">
           ${
             lastAnswerCorrect
               ? "+1"
@@ -663,7 +687,15 @@ export class UIManager {
 
   // Update game statistics display
   updateGameStats(gameStats, scoreData) {
-    let statsHTML = `
+    const statsAv = normalizeAvatarId(scoreData.avatar || DEFAULT_AVATAR_ID);
+    const statsAvatarRow = `
+      <div class="game-stats-player" aria-hidden="true">
+        <div class="game-stats-player__ring">
+          <img class="game-stats-player__img" src="${avatarImgSrcFromRoot(statsAv)}" alt="">
+        </div>
+      </div>
+    `;
+    let statsHTML = `${statsAvatarRow}
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 my-6">
         <div class="bg-gray-800 rounded-lg p-4 text-center animate-fadeInUp" style="animation-delay: 0.1s">
           <p class="text-gray-400 text-sm">Rounds Played</p>
@@ -708,9 +740,14 @@ export class UIManager {
       row.className = "font-bold animate-fadeInUp";
       row.innerHTML = `
         <td class="py-3">
-          <div class="flex items-center">
-            <span class="text-yellow-400 mr-2">👑</span>
-            You
+          <div class="flex items-center gap-3">
+            <div class="standings-avatar-wrap">
+              <img src="${avatarImgSrcFromRoot(normalizeAvatarId(scoreData.avatar || DEFAULT_AVATAR_ID))}" alt="">
+            </div>
+            <div class="flex items-center">
+              <span class="text-yellow-400 mr-2">👑</span>
+              You
+            </div>
           </div>
         </td>
         <td class="py-3 text-center text-purple-400">${scoreData.score}</td>
@@ -743,8 +780,8 @@ export class UIManager {
                       ? '<span class="text-amber-700 mr-2">🥉</span>'
                       : ""
               }
-              <div class="h-7 w-7 rounded-full bg-gradient-to-br from-${player.color} to-indigo-600 p-0.5 mr-2">
-                <img src="src/img/avatars/${player.avatar}.png" alt="${player.name}'s Avatar" class="rounded-full">
+              <div class="h-12 w-12 shrink-0 rounded-full bg-gradient-to-br from-${player.color} to-indigo-600 p-0.5 mr-2">
+                <img src="${avatarImgSrcFromRoot(normalizeAvatarId(player.avatar || DEFAULT_AVATAR_ID))}" alt="${player.name}'s Avatar" class="h-full w-full rounded-full object-cover">
               </div>
               ${player.name}
             </div>
@@ -939,7 +976,7 @@ export class UIManager {
       playerCard.innerHTML = `
         <div class="mb-2 flex justify-center">
           <div class="h-10 w-10 rounded-full bg-gradient-to-br from-${player.color} to-indigo-600 p-1">
-            <img src="src/img/avatars/${player.avatar}.png" alt="${player.name}'s Avatar" class="rounded-full">
+            <img src="${avatarImgSrcFromRoot(normalizeAvatarId(player.avatar || DEFAULT_AVATAR_ID))}" alt="${player.name}'s Avatar" class="rounded-full">
           </div>
         </div>
         <div class="font-bold ${i === 0 ? "text-white" : "text-gray-300"}">${player.name}</div>

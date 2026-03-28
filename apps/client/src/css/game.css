@@ -136,8 +136,8 @@ body {
 }
 
 .avatar-chip {
-  width: 1.9rem;
-  height: 1.9rem;
+  width: 2.45rem;
+  height: 2.45rem;
   border-radius: 9999px;
   padding: 2px;
   background: linear-gradient(135deg, #7c3aed, #4f46e5);
@@ -307,10 +307,10 @@ body {
 
 .answer-owner-badge {
   position: absolute;
-  top: 0.35rem;
-  right: 0.4rem;
-  width: 1.45rem;
-  height: 1.45rem;
+  top: 0.28rem;
+  right: 0.35rem;
+  width: 2.15rem;
+  height: 2.15rem;
   border-radius: 9999px;
   padding: 2px;
   background: linear-gradient(135deg, #a78bfa, #6366f1);
@@ -319,6 +319,45 @@ body {
 }
 
 .answer-owner-badge__img {
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  object-fit: cover;
+}
+
+/* Round end / game over tables — player avatar */
+.standings-avatar-wrap {
+  width: 3.15rem;
+  height: 3.15rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  padding: 2px;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+}
+.standings-avatar-wrap img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  object-fit: cover;
+}
+
+/* Game over — stats strip above stat cards */
+.game-stats-player {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+.game-stats-player__ring {
+  width: 4.35rem;
+  height: 4.35rem;
+  border-radius: 9999px;
+  padding: 3px;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  box-shadow: 0 10px 28px rgba(124, 58, 237, 0.32);
+}
+.game-stats-player__img {
+  display: block;
   width: 100%;
   height: 100%;
   border-radius: 9999px;
@@ -631,6 +670,27 @@ body {
 
 .round-score-table {
   min-width: 520px;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.round-score-table th,
+.round-score-table td {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.round-score-table th:nth-child(1),
+.round-score-table th:nth-child(2),
+.round-score-table th:nth-child(3),
+.round-score-table td:nth-child(1),
+.round-score-table td:nth-child(2),
+.round-score-table td:nth-child(3) {
+  width: 33.33%;
+}
+
+.round-score-table td:first-child .flex {
+  justify-content: center;
 }
 
 .primary-btn,
@@ -681,6 +741,37 @@ body {
   font-size: 0.62rem;
   line-height: 1;
   filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.45));
+}
+
+.fav-toast {
+  position: fixed;
+  top: max(0.75rem, env(safe-area-inset-top));
+  left: 50%;
+  z-index: 95;
+  max-width: min(92vw, 22rem);
+  padding: 0.55rem 1.2rem;
+  border-radius: 999px;
+  font-size: 0.84rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #faf5ff;
+  text-align: center;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.96), rgba(67, 56, 202, 0.94));
+  border: 1px solid rgba(196, 181, 253, 0.5);
+  box-shadow:
+    0 10px 36px rgba(0, 0, 0, 0.38),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-50%) translateY(-130%);
+  transition:
+    transform 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.28s ease;
+}
+
+.fav-toast.fav-toast--show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 .fav-auth-overlay {
@@ -934,8 +1025,25 @@ body {
     font-size: 0.88rem;
   }
   .avatar-chip {
-    width: 1.65rem;
-    height: 1.65rem;
+    width: 2.05rem;
+    height: 2.05rem;
+  }
+
+  .answer-owner-badge {
+    width: 1.85rem;
+    height: 1.85rem;
+    top: 0.22rem;
+    right: 0.28rem;
+  }
+
+  .standings-avatar-wrap {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .game-stats-player__ring {
+    width: 3.5rem;
+    height: 3.5rem;
   }
   .question-panel #question-text {
     font-size: 1.22rem;
