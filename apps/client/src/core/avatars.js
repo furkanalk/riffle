@@ -1,5 +1,5 @@
 /** @type {readonly string[]} */
-export const AVATAR_IDS = Object.freeze(Array.from({ length: 10 }, (_, i) => `avatar${i + 1}`));
+export const AVATAR_IDS = Object.freeze(Array.from({ length: 9 }, (_, i) => `avatar-${i + 1}`));
 
 /**
  * Daily rotating guest avatar set (4 avatars).
@@ -21,7 +21,20 @@ export function getDailyLockedAvatarIds(date = new Date()) {
   return Object.freeze(AVATAR_IDS.filter((id) => !guest.has(id)));
 }
 
-export const DEFAULT_AVATAR_ID = "avatar1";
+export const DEFAULT_AVATAR_ID = "avatar-1";
+
+/** Map legacy ids (avatar1 … avatar10) to avatar-1 … avatar-9. */
+export function normalizeAvatarId(id) {
+  if (typeof id !== "string" || !id) return DEFAULT_AVATAR_ID;
+  if (AVATAR_IDS.includes(id)) return id;
+  const m = /^avatar(\d+)$/.exec(id);
+  if (m) {
+    const n = Number(m[1]);
+    if (n >= 1 && n <= 9) return `avatar-${n}`;
+    return DEFAULT_AVATAR_ID;
+  }
+  return DEFAULT_AVATAR_ID;
+}
 
 /** @param {unknown} id */
 export function isValidAvatarId(id) {
@@ -30,5 +43,5 @@ export function isValidAvatarId(id) {
 
 /** Path relative to the page that loads the client (index / categories / game). */
 export function avatarImgSrcFromRoot(id) {
-  return `./src/img/avatars/${id}.png`;
+  return `./assets/avatars/${normalizeAvatarId(id)}.png`;
 }
