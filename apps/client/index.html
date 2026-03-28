@@ -413,14 +413,28 @@
           <option value="tr">Turkce</option>
         </select>
       </div>
+      <div id="profile-favorites-entry" class="profile-favorites-entry hidden">
+        <button type="button" id="profile-favorites-btn" class="profile-favorites-trigger">
+          <span>Favorite songs</span>
+          <span id="profile-favorites-count" class="profile-favorites-count">0</span>
+        </button>
+      </div>
       <p class="profile-desc">Choose your avatar</p>
       <div id="profile-avatar-grid" class="avatar-grid profile-avatar-grid"></div>
-      <section id="profile-favorites-section" class="profile-favorites hidden" aria-label="Favorite songs">
-        <h3 class="profile-favorites-title">Favorite songs</h3>
-        <p id="profile-favorites-empty" class="profile-favorites-empty">You have no favorite songs yet.</p>
-        <div id="profile-favorites-list" class="profile-favorites-list"></div>
-      </section>
       <button type="button" id="profile-logout-btn" class="btn btn--ghost profile-logout">Log out</button>
+    </div>
+  </div>
+
+  <div id="profile-favorites-panel" class="auth-overlay hidden">
+    <div class="auth-box profile-box profile-favorites-box">
+      <button type="button" id="close-profile-favorites" class="auth-close" aria-label="Close favorites panel">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+      <h2 class="profile-title">Favorite songs</h2>
+      <p id="profile-favorites-empty" class="profile-favorites-empty">You have no favorite songs yet.</p>
+      <div id="profile-favorites-list" class="profile-favorites-list"></div>
     </div>
   </div>
 

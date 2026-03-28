@@ -1,4 +1,9 @@
-import { getDailyGuestAvatarIds } from "../core/avatars.js";
+import {
+  avatarImgSrcFromRoot,
+  DEFAULT_AVATAR_ID,
+  getDailyGuestAvatarIds,
+  normalizeAvatarId,
+} from "../core/avatars.js";
 import { getLang, t } from "../core/i18n.js";
 import { logoutUser } from "../core/user-manager.js";
 import { mountAvatarPicker } from "../ui/avatar-picker.js";
@@ -47,7 +52,11 @@ export function initAuthUI() {
     profileUsername: document.getElementById("profile-username"),
     profileUsernameSave: document.getElementById("profile-username-save"),
     profileUsernameMsg: document.getElementById("profile-username-msg"),
-    profileFavoritesSection: document.getElementById("profile-favorites-section"),
+    profileFavoritesEntry: document.getElementById("profile-favorites-entry"),
+    profileFavoritesBtn: document.getElementById("profile-favorites-btn"),
+    profileFavoritesCount: document.getElementById("profile-favorites-count"),
+    profileFavoritesPanel: document.getElementById("profile-favorites-panel"),
+    closeProfileFavorites: document.getElementById("close-profile-favorites"),
     profileFavoritesList: document.getElementById("profile-favorites-list"),
     profileFavoritesEmpty: document.getElementById("profile-favorites-empty"),
   };
@@ -155,6 +164,22 @@ export function initAuthUI() {
       if (!key) return;
       removeFavoriteTrack(key);
       renderFavoriteTracks();
+    });
+  }
+
+  if (elements.profileFavoritesBtn) {
+    elements.profileFavoritesBtn.addEventListener("click", () => {
+      openFavoritesPanel();
+    });
+  }
+
+  if (elements.closeProfileFavorites) {
+    elements.closeProfileFavorites.addEventListener("click", closeFavoritesPanel);
+  }
+
+  if (elements.profileFavoritesPanel) {
+    elements.profileFavoritesPanel.addEventListener("click", (e) => {
+      if (e.target === elements.profileFavoritesPanel) closeFavoritesPanel();
     });
   }
 
@@ -398,7 +423,10 @@ export function initAuthUI() {
 
     // Save token & user info
     localStorage.setItem("token", data.token);
-    const user = { ...data.user, avatar: data.user.avatar || "avatar1" };
+    const user = {
+      ...data.user,
+      avatar: normalizeAvatarId(data.user.avatar || DEFAULT_AVATAR_ID),
+    };
     localStorage.setItem("user", JSON.stringify(user));
     localStorage.setItem("selectedAvatar", user.avatar);
 
@@ -417,7 +445,7 @@ export function initAuthUI() {
     if (raw && token) {
       try {
         const user = JSON.parse(raw);
-        const u = { ...user, avatar: user.avatar || "avatar1" };
+        const u = { ...user, avatar: normalizeAvatarId(user.avatar || DEFAULT_AVATAR_ID) };
         updateUI(u);
       } catch {
         showGuestMode();
@@ -431,8 +459,8 @@ export function initAuthUI() {
     const img = document.getElementById("header-user-avatar");
     const ph = document.getElementById("header-user-avatar-placeholder");
     if (!img || !ph) return;
-    const id = user.avatar || "avatar1";
-    img.src = `./src/img/avatars/${id}.png`;
+    const id = user.avatar || DEFAULT_AVATAR_ID;
+    img.src = avatarImgSrcFromRoot(id);
     img.alt = "";
     img.classList.remove("hidden");
     ph.classList.add("hidden");
@@ -459,8 +487,7 @@ export function initAuthUI() {
     updateHeaderAvatar(user);
 
     if (elements.desktopAuthCta) {
-      // Desktop header CTA should show the username.
-      elements.desktopAuthCta.textContent = user.username;
+      elements.desktopAuthCta.textContent = "Welcome";
       elements.desktopAuthCta.classList.remove("hidden");
     }
   }
@@ -509,9 +536,11 @@ export function initAuthUI() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not save avatar");
       const prev = JSON.parse(localStorage.getItem("user") || "{}");
-      localStorage.setItem("user", JSON.stringify({ ...prev, ...data.user }));
-      localStorage.setItem("selectedAvatar", data.user.avatar);
-      updateHeaderAvatar(data.user);
+      const merged = { ...prev, ...data.user };
+      merged.avatar = normalizeAvatarId(merged.avatar || DEFAULT_AVATAR_ID);
+      localStorage.setItem("user", JSON.stringify(merged));
+      localStorage.setItem("selectedAvatar", merged.avatar);
+      updateHeaderAvatar(merged);
     } catch (err) {
       alert(err instanceof Error ? err.message : "Could not save avatar");
     }
@@ -546,7 +575,9 @@ export function initAuthUI() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not save username");
       const prev = JSON.parse(localStorage.getItem("user") || "{}");
-      localStorage.setItem("user", JSON.stringify({ ...prev, ...data.user }));
+      const merged = { ...prev, ...data.user };
+      merged.avatar = normalizeAvatarId(merged.avatar || DEFAULT_AVATAR_ID);
+      localStorage.setItem("user", JSON.stringify(merged));
       if (elements.userDisplayName) elements.userDisplayName.textContent = data.user.username;
     } catch (err) {
       if (msg) {
@@ -592,14 +623,15 @@ export function initAuthUI() {
     elements.profileAvatarGrid.innerHTML = "";
     if (isLoggedIn) {
       mountAvatarPicker(elements.profileAvatarGrid, {
-        selectedId: user.avatar || "avatar1",
+        selectedId: user.avatar || DEFAULT_AVATAR_ID,
         onPick: (id) => {
           saveProfileAvatar(id);
         },
       });
     } else {
       const guestAvatarSet = getDailyGuestAvatarIds();
-      const guestAvatar = localStorage.getItem("selectedAvatar") || guestAvatarSet[0] || "avatar1";
+      const guestAvatar =
+        localStorage.getItem("selectedAvatar") || guestAvatarSet[0] || DEFAULT_AVATAR_ID;
       mountAvatarPicker(elements.profileAvatarGrid, {
         selectedId: guestAvatar,
         allowedIds: guestAvatarSet,
@@ -657,7 +689,7 @@ export function initAuthUI() {
   }
 
   function renderFavoriteTracks() {
-    if (!elements.profileFavoritesSection || !elements.profileFavoritesList || !elements.profileFavoritesEmpty) {
+    if (!elements.profileFavoritesList || !elements.profileFavoritesEmpty) {
       return;
     }
 
@@ -671,13 +703,17 @@ export function initAuthUI() {
     }
     const isLoggedIn = Boolean(token && user?.username);
     if (!isLoggedIn) {
-      elements.profileFavoritesSection.classList.add("hidden");
+      elements.profileFavoritesEntry?.classList.add("hidden");
+      closeFavoritesPanel();
       return;
     }
 
-    elements.profileFavoritesSection.classList.remove("hidden");
+    elements.profileFavoritesEntry?.classList.remove("hidden");
 
     const favorites = readFavoriteTracks().slice(0, 100);
+    if (elements.profileFavoritesCount) {
+      elements.profileFavoritesCount.textContent = String(favorites.length);
+    }
     if (favorites.length === 0) {
       elements.profileFavoritesList.innerHTML = "";
       elements.profileFavoritesEmpty.classList.remove("hidden");
@@ -711,9 +747,20 @@ export function initAuthUI() {
       .join("");
   }
 
+  function openFavoritesPanel() {
+    if (!elements.profileFavoritesPanel) return;
+    elements.profileFavoritesPanel.classList.remove("hidden");
+  }
+
+  function closeFavoritesPanel() {
+    if (!elements.profileFavoritesPanel) return;
+    elements.profileFavoritesPanel.classList.add("hidden");
+  }
+
   function closeProfilePanel() {
     if (!elements.profilePanel) return;
     elements.profilePanel.classList.add("hidden");
+    closeFavoritesPanel();
   }
 
   // Logout
