@@ -1,3 +1,4 @@
+import { getLang, t } from "../core/i18n.js";
 import { avatarImgSrcFromRoot, DEFAULT_AVATAR_ID, normalizeAvatarId } from "../core/avatars.js";
 
 function escapeHtml(s) {
@@ -7,7 +8,7 @@ function escapeHtml(s) {
 }
 
 /** @param {Record<string, unknown> | undefined} row */
-function podiumSlot(row, variant) {
+function podiumSlot(row, variant, ptsLabel) {
   if (!row) {
     return `<div class="leaderboard-podium__ghost leaderboard-podium__ghost--${variant}" aria-hidden="true"></div>`;
   }
@@ -15,6 +16,7 @@ function podiumSlot(row, variant) {
   const username = escapeHtml(row.username || "?");
   const avatarId = normalizeAvatarId(row.avatar || DEFAULT_AVATAR_ID);
   const rankLabel = variant === "gold" ? "1" : variant === "silver" ? "2" : "3";
+  const pts = escapeHtml(ptsLabel);
   return `
     <div class="leaderboard-podium__slot leaderboard-podium__slot--${variant}">
       <div class="leaderboard-podium__rank-badge">${rankLabel}</div>
@@ -24,7 +26,7 @@ function podiumSlot(row, variant) {
       <div class="leaderboard-podium__name">${username}</div>
       <div class="leaderboard-podium__scoreline">
         <span class="leaderboard-podium__score">${score}</span>
-        <span class="leaderboard-podium__pts">pts</span>
+        <span class="leaderboard-podium__pts">${pts}</span>
       </div>
       <div class="leaderboard-podium__pedestal"></div>
     </div>
@@ -32,24 +34,25 @@ function podiumSlot(row, variant) {
 }
 
 /** @param {Record<string, unknown>[]} topThree [1st, 2nd, 3rd] */
-function renderPodiumMarkup(topThree) {
+function renderPodiumMarkup(topThree, ptsLabel) {
   const first = topThree[0];
   const second = topThree[1];
   const third = topThree[2];
   return `
     <div class="leaderboard-podium__strip" role="list">
-      ${podiumSlot(second, "silver")}
-      ${podiumSlot(first, "gold")}
-      ${podiumSlot(third, "bronze")}
+      ${podiumSlot(second, "silver", ptsLabel)}
+      ${podiumSlot(first, "gold", ptsLabel)}
+      ${podiumSlot(third, "bronze", ptsLabel)}
     </div>
   `;
 }
 
 /** @param {Record<string, unknown>} row */
-function renderRestRow(row, rank) {
+function renderRestRow(row, rank, ptsLabel) {
   const score = escapeHtml(String(row.score ?? ""));
   const username = escapeHtml(row.username || "?");
   const avatarId = normalizeAvatarId(row.avatar || DEFAULT_AVATAR_ID);
+  const pts = escapeHtml(ptsLabel);
   return `
     <li class="leaderboard-row leaderboard-row--rest">
       <div class="leaderboard-rank leaderboard-rank--num">${rank}</div>
@@ -61,7 +64,7 @@ function renderRestRow(row, rank) {
       </div>
       <div class="leaderboard-score-wrap">
         <span class="leaderboard-score">${score}</span>
-        <span class="leaderboard-pts">pts</span>
+        <span class="leaderboard-pts">${pts}</span>
       </div>
     </li>
   `;
@@ -81,7 +84,9 @@ export function initLeaderboard() {
 
   async function load() {
     if (!list || !empty || !modeSel) return;
-    empty.textContent = "No scores yet for this mode.";
+    const lang = getLang();
+    const ptsLabel = t("leaderboardUi.pts", lang);
+    empty.textContent = t("leaderboardUi.emptyMode", lang);
     const mode = modeSel.value;
     list.innerHTML = "";
     list.classList.remove("hidden");
@@ -94,7 +99,7 @@ export function initLeaderboard() {
     try {
       const res = await fetch(`/api/leaderboard?mode=${encodeURIComponent(mode)}&limit=15`);
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to load");
+      if (!res.ok) throw new Error(data.error || t("leaderboardUi.loadErrorShort", lang));
       const entries = Array.isArray(data.entries) ? data.entries : [];
       if (entries.length === 0) {
         list.classList.add("hidden");
@@ -105,14 +110,14 @@ export function initLeaderboard() {
       if (podium) {
         podium.classList.remove("leaderboard-podium--empty", "leaderboard-podium--loading");
         podium.setAttribute("aria-hidden", "false");
-        podium.innerHTML = renderPodiumMarkup(entries);
+        podium.innerHTML = renderPodiumMarkup(entries, ptsLabel);
       }
       const rest = entries.slice(3);
       if (rest.length === 0) {
         list.classList.add("hidden");
       } else {
         list.classList.remove("hidden");
-        list.innerHTML = rest.map((row, i) => renderRestRow(row, i + 4)).join("");
+        list.innerHTML = rest.map((row, i) => renderRestRow(row, i + 4, ptsLabel)).join("");
       }
     } catch (e) {
       list.classList.add("hidden");
@@ -122,7 +127,7 @@ export function initLeaderboard() {
         podium.classList.remove("leaderboard-podium--loading");
         podium.setAttribute("aria-hidden", "true");
       }
-      empty.textContent = e instanceof Error ? e.message : "Could not load leaderboard.";
+      empty.textContent = e instanceof Error ? e.message : t("leaderboardUi.loadError", lang);
       empty.classList.remove("hidden");
     } finally {
       list.classList.remove("leaderboard-list--loading");

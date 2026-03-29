@@ -6,6 +6,7 @@ import {
 } from "../core/avatars.js";
 import { getLang, t } from "../core/i18n.js";
 import { logoutUser } from "../core/user-manager.js";
+import { closeFriendsPanel } from "../social/social-friends-panel.js";
 import { mountAvatarPicker } from "../ui/avatar-picker.js";
 
 export function initAuthUI() {
@@ -99,13 +100,6 @@ export function initAuthUI() {
       }
       if (elements.guestButtons) {
         const isMobile = window.matchMedia("(max-width: 640px)").matches;
-        // If the user came here from the Settings card, open profile in read-only mode.
-        if (window.riffleOpenProfileFromSettings === true) {
-          window.riffleOpenProfileFromSettings = false;
-          elements.guestButtons?.classList.remove("guest-buttons--open");
-          openProfilePanel();
-          return;
-        }
         if (isMobile) {
           // Mobile guest UX: show the auth overlay directly (Login / Sign Up).
           switchAuthTab("login");
@@ -490,6 +484,7 @@ export function initAuthUI() {
       elements.desktopAuthCta.textContent = "Welcome";
       elements.desktopAuthCta.classList.remove("hidden");
     }
+    window.dispatchEvent(new CustomEvent("riffle-auth-changed"));
   }
 
   // Show guest mode
@@ -519,6 +514,7 @@ export function initAuthUI() {
     } else {
       showGuestHeaderAvatar();
     }
+    window.dispatchEvent(new CustomEvent("riffle-auth-changed"));
   }
 
   async function saveProfileAvatar(avatarId) {
@@ -616,7 +612,7 @@ export function initAuthUI() {
         elements.profileUsernameMsg.classList.add("hidden");
         elements.profileUsernameMsg.textContent = "";
       } else {
-        elements.profileUsernameMsg.textContent = "You need to log in first to edit your username.";
+        elements.profileUsernameMsg.textContent = t("profile.usernameGuestHint", getLang());
         elements.profileUsernameMsg.classList.remove("hidden");
       }
     }
@@ -761,6 +757,7 @@ export function initAuthUI() {
     if (!elements.profilePanel) return;
     elements.profilePanel.classList.add("hidden");
     closeFavoritesPanel();
+    closeFriendsPanel();
   }
 
   // Logout
@@ -854,6 +851,14 @@ export function initAuthUI() {
       }
     });
   }
+
+  window.addEventListener("riffle-lang-changed", () => {
+    const token = localStorage.getItem("token") || localStorage.getItem("auth_token");
+    if (token || !elements.profileUsernameMsg) return;
+    if (!elements.profileUsernameMsg.classList.contains("hidden")) {
+      elements.profileUsernameMsg.textContent = t("profile.usernameGuestHint", getLang());
+    }
+  });
 }
 
 function escapeHtml(s) {

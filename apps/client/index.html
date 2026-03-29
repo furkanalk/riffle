@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-riffle-root>
 
 <head>
   <meta charset="UTF-8" />
@@ -13,6 +13,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap"
     rel="stylesheet" />
   <link rel="stylesheet" href="./src/css/main-menu-responsive.css" />
+  <link rel="stylesheet" href="./src/css/social.css" />
 </head>
 
 <body>
@@ -29,31 +30,69 @@
     <a href="/" class="site-brand">
       <img class="site-brand__logo" src="./assets/logo-new.png" alt="Redora logo" width="34" height="34" />
       <span class="site-brand__text">
-        <span class="site-brand__by">by</span> Redora
+        <span class="site-brand__by" data-riffle-i18n="main.brandBy"></span> Redora
       </span>
     </a>
 
     <div class="header-actions">
       <div id="guest-buttons" class="auth-guest">
-        <button id="login-btn" class="btn btn--ghost">Login</button>
-        <button id="signup-btn" class="btn btn--primary">Sign Up</button>
+        <button id="login-btn" class="btn btn--ghost" data-riffle-i18n="header.login"></button>
+        <button id="signup-btn" class="btn btn--primary" data-riffle-i18n="header.signup"></button>
       </div>
 
-      <span id="desktop-auth-cta" class="desktop-auth-cta">Join us!</span>
+      <span id="desktop-auth-cta" class="desktop-auth-cta" data-riffle-i18n="main.desktopCta"></span>
 
-      <button id="user-profile-btn" type="button" class="user-profile-btn hidden">
-        <span id="user-display-name">Guest</span>
-        <div class="user-avatar">
-          <img id="header-user-avatar" class="header-user-avatar hidden" src="" alt="" width="28" height="28" />
-          <svg id="header-user-avatar-placeholder" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-            stroke="currentColor">
+      <div class="header-user-cluster">
+        <button id="user-profile-btn" type="button" class="user-profile-btn hidden"
+          data-riffle-i18n="social.profileAria" data-riffle-i18n-attr="aria-label">
+          <span id="user-display-name">Guest</span>
+          <div class="user-avatar">
+            <img id="header-user-avatar" class="header-user-avatar hidden" src="" alt="" width="28" height="28" />
+            <svg id="header-user-avatar-placeholder" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+        </button>
+
+        <button type="button" id="friends-nav-btn" class="friends-nav-btn social-nav-btn--disabled"
+          aria-label="Friends" aria-disabled="true" title="You need to log in first.">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
           </svg>
+        </button>
+
+        <div id="social-header-chrome" class="social-header-chrome" aria-label="Social">
+          <div class="notif-wrap">
+            <button type="button" id="notif-bell-btn" class="notif-bell-btn social-nav-btn--disabled"
+              aria-label="Notifications" aria-expanded="false" aria-controls="notif-dropdown" aria-disabled="true"
+              title="You need to log in first.">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              <span id="notif-bell-badge" class="notif-bell-badge hidden">0</span>
+            </button>
+          </div>
         </div>
-      </button>
+      </div>
     </div>
   </header>
+
+  <div id="notif-dropdown-backdrop" class="notif-dropdown-backdrop hidden" aria-hidden="true"></div>
+  <div id="notif-dropdown" class="notif-dropdown hidden" role="region"
+    data-riffle-i18n="aria.notifRegion" data-riffle-i18n-attr="aria-label">
+    <div class="notif-dropdown__head">
+      <span data-riffle-i18n="notifications.listHead"></span>
+      <button type="button" id="notif-mark-all-read" class="notif-mark-all" data-riffle-i18n="notifications.markAllRead"></button>
+    </div>
+    <div id="notif-dropdown-body" class="notif-dropdown__body"></div>
+    <p id="notif-dropdown-empty" class="notif-dropdown__empty hidden" data-riffle-i18n="notifications.empty"></p>
+  </div>
 
   <!-- ── MAIN ───────────────────────────────────────────────────────────── -->
   <main>
@@ -64,7 +103,7 @@
         <img class="hero-title__logo" src="./public/favicon/favicon-original.png" alt="" width="128" height="128" />
         <span>Riffle</span>
       </h1>
-      <p class="hero-sub">Guess the song. Beat your friends. Climb the leaderboard.</p>
+      <p class="hero-sub" data-riffle-i18n="main.heroSub"></p>
     </section>
 
     <!-- Main menu -->
@@ -72,69 +111,67 @@
       <button type="button" id="menu-play-btn" class="menu-card menu-card--purple">
         <div class="menu-card__icon">▶️</div>
         <div class="menu-card__body">
-          <h3 class="menu-card__title">Play</h3>
-          <p class="menu-card__desc">Pick a mode, choose categories, and jump in.</p>
+          <h3 class="menu-card__title" data-riffle-i18n="main.menuPlayTitle"></h3>
+          <p class="menu-card__desc" data-riffle-i18n="main.menuPlayDesc"></p>
         </div>
       </button>
 
       <button type="button" id="menu-leaderboard-btn" class="menu-card menu-card--blue">
         <div class="menu-card__icon">🏅</div>
         <div class="menu-card__body">
-          <h3 class="menu-card__title">Leaderboard</h3>
-          <p class="menu-card__desc">See top players and compare mode scores.</p>
+          <h3 class="menu-card__title" data-riffle-i18n="main.menuLbTitle"></h3>
+          <p class="menu-card__desc" data-riffle-i18n="main.menuLbDesc"></p>
         </div>
       </button>
 
       <button type="button" id="menu-settings-btn" class="menu-card menu-card--pink">
         <div class="menu-card__icon">⚙️</div>
         <div class="menu-card__body">
-          <h3 class="menu-card__title">Settings</h3>
-          <p class="menu-card__desc">Profile, language, and avatar preferences.</p>
+          <h3 class="menu-card__title" data-riffle-i18n="main.menuSettingsTitle"></h3>
+          <p class="menu-card__desc" data-riffle-i18n="main.menuSettingsDesc"></p>
         </div>
       </button>
 
       <button type="button" id="menu-credits-btn" class="menu-card menu-card--yellow">
         <div class="menu-card__icon">✨</div>
         <div class="menu-card__body">
-          <h3 class="menu-card__title">About</h3>
-          <p class="menu-card__desc">Credits, quick info, and support links.</p>
+          <h3 class="menu-card__title" data-riffle-i18n="main.menuAboutTitle"></h3>
+          <p class="menu-card__desc" data-riffle-i18n="main.menuAboutDesc"></p>
         </div>
       </button>
 
     </div>
 
-    <!-- Mobile news/update notes (fills the gap under main cards) -->
+    <!-- News / update notes: under cards on mobile, floating bottom-right on desktop -->
     <section class="mobile-news-section" aria-label="News and update notes">
       <div class="spotlight-card mobile-news-card">
-        <p class="spotlight-eyebrow">News / Update Notes</p>
-        <h4 class="spotlight-subtitle">Fresh lobby fixes</h4>
-        <p class="spotlight-text">Chat, room code UI, and the lobby player list are getting smoother.</p>
-        <button type="button" id="mobile-news-learn-more-btn" class="mobile-news-learn-more-btn">
-          Learn more
+        <p class="spotlight-eyebrow" data-riffle-i18n="main.newsEyebrow"></p>
+        <h4 class="spotlight-subtitle" data-riffle-i18n="main.newsTitle"></h4>
+        <p class="spotlight-text" data-riffle-i18n="main.newsText"></p>
+        <button type="button" id="mobile-news-learn-more-btn" class="mobile-news-learn-more-btn"
+          data-riffle-i18n="main.newsLearnMore">
         </button>
       </div>
     </section>
 
     <section class="spotlight-section spotlight-section--desktop" aria-label="About Riffle and creators">
       <div class="spotlight-card spotlight-card--about">
-        <p class="spotlight-eyebrow">What is Riffle?</p>
-        <h3 class="spotlight-title">Fast music trivia for rock & metal fans.</h3>
-        <p class="spotlight-text">
-          10-second previews, instant choices, pure adrenaline. Jump in, trust your ears, climb your score.
-        </p>
+        <p class="spotlight-eyebrow" data-riffle-i18n="main.whatEyebrow"></p>
+        <h3 class="spotlight-title" data-riffle-i18n="main.whatTitle"></h3>
+        <p class="spotlight-text" data-riffle-i18n="main.whatText"></p>
       </div>
 
       <div class="spotlight-grid">
         <article class="spotlight-card">
-          <p class="spotlight-eyebrow">How to play</p>
-          <h4 class="spotlight-subtitle">3 quick steps</h4>
-          <p class="spotlight-text">Pick a mode, choose categories, hit Start and guess before time runs out.</p>
+          <p class="spotlight-eyebrow" data-riffle-i18n="main.howEyebrow"></p>
+          <h4 class="spotlight-subtitle" data-riffle-i18n="main.howTitle"></h4>
+          <p class="spotlight-text" data-riffle-i18n="main.howText"></p>
         </article>
 
         <article class="spotlight-card spotlight-card--google-play">
-          <p class="spotlight-eyebrow">Google Play</p>
-          <h4 class="spotlight-subtitle">Get the app</h4>
-          <p class="spotlight-text">Install Riffle on Android for faster sessions.</p>
+          <p class="spotlight-eyebrow" data-riffle-i18n="main.gplayEyebrow"></p>
+          <h4 class="spotlight-subtitle" data-riffle-i18n="main.gplayTitle"></h4>
+          <p class="spotlight-text" data-riffle-i18n="main.gplayText"></p>
           <a
             class="spotlight-google-play-link"
             href="https://play.google.com/store/apps/details?id=YOUR_APP_ID"
@@ -151,11 +188,11 @@
         </article>
 
         <article class="spotlight-card spotlight-card--support">
-          <p class="spotlight-eyebrow">Support</p>
-          <h4 class="spotlight-subtitle">Buy Me a Coffee</h4>
-          <p class="spotlight-text">If you enjoy Riffle, your support helps us ship more modes and features.</p>
-          <a class="spotlight-donate-btn" href="https://buymeacoffee.com/" target="_blank" rel="noopener noreferrer">
-            Donate
+          <p class="spotlight-eyebrow" data-riffle-i18n="main.supportEyebrow"></p>
+          <h4 class="spotlight-subtitle" data-riffle-i18n="main.supportTitle"></h4>
+          <p class="spotlight-text" data-riffle-i18n="main.supportText"></p>
+          <a class="spotlight-donate-btn" href="https://buymeacoffee.com/" target="_blank" rel="noopener noreferrer"
+            data-riffle-i18n="main.donate">
           </a>
         </article>
 
@@ -166,43 +203,44 @@
 
   <div id="play-mode-panel" class="auth-overlay hidden">
     <div class="auth-box about-desktop-box play-mode-box">
-      <button type="button" id="close-play-mode" class="auth-close" aria-label="Close mode picker">
+      <button type="button" id="close-play-mode" class="auth-close"
+        data-riffle-i18n="playMode.closeAria" data-riffle-i18n-attr="aria-label">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
-      <h2 class="profile-title">Choose game mode</h2>
-      <p class="profile-desc">Pick your vibe and continue to category setup.</p>
+      <h2 class="profile-title" data-riffle-i18n="playMode.title"></h2>
+      <p class="profile-desc" data-riffle-i18n="playMode.desc"></p>
       <div class="mode-grid play-mode-grid">
         <a href="./categories.html?mode=marathon" class="mode-card mode-card--purple">
           <div class="mode-card__icon">🏃</div>
           <div class="mode-card__body">
-            <h3 class="mode-card__title">Marathon Mode</h3>
-            <p class="mode-card__desc">Endless run. One life, checkpoint boosts every 10 questions.</p>
+            <h3 class="mode-card__title" data-riffle-i18n="playMode.marathonTitle"></h3>
+            <p class="mode-card__desc" data-riffle-i18n="playMode.marathonDesc"></p>
           </div>
           <div class="mode-card__bar"></div>
         </a>
         <a href="./categories.html?mode=versus" class="mode-card mode-card--pink">
           <div class="mode-card__icon">⚔️</div>
           <div class="mode-card__body">
-            <h3 class="mode-card__title">Solo VS Mode</h3>
-            <p class="mode-card__desc">Fast duel format with short rounds and instant scoring.</p>
+            <h3 class="mode-card__title" data-riffle-i18n="playMode.versusTitle"></h3>
+            <p class="mode-card__desc" data-riffle-i18n="playMode.versusDesc"></p>
           </div>
           <div class="mode-card__bar"></div>
         </a>
         <a href="./categories.html?mode=team" class="mode-card mode-card--yellow">
           <div class="mode-card__icon">🏆</div>
           <div class="mode-card__body">
-            <h3 class="mode-card__title">Team VS Mode</h3>
-            <p class="mode-card__desc">Split into teams and race for the highest total score.</p>
+            <h3 class="mode-card__title" data-riffle-i18n="playMode.teamTitle"></h3>
+            <p class="mode-card__desc" data-riffle-i18n="playMode.teamDesc"></p>
           </div>
           <div class="mode-card__bar"></div>
         </a>
         <a href="./categories.html?mode=coop" class="mode-card mode-card--blue">
           <div class="mode-card__icon">🤝</div>
           <div class="mode-card__body">
-            <h3 class="mode-card__title">Co-op Mode</h3>
-            <p class="mode-card__desc">Play together, keep the streak alive, and climb as one.</p>
+            <h3 class="mode-card__title" data-riffle-i18n="playMode.coopTitle"></h3>
+            <p class="mode-card__desc" data-riffle-i18n="playMode.coopDesc"></p>
           </div>
           <div class="mode-card__bar"></div>
         </a>
@@ -213,8 +251,9 @@
   <div id="learn-more-panel" class="mobile-info-overlay hidden">
     <div class="mobile-info-sheet">
       <div class="mobile-info-head">
-        <h2 class="mobile-info-title">About Riffle</h2>
-        <button id="close-learn-more" type="button" class="mobile-info-close" aria-label="Close learn more panel">
+        <h2 class="mobile-info-title" data-riffle-i18n="main.learnMoreTitle"></h2>
+        <button id="close-learn-more" type="button" class="mobile-info-close"
+          data-riffle-i18n="aria.closeLearnMore" data-riffle-i18n-attr="aria-label">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -223,107 +262,83 @@
 
       <div class="mobile-info-content">
         <article class="spotlight-card spotlight-card--about">
-          <p class="spotlight-eyebrow">What is Riffle?</p>
-          <h3 class="spotlight-title">Fast music trivia for rock & metal fans.</h3>
-          <p class="spotlight-text">
-            10-second previews, instant choices, pure adrenaline. Jump in, trust your ears, climb your score.
-          </p>
+          <p class="spotlight-eyebrow" data-riffle-i18n="main.whatEyebrow"></p>
+          <h3 class="spotlight-title" data-riffle-i18n="main.whatTitle"></h3>
+          <p class="spotlight-text" data-riffle-i18n="main.whatText"></p>
         </article>
 
         <article class="spotlight-card">
-          <p class="spotlight-eyebrow">How to play</p>
-          <h4 class="spotlight-subtitle">3 quick steps</h4>
-          <p class="spotlight-text">Pick a mode, choose categories, hit Start and guess before time runs out.</p>
+          <p class="spotlight-eyebrow" data-riffle-i18n="main.howEyebrow"></p>
+          <h4 class="spotlight-subtitle" data-riffle-i18n="main.howTitle"></h4>
+          <p class="spotlight-text" data-riffle-i18n="main.howText"></p>
         </article>
 
         <article class="spotlight-card spotlight-card--support">
-          <p class="spotlight-eyebrow">Support</p>
-          <h4 class="spotlight-subtitle">Buy Me a Coffee</h4>
-          <p class="spotlight-text">If you enjoy Riffle, your support helps us ship more modes and features.</p>
-          <a class="spotlight-donate-btn" href="https://buymeacoffee.com/" target="_blank" rel="noopener noreferrer">
-            Donate
+          <p class="spotlight-eyebrow" data-riffle-i18n="main.supportEyebrow"></p>
+          <h4 class="spotlight-subtitle" data-riffle-i18n="main.supportCardTitle"></h4>
+          <p class="spotlight-text" data-riffle-i18n="main.supportCardText"></p>
+          <a class="spotlight-donate-btn" href="https://buymeacoffee.com/" target="_blank" rel="noopener noreferrer"
+            data-riffle-i18n="main.donate">
           </a>
         </article>
 
         <article class="spotlight-card spotlight-card--deezer">
-          <p class="spotlight-eyebrow">Deezer</p>
-          <h4 class="spotlight-subtitle">Thanks for the music</h4>
-          <p class="spotlight-text">
-            A big shout-out to Deezer. Explore music, discover new tracks, and keep the energy high.
-          </p>
-          <a
-            class="spotlight-deezer-btn"
-            href="https://www.deezer.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Open Deezer
+          <p class="spotlight-eyebrow" data-riffle-i18n="main.deezerEyebrow"></p>
+          <h4 class="spotlight-subtitle" data-riffle-i18n="main.deezerTitle"></h4>
+          <p class="spotlight-text" data-riffle-i18n="main.deezerText"></p>
+          <a class="spotlight-deezer-btn" href="https://www.deezer.com/" target="_blank" rel="noopener noreferrer"
+            data-riffle-i18n="main.openDeezer">
           </a>
         </article>
 
         <article class="spotlight-card spotlight-card--discord">
-          <p class="spotlight-eyebrow">Discord</p>
-          <h4 class="spotlight-subtitle">Join our community</h4>
-          <p class="spotlight-text">
-            Say hi, compete in events, and stay updated on new modes.
-          </p>
-          <a
-            class="spotlight-discord-btn"
-            href="https://discord.com/invite/YOUR_DISCORD_INVITE"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <svg
-              class="spotlight-discord-icon"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              aria-hidden="true"
-            >
+          <p class="spotlight-eyebrow" data-riffle-i18n="main.discordEyebrow"></p>
+          <h4 class="spotlight-subtitle" data-riffle-i18n="main.discordTitle"></h4>
+          <p class="spotlight-text" data-riffle-i18n="main.discordText"></p>
+          <a class="spotlight-discord-btn" href="https://discord.com/invite/YOUR_DISCORD_INVITE" target="_blank"
+            rel="noopener noreferrer">
+            <svg class="spotlight-discord-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+              fill="currentColor" aria-hidden="true">
               <path
-                d="M20.317 4.369a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.211.375-.444.875-.608 1.251a18.27 18.27 0 0 0-5.487 0c-.164-.376-.397-.876-.608-1.251a.074.074 0 0 0-.079-.037 19.736 19.736 0 0 0-4.885 1.515.069.069 0 0 0-.032.027C.533 9.015-.324 13.559.099 18.063a.078.078 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.003.077.077 0 0 0 .084-.027c.266-.376.486-.75.673-1.126a.077.077 0 0 0-.041-.105 13.107 13.107 0 0 1-1.646-.81.077.077 0 0 1-.008-.127c.126-.094.252-.188.371-.288a.074.074 0 0 1 .077-.014c3.675 1.596 7.387 1.596 11.062 0a.074.074 0 0 1 .077.014c.119.1.245.194.371.288a.077.077 0 0 1-.008.127c-.525.316-1.07.584-1.646.81a.077.077 0 0 0-.041.105c.187.376.407.75.673 1.126a.077.077 0 0 0 .084.027 19.887 19.887 0 0 0 6.002-3.003.077.077 0 0 0 .031-.057c.5-5.07-.838-9.613-3.549-13.666a.069.069 0 0 0-.032-.027ZM8.02 15.331c-.995 0-1.827-.907-1.827-2.03 0-1.123.806-2.03 1.827-2.03 1.02 0 1.827.907 1.801 2.03 0 1.123-.806 2.03-1.801 2.03Zm7.975 0c-.995 0-1.827-.907-1.827-2.03 0-1.123.806-2.03 1.827-2.03 1.02 0 1.827.907 1.801 2.03 0 1.123-.806 2.03-1.801 2.03Z"
-              />
+                d="M20.317 4.369a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.211.375-.444.875-.608 1.251a18.27 18.27 0 0 0-5.487 0c-.164-.376-.397-.876-.608-1.251a.074.074 0 0 0-.079-.037 19.736 19.736 0 0 0-4.885 1.515.069.069 0 0 0-.032.027C.533 9.015-.324 13.559.099 18.063a.078.078 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.003.077.077 0 0 0 .084-.027c.266-.376.486-.75.673-1.126a.077.077 0 0 0-.041-.105 13.107 13.107 0 0 1-1.646-.81.077.077 0 0 1-.008-.127c.126-.094.252-.188.371-.288a.074.074 0 0 1 .077-.014c3.675 1.596 7.387 1.596 11.062 0a.074.074 0 0 1 .077.014c.119.1.245.194.371.288a.077.077 0 0 1-.008.127c-.525.316-1.07.584-1.646.81a.077.077 0 0 0-.041.105c.187.376.407.75.673 1.126a.077.077 0 0 0 .084.027 19.887 19.887 0 0 0 6.002-3.003.077.077 0 0 0 .031-.057c.5-5.07-.838-9.613-3.549-13.666a.069.069 0 0 0-.032-.027ZM8.02 15.331c-.995 0-1.827-.907-1.827-2.03 0-1.123.806-2.03 1.827-2.03 1.02 0 1.827.907 1.801 2.03 0 1.123-.806 2.03-1.801 2.03Zm7.975 0c-.995 0-1.827-.907-1.827-2.03 0-1.123.806-2.03 1.827-2.03 1.02 0 1.827.907 1.801 2.03 0 1.123-.806 2.03-1.801 2.03Z" />
             </svg>
-            Join Discord
+            <span data-riffle-i18n="main.joinDiscord"></span>
           </a>
         </article>
       </div>
 
-      <button id="learn-more-back-home" type="button" class="mobile-info-back-btn">Main Menu</button>
+      <button id="learn-more-back-home" type="button" class="mobile-info-back-btn" data-riffle-i18n="main.learnMoreBack"></button>
     </div>
   </div>
 
   <!-- ── Desktop About Overlay (Deezer + Discord) ─────────────────────── -->
   <div id="desktop-about-panel" class="desktop-about-overlay hidden" aria-hidden="true">
     <div class="desktop-about-box">
-      <button type="button" id="close-desktop-about" class="desktop-about-close" aria-label="Close about">
+      <button type="button" id="close-desktop-about" class="desktop-about-close"
+        data-riffle-i18n="aria.closeAbout" data-riffle-i18n-attr="aria-label">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
 
-      <h2 class="profile-title">About Riffle</h2>
-      <p class="profile-desc">Thanks for playing. Here’s where music and community meet.</p>
+      <h2 class="profile-title" data-riffle-i18n="main.desktopAboutTitle"></h2>
+      <p class="profile-desc" data-riffle-i18n="main.desktopAboutDesc"></p>
 
       <div class="desktop-about-grid">
         <article class="spotlight-card spotlight-card--deezer">
-          <p class="spotlight-eyebrow">Deezer</p>
-          <h4 class="spotlight-subtitle">Thanks for the music</h4>
-          <p class="spotlight-text">
-            A big shout-out to Deezer. Explore music, discover new tracks, and keep the energy high.
-          </p>
-          <a class="spotlight-deezer-btn" href="https://www.deezer.com/" target="_blank" rel="noopener noreferrer">
-            Open Deezer
-          </a>
+          <p class="spotlight-eyebrow" data-riffle-i18n="main.deezerEyebrow"></p>
+          <h4 class="spotlight-subtitle" data-riffle-i18n="main.deezerTitle"></h4>
+          <p class="spotlight-text" data-riffle-i18n="main.deezerText"></p>
+          <a class="spotlight-deezer-btn" href="https://www.deezer.com/" target="_blank" rel="noopener noreferrer"
+            data-riffle-i18n="main.openDeezer"></a>
         </article>
 
         <article class="spotlight-card spotlight-card--discord">
-          <p class="spotlight-eyebrow">Discord</p>
-          <h4 class="spotlight-subtitle">Join our community</h4>
-          <p class="spotlight-text">Say hi, compete in events, and stay updated on new modes.</p>
-          <a class="spotlight-discord-btn" href="https://discord.com/invite/YOUR_DISCORD_INVITE" target="_blank" rel="noopener noreferrer">
-            Join Discord
-          </a>
+          <p class="spotlight-eyebrow" data-riffle-i18n="main.discordEyebrow"></p>
+          <h4 class="spotlight-subtitle" data-riffle-i18n="main.discordTitle"></h4>
+          <p class="spotlight-text" data-riffle-i18n="main.discordText"></p>
+          <a class="spotlight-discord-btn" href="https://discord.com/invite/YOUR_DISCORD_INVITE" target="_blank"
+            rel="noopener noreferrer" data-riffle-i18n="main.joinDiscord"></a>
         </article>
       </div>
     </div>
@@ -333,52 +348,51 @@
   <div id="auth-panel" class="auth-overlay hidden">
     <div class="auth-box" id="auth-box">
 
-      <button id="close-auth" class="auth-close">
+      <button id="close-auth" class="auth-close" data-riffle-i18n="aria.closeAuth" data-riffle-i18n-attr="aria-label">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
 
       <div class="auth-tabs">
-        <button id="tab-login" class="auth-tab auth-tab--active">LOGIN</button>
-        <button id="tab-register" class="auth-tab">REGISTER</button>
+        <button id="tab-login" class="auth-tab auth-tab--active" data-riffle-i18n="auth.tabLogin"></button>
+        <button id="tab-register" class="auth-tab" data-riffle-i18n="auth.tabRegister"></button>
       </div>
 
       <!-- Login form -->
       <form id="form-login" class="auth-form">
         <div class="field">
-          <label class="field__label">Email or Username</label>
-          <input type="text" id="login-identifier" class="field__input" placeholder="Enter your username" />
+          <label class="field__label" data-riffle-i18n="auth.emailOrUsername"></label>
+          <input type="text" id="login-identifier" class="field__input" data-riffle-i18n-placeholder="auth.loginIdentifierPh" />
         </div>
         <div class="field">
-          <label class="field__label">Password</label>
+          <label class="field__label" data-riffle-i18n="auth.password"></label>
           <input type="password" id="login-password" class="field__input" placeholder="••••••••" />
         </div>
-        <button type="submit" id="btn-login-submit" disabled class="btn btn--submit btn--disabled">
-          ENTER THE ARENA
+        <button type="submit" id="btn-login-submit" disabled class="btn btn--submit btn--disabled"
+          data-riffle-i18n="auth.submitLogin">
         </button>
       </form>
 
       <!-- Register form -->
       <form id="form-register" class="auth-form hidden">
         <div class="field">
-          <label class="field__label">Username</label>
-          <input type="text" id="reg-username" class="field__input" placeholder="Choose a rockstar name" />
+          <label class="field__label" data-riffle-i18n="auth.regUsername"></label>
+          <input type="text" id="reg-username" class="field__input" data-riffle-i18n-placeholder="auth.regUsernamePh" />
           <p id="err-username" class="field__error hidden"></p>
         </div>
         <div class="field">
-          <label class="field__label">Email</label>
-          <input type="email" id="reg-email" class="field__input" placeholder="Valid email address" />
+          <label class="field__label" data-riffle-i18n="auth.regEmail"></label>
+          <input type="email" id="reg-email" class="field__input" data-riffle-i18n-placeholder="auth.regEmailPh" />
           <p id="err-email" class="field__error hidden"></p>
         </div>
         <div class="field">
-          <label class="field__label">Password</label>
-          <input type="password" id="reg-password" class="field__input" placeholder="Make it strong" />
+          <label class="field__label" data-riffle-i18n="auth.password"></label>
+          <input type="password" id="reg-password" class="field__input" data-riffle-i18n-placeholder="auth.regPasswordPh" />
           <p id="err-password" class="field__error hidden"></p>
         </div>
         <button type="submit" id="btn-register-submit" disabled
-          class="btn btn--submit btn--submit-register btn--disabled">
-          CREATE LEGEND
+          class="btn btn--submit btn--submit-register btn--disabled" data-riffle-i18n="auth.submitRegister">
         </button>
       </form>
 
@@ -386,54 +400,141 @@
     </div>
   </div>
 
-  <!-- Profile (registered users: avatar + logout) -->
-  <div id="profile-panel" class="auth-overlay hidden">
-    <div class="auth-box profile-box" id="profile-box">
-      <button type="button" id="close-profile" class="auth-close" aria-label="Close profile">
+  <!-- App preferences (device: language, audio, accessibility) -->
+  <div id="app-preferences-panel" class="auth-overlay hidden">
+    <div class="auth-box profile-box app-prefs-box">
+      <button type="button" id="close-app-preferences" class="auth-close"
+        data-riffle-i18n="aria.closeSettings" data-riffle-i18n-attr="aria-label">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
-      <h2 class="profile-title">Profile</h2>
+      <h2 id="app-prefs-title" class="profile-title" data-riffle-i18n="preferences.title"></h2>
+      <p id="app-prefs-sub" class="profile-desc" data-riffle-i18n="preferences.sub"></p>
+
+      <div class="field">
+        <label class="field__label" for="app-prefs-language" id="app-prefs-language-label" data-riffle-i18n="preferences.language"></label>
+        <select id="app-prefs-language" class="field__input" data-riffle-lang-select>
+          <option value="en">English</option>
+          <option value="tr">Türkçe</option>
+        </select>
+      </div>
+
+      <div class="field app-prefs-slider-field">
+        <label class="field__label" for="app-prefs-music-volume" id="app-prefs-volume-label" data-riffle-i18n="preferences.musicVolume"></label>
+        <div class="app-prefs-volume-row">
+          <input type="range" id="app-prefs-music-volume" min="0" max="100" step="5" value="80"
+            aria-valuemin="0" aria-valuemax="100" />
+          <span id="app-prefs-music-volume-value" class="app-prefs-volume-value" aria-live="polite">80%</span>
+        </div>
+        <p id="app-prefs-volume-hint" class="app-prefs-hint" data-riffle-i18n="preferences.musicVolumeHint"></p>
+      </div>
+
+      <div class="app-prefs-check-row">
+        <input type="checkbox" id="app-prefs-reduced-motion" />
+        <div class="app-prefs-check-text">
+          <strong id="app-prefs-reduced-label" data-riffle-i18n="preferences.reducedMotion"></strong>
+          <span id="app-prefs-reduced-hint" class="app-prefs-hint" data-riffle-i18n="preferences.reducedMotionHint"></span>
+        </div>
+      </div>
+
+      <div class="app-prefs-check-row">
+        <input type="checkbox" id="app-prefs-large-tap" />
+        <div class="app-prefs-check-text">
+          <strong id="app-prefs-large-label" data-riffle-i18n="preferences.largeTap"></strong>
+          <span id="app-prefs-large-hint" class="app-prefs-hint" data-riffle-i18n="preferences.largeTapHint"></span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Profile (registered users: avatar + logout) -->
+  <div id="profile-panel" class="auth-overlay hidden">
+    <div class="auth-box profile-box" id="profile-box">
+      <button type="button" id="close-profile" class="auth-close"
+        data-riffle-i18n="aria.closeProfile" data-riffle-i18n-attr="aria-label">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+      <h2 class="profile-title" data-riffle-i18n="profile.title"></h2>
       <div class="field profile-username-block">
-        <label class="field__label" for="profile-username">Username</label>
+        <label class="field__label" for="profile-username" data-riffle-i18n="profile.usernameLabel"></label>
         <div class="profile-username-row">
           <input type="text" id="profile-username" class="field__input" maxlength="20" autocomplete="username"
             spellcheck="false" />
-          <button type="button" id="profile-username-save" class="btn btn--primary profile-username-save">
-            Save
+          <button type="button" id="profile-username-save" class="btn btn--primary profile-username-save"
+            data-riffle-i18n="profile.usernameSave">
           </button>
         </div>
         <p id="profile-username-msg" class="field__error hidden" role="status"></p>
       </div>
       <div class="field profile-username-block">
-        <label class="field__label" for="language-select">Language</label>
-        <select id="language-select" class="field__input">
+        <label class="field__label" for="language-select" id="profile-language-label" data-riffle-i18n="profile.languageLabel"></label>
+        <select id="language-select" class="field__input" data-riffle-lang-select>
           <option value="en">English</option>
           <option value="tr">Turkce</option>
         </select>
       </div>
       <div id="profile-favorites-entry" class="profile-favorites-entry hidden">
         <button type="button" id="profile-favorites-btn" class="profile-favorites-trigger">
-          <span>Favorite songs</span>
+          <span data-riffle-i18n="profile.favoriteSongs"></span>
           <span id="profile-favorites-count" class="profile-favorites-count">0</span>
         </button>
       </div>
-      <p class="profile-desc">Choose your avatar</p>
+      <p class="profile-desc" data-riffle-i18n="profile.desc"></p>
       <div id="profile-avatar-grid" class="avatar-grid profile-avatar-grid"></div>
-      <button type="button" id="profile-logout-btn" class="btn btn--ghost profile-logout">Log out</button>
+      <button type="button" id="profile-logout-btn" class="btn btn--ghost profile-logout" data-riffle-i18n="profile.logout"></button>
+    </div>
+  </div>
+
+  <div id="friends-panel" class="auth-overlay hidden">
+    <div class="auth-box profile-box friends-box" id="friends-box">
+      <button type="button" id="close-friends-panel" class="auth-close"
+        data-riffle-i18n="aria.closeFriends" data-riffle-i18n-attr="aria-label">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+      <h2 class="profile-title" data-riffle-i18n="friends.title"></h2>
+      <p class="profile-desc" data-riffle-i18n="friends.desc"></p>
+      <div class="friends-tabs">
+        <button type="button" class="friends-tab friends-tab--active" data-friends-tab="find"
+          data-riffle-i18n="friends.tabFind"></button>
+        <button type="button" class="friends-tab" data-friends-tab="friends" data-riffle-i18n="friends.tabFriends"></button>
+        <button type="button" class="friends-tab" data-friends-tab="requests" data-riffle-i18n="friends.tabRequests"></button>
+      </div>
+      <div class="friends-panel-scroll">
+        <div data-friends-panel="find">
+          <label class="field__label" for="friends-search-input" data-riffle-i18n="friends.searchLabel"></label>
+          <input type="search" id="friends-search-input" class="field__input friends-search-input"
+            data-riffle-i18n-placeholder="friends.searchPlaceholder" maxlength="30" autocomplete="off" spellcheck="false" />
+          <div id="friends-search-results"></div>
+        </div>
+        <div data-friends-panel="friends" class="hidden">
+          <div class="friends-subtitle" data-riffle-i18n="friends.online"></div>
+          <div id="friends-list-online"></div>
+          <div class="friends-subtitle" data-riffle-i18n="friends.offline"></div>
+          <div id="friends-list-offline"></div>
+        </div>
+        <div data-friends-panel="requests" class="hidden">
+          <div id="friends-requests-list"></div>
+        </div>
+      </div>
     </div>
   </div>
 
   <div id="profile-favorites-panel" class="auth-overlay hidden">
     <div class="auth-box profile-box profile-favorites-box">
-      <button type="button" id="close-profile-favorites" class="auth-close" aria-label="Close favorites panel">
+      <button type="button" id="close-profile-favorites" class="auth-close"
+        data-riffle-i18n="aria.closeFavorites" data-riffle-i18n-attr="aria-label">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
-      <h2 class="profile-title">Favorite songs</h2>
-      <p id="profile-favorites-empty" class="profile-favorites-empty">You have no favorite songs yet.</p>
+      <h2 class="profile-title" data-riffle-i18n="profile.favoritesTitle"></h2>
+      <p id="profile-favorites-empty" class="profile-favorites-empty" data-riffle-i18n="profile.favoritesEmpty"></p>
       <div id="profile-favorites-list" class="profile-favorites-list"></div>
     </div>
   </div>
@@ -441,15 +542,16 @@
   <!-- Leaderboard -->
   <div id="leaderboard-panel" class="auth-overlay hidden">
     <div class="auth-box profile-box leaderboard-box">
-      <button type="button" id="close-leaderboard" class="auth-close" aria-label="Close leaderboard">
+      <button type="button" id="close-leaderboard" class="auth-close"
+        data-riffle-i18n="aria.closeLeaderboard" data-riffle-i18n-attr="aria-label">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
-      <h2 class="profile-title">Leaderboard</h2>
-      <p class="profile-desc">Top scores per game mode (registered players)</p>
+      <h2 class="profile-title" data-riffle-i18n="leaderboard.title"></h2>
+      <p class="profile-desc" data-riffle-i18n="leaderboard.desc"></p>
       <div class="leaderboard-toolbar">
-        <label class="field__label" for="leaderboard-mode">Mode</label>
+        <label class="field__label" for="leaderboard-mode" data-riffle-i18n="leaderboard.modeLabel"></label>
         <select id="leaderboard-mode" class="field__input leaderboard-mode-select">
           <option value="solo">Marathon (solo)</option>
           <option value="versus">Solo VS</option>
@@ -461,9 +563,11 @@
       </div>
       <div id="leaderboard-podium" class="leaderboard-podium leaderboard-podium--empty" aria-hidden="true"></div>
       <ol id="leaderboard-list" class="leaderboard-list"></ol>
-      <p id="leaderboard-empty" class="leaderboard-empty hidden">No scores yet for this mode.</p>
+      <p id="leaderboard-empty" class="leaderboard-empty hidden" data-riffle-i18n="leaderboard.emptyMode"></p>
     </div>
   </div>
+
+  <div id="riffle-social-toast" class="riffle-social-toast" role="status" aria-live="polite" aria-hidden="true"></div>
 
   <script type="module" src="./src/core/game-manager.js"></script>
   <script type="module" src="./src/main.js"></script>

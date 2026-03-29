@@ -1,4 +1,5 @@
 // src/modes/marathon.js
+import { getMusicPreviewVolume } from "../core/app-preferences.js";
 import { getRandomTrackFromRandomEra } from "../music.js";
 
 let score = 0;
@@ -40,6 +41,7 @@ async function renderQuestion(container) {
   // Play preview
   const audio = document.createElement("audio");
   audio.src = preview;
+  audio.volume = getMusicPreviewVolume();
   audio.autoplay = true;
   container.appendChild(audio);
   setTimeout(() => audio.pause(), 10000);
