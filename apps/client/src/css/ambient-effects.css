@@ -1,0 +1,68 @@
+/* Drifting lyrics + cursor note particles (shared: index, categories, game) */
+
+/* Lyrics sit above page background; notes sit above almost all UI (still pointer-events: none). */
+.lyrics-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.note-particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10000;
+  overflow: hidden;
+}
+
+.lyrics-line {
+  position: absolute;
+  white-space: nowrap;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(196, 181, 253, 0.14);
+  text-shadow: 0 0 16px rgba(124, 58, 237, 0.12);
+  animation-name: lyricsDrift;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.note-particle {
+  position: absolute;
+  font-size: 1rem;
+  color: rgba(253, 224, 71, 0.86);
+  text-shadow: 0 0 8px rgba(250, 204, 21, 0.6);
+  transform: translate(-50%, -50%);
+  animation: noteRise 900ms ease-out forwards;
+}
+
+@keyframes noteRise {
+  0% {
+    opacity: 0.95;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -200%) scale(1.3);
+  }
+}
+
+@keyframes lyricsDrift {
+  0% {
+    transform: translateX(-130%);
+  }
+  100% {
+    transform: translateX(130vw);
+  }
+}
+
+@media (max-width: 640px) {
+  .note-particles {
+    display: none;
+  }
+  .lyrics-bg {
+    opacity: 0.55;
+  }
+}

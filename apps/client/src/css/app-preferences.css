@@ -1,0 +1,119 @@
+/* App preferences panel + global comfort / motion toggles */
+
+.app-prefs-box {
+  max-width: 26rem;
+}
+
+.app-prefs-slider-field {
+  margin-top: 0.25rem;
+}
+
+.app-prefs-slider-field input[type="range"] {
+  width: 100%;
+  margin-top: 0.35rem;
+  accent-color: #a78bfa;
+}
+
+.app-prefs-volume-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.app-prefs-volume-row input[type="range"] {
+  flex: 1;
+  margin-top: 0;
+}
+
+.app-prefs-volume-value {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #c4b5fd;
+  min-width: 2.75rem;
+  text-align: right;
+}
+
+.app-prefs-hint {
+  font-size: 0.72rem;
+  color: rgba(196, 181, 253, 0.65);
+  margin-top: 0.35rem;
+  line-height: 1.4;
+}
+
+.app-prefs-check-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin-top: 1rem;
+  padding: 0.65rem 0;
+  border-top: 1px solid rgba(167, 139, 250, 0.12);
+}
+
+.app-prefs-check-row:first-of-type {
+  margin-top: 0.5rem;
+}
+
+.app-prefs-check-row input[type="checkbox"] {
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-top: 0.12rem;
+  flex-shrink: 0;
+  accent-color: #a78bfa;
+}
+
+.app-prefs-check-text strong {
+  display: block;
+  font-size: 0.82rem;
+  color: #e9d5ff;
+  margin-bottom: 0.2rem;
+}
+
+.app-prefs-check-text .app-prefs-hint {
+  margin-top: 0;
+  display: block;
+}
+
+/* Reduced motion: hide drifting background text & particles (don’t leave static text on screen) */
+html.riffle-reduced-motion .lyrics-bg {
+  display: none !important;
+}
+
+html.riffle-reduced-motion #note-particles {
+  display: none !important;
+}
+
+html.riffle-reduced-motion .menu-card,
+html.riffle-reduced-motion .spotlight-card,
+html.riffle-reduced-motion .user-profile-btn {
+  transition: none !important;
+}
+
+/* Larger touch targets on main menu & header (index) */
+html.riffle-large-tap .menu-card {
+  min-height: 5.25rem;
+  padding: 1rem 1.1rem;
+}
+
+html.riffle-large-tap .btn {
+  min-height: 2.85rem;
+  padding: 0.55rem 1rem;
+}
+
+html.riffle-large-tap .user-profile-btn {
+  min-height: 2.85rem;
+  padding: 0.45rem 0.65rem;
+}
+
+html.riffle-large-tap .notif-bell-btn,
+html.riffle-large-tap .friends-nav-btn {
+  width: 3rem;
+  height: 3rem;
+  min-width: 3rem;
+  min-height: 3rem;
+}
+
+@media (max-width: 640px) {
+  html.riffle-large-tap .spotlight-card {
+    padding: 1rem 1.1rem;
+  }
+}
