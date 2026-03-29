@@ -5,6 +5,7 @@ import gameRoutes from "./game";
 import leaderboardRoutes from "./leaderboard";
 import playlistRoutes from "./playlists";
 import proxyRoutes from "./proxy";
+import socialRoutes from "./social";
 
 const routes: FastifyPluginAsync = async (fastify) => {
   fastify.register(authRoutes, { prefix: "/auth" });
@@ -12,6 +13,7 @@ const routes: FastifyPluginAsync = async (fastify) => {
   fastify.register(favoritesRoutes, { prefix: "/favorites" });
   fastify.register(playlistRoutes, { prefix: "/playlists" });
   fastify.register(leaderboardRoutes);
+  fastify.register(socialRoutes);
   fastify.register(proxyRoutes);
 };
 
