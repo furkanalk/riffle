@@ -930,7 +930,11 @@ body {
     font-size: 1.08rem;
   }
   .game-main {
-    padding-top: calc(6.8rem + env(safe-area-inset-top));
+    /* Fill viewport below fixed header and vertically center the play column on desktop */
+    min-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    justify-content: center;
+    padding-top: calc(4.5rem + env(safe-area-inset-top));
+    padding-bottom: max(2rem, env(safe-area-inset-bottom));
   }
   .round-pill {
     font-size: 0.75rem;

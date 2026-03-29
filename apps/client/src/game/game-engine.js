@@ -5,6 +5,7 @@ import { getTracksFromGenre, resetPlayedTracks } from "../core/music.js";
 import { getEffectiveAvatarId } from "../core/user-manager.js";
 import { AudioManager } from "./audio-manager.js";
 import { ScoreManager } from "./score-manager.js";
+import { clampAnswerWindowSec, computeAnswerPoints } from "./scoring.js";
 import { TimerManager } from "./timer-manager.js";
 import { UIManager } from "./ui-manager.js";
 
@@ -32,6 +33,17 @@ export class GameEngine {
     this.currentPlaylistTracks = [];
     this.answerSelected = false;
     this.marathonCheckpointInterval = 10;
+    /** @type {number | undefined} */
+    this.roundAnswerPhaseStartMs;
+    this.lastRoundPointsEarned = 0;
+  }
+
+  /** Seconds allowed to answer (solo preview + VS timer); uses saved time limit when set. */
+  getAnswerWindowSeconds() {
+    const t = Number(this.settings.timeLimit);
+    const p = Number(this.settings.previewLength);
+    const raw = Number.isFinite(t) && t > 0 ? t : Number.isFinite(p) && p > 0 ? p : 15;
+    return clampAnswerWindowSec(raw);
   }
 
   // Initialize the game
@@ -46,7 +58,7 @@ export class GameEngine {
 
       // Initialize managers
       this.scoreManager.initialize(this.gameMode, this.settings);
-      this.timerManager.setTimeLimit(this.settings.timeLimit || 15);
+      this.timerManager.setTimeLimit(this.getAnswerWindowSeconds());
 
       // Setup UI based on game mode
       const players = this.setupGameMode();
@@ -78,9 +90,6 @@ export class GameEngine {
 
       if (this.settings.rounds && this.settings.rounds !== "unlimited") {
         this.totalRounds = parseInt(this.settings.rounds, 10);
-        document.getElementById("max-score").textContent = this.totalRounds;
-      } else if (this.gameMode === "solo") {
-        document.getElementById("max-score").textContent = "∞";
       }
     }
 
@@ -132,6 +141,7 @@ export class GameEngine {
 
       // Clean up previous round
       this.cleanupPreviousRound();
+      this.lastRoundPointsEarned = 0;
 
       // Increment round
       const currentRound = this.scoreManager.nextRound();
@@ -209,12 +219,15 @@ export class GameEngine {
     // Play music
     this.audioManager.playMusic();
 
+    const answerSec = this.getAnswerWindowSeconds();
+    this.roundAnswerPhaseStartMs = performance.now();
+
     // Start timers
     if (this.gameMode !== "solo") {
       this.timerManager.startTimer(() => this.handleTimeout());
     }
 
-    this.timerManager.startPreviewTimeout(this.settings.previewLength, () => this.handleTimeout());
+    this.timerManager.startPreviewTimeout(answerSec, () => this.handleTimeout());
 
     // Add continue button for VS modes after preview
     if (this.gameMode !== "solo") {
@@ -222,7 +235,7 @@ export class GameEngine {
         () => {
           this.addContinueButton();
         },
-        this.settings.previewLength * 1000 + 100
+        answerSec * 1000 + 100
       );
     }
   }
@@ -398,11 +411,19 @@ export class GameEngine {
     // Update UI
     this.uiManager.markButtonSelected(selectedButton, isCorrect, this.correctAnswer);
 
+    const answerStart = this.roundAnswerPhaseStartMs ?? performance.now();
+    const elapsedMs = performance.now() - answerStart;
+    const answerSec = this.getAnswerWindowSeconds();
+
     // Update score
     if (isCorrect) {
-      this.scoreManager.addScore();
+      const pts = computeAnswerPoints(elapsedMs, answerSec);
+      this.lastRoundPointsEarned = pts;
+      this.scoreManager.recordCorrectAnswer(pts);
+      this.scoreManager.addResponseTime(elapsedMs);
       this.uiManager.createConfetti();
     } else {
+      this.lastRoundPointsEarned = 0;
       // Reduce lives in Marathon mode
       if (this.gameMode === "solo") {
         this.scoreManager.reduceLives();
@@ -411,7 +432,7 @@ export class GameEngine {
 
     // Update multiplayer scores
     if (["versus", "team", "coop"].includes(this.gameMode)) {
-      this.scoreManager.updatePlayerScore(0, isCorrect ? 1 : 0);
+      this.scoreManager.updatePlayerScore(0, isCorrect ? this.lastRoundPointsEarned : 0, isCorrect);
     }
 
     // Continue after delay
@@ -421,6 +442,7 @@ export class GameEngine {
   // Handle timeout (no answer selected)
   handleTimeout() {
     if (this.timerManager.handleTimeout()) {
+      this.lastRoundPointsEarned = 0;
       // Show timeout UI
       this.uiManager.handleTimeoutUI(this.correctAnswer, this.answerSelected);
 
@@ -465,6 +487,7 @@ export class GameEngine {
     // Prepare score data
     const scoreData = {
       ...this.scoreManager.getGameStats(),
+      lastRoundPoints: this.lastRoundPointsEarned,
       gameMode: this.gameMode,
       avatar: this.settings.avatar || getEffectiveAvatarId(),
       totalRounds: this.totalRounds,

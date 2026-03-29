@@ -5,6 +5,8 @@ import { getEffectiveAvatarId } from "../core/user-manager.js";
 export class ScoreManager {
   constructor() {
     this.score = 0;
+    /** Number of correct answers this run (separate from point total). */
+    this.correctCount = 0;
     this.players = [];
     this.responseTimeHistory = [];
     this.currentRound = 0;
@@ -17,6 +19,7 @@ export class ScoreManager {
     this.players = roster.filter(Boolean).map((p, i) => ({
       name: p.name || `Player ${i + 1}`,
       score: 0,
+      correctCount: 0,
       color: p.color || "purple-500",
       avatar: p.avatar || DEFAULT_AVATAR_ID,
     }));
@@ -26,6 +29,7 @@ export class ScoreManager {
   // Initialize score manager with game settings
   initialize(gameMode, settings) {
     this.score = 0;
+    this.correctCount = 0;
     this.currentRound = 0;
     this.responseTimeHistory = [];
 
@@ -34,8 +38,7 @@ export class ScoreManager {
       this.remainingLives = this.lives;
     }
 
-    // Update UI elements
-    document.getElementById("current-score").textContent = this.score;
+    this.updateScoreHud();
 
     const livesDisplay = document.getElementById("lives-display");
     const livesCount = document.getElementById("lives-count");
@@ -51,10 +54,25 @@ export class ScoreManager {
     }
   }
 
-  // Add score for correct answer
-  addScore(points = 1) {
+  updateScoreHud() {
+    const scoreEl = document.getElementById("current-score");
+    if (scoreEl) scoreEl.textContent = this.score;
+    const correctEl = document.getElementById("hud-correct-count");
+    if (correctEl) correctEl.textContent = String(this.correctCount);
+  }
+
+  /** Add points without incrementing correct count (extensions / bonuses). */
+  addScore(points = 0) {
     this.score += points;
-    document.getElementById("current-score").textContent = this.score;
+    this.updateScoreHud();
+    return this.score;
+  }
+
+  /** Correct answer: adds points and increments correctCount. */
+  recordCorrectAnswer(points) {
+    this.correctCount++;
+    this.score += points;
+    this.updateScoreHud();
     return this.score;
   }
 
@@ -124,10 +142,10 @@ export class ScoreManager {
     );
   }
 
-  // Calculate accuracy percentage
+  // Calculate accuracy percentage (correct answers / rounds played)
   getAccuracy() {
     if (this.currentRound === 0) return 0;
-    return Math.round((this.score / this.currentRound) * 100);
+    return Math.round((this.correctCount / this.currentRound) * 100);
   }
 
   // Generate mock players for multiplayer demo
@@ -145,6 +163,7 @@ export class ScoreManager {
       this.players.push({
         name,
         score: 0,
+        correctCount: 0,
         color: playerColors[i],
         avatar: avatar,
       });
@@ -154,9 +173,12 @@ export class ScoreManager {
   }
 
   // Update player score in multiplayer
-  updatePlayerScore(playerIndex, points) {
+  updatePlayerScore(playerIndex, points, isCorrect = false) {
     if (this.players[playerIndex]) {
       this.players[playerIndex].score += points;
+      if (isCorrect) {
+        this.players[playerIndex].correctCount = (this.players[playerIndex].correctCount || 0) + 1;
+      }
 
       const playerElements = document.querySelectorAll("#players-list > div");
       if (playerElements[playerIndex]) {
@@ -176,13 +198,14 @@ export class ScoreManager {
   // Reset score and stats
   reset() {
     this.score = 0;
+    this.correctCount = 0;
     this.currentRound = 0;
     this.remainingLives = this.lives;
     this.responseTimeHistory = [];
     this.players = [];
 
     // Update UI
-    document.getElementById("current-score").textContent = this.score;
+    this.updateScoreHud();
     const livesCount = document.getElementById("lives-count");
     if (livesCount) {
       if (this.lives === Infinity) {
@@ -197,6 +220,7 @@ export class ScoreManager {
   getGameStats() {
     return {
       score: this.score,
+      correctCount: this.correctCount,
       rounds: this.currentRound,
       accuracy: this.getAccuracy(),
       averageResponseTime: this.getAverageResponseTime(),

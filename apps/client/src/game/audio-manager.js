@@ -1,10 +1,16 @@
 // audio-manager.js
+import { getMusicPreviewVolume } from "../core/app-preferences.js";
+
 export class AudioManager {
   constructor() {
     this.musicPlayer = document.getElementById("music-player");
     this.musicProgressTimer = null;
     this.audioAnimationFrameId = null;
     this.currentTrack = null;
+    this._onMusicVolumeChanged = () => {
+      if (this.musicPlayer) this.musicPlayer.volume = getMusicPreviewVolume();
+    };
+    window.addEventListener("riffle-music-volume-changed", this._onMusicVolumeChanged);
   }
 
   // Initialize audio API in the browser before use
@@ -38,7 +44,7 @@ export class AudioManager {
       return;
     }
     this.musicPlayer.src = track.preview;
-    this.musicPlayer.volume = 0.8;
+    this.musicPlayer.volume = getMusicPreviewVolume();
   }
 
   // Play music preview with enhanced effects

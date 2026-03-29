@@ -79,6 +79,7 @@ const GENRE_PLAYLISTS = {
   turkish_rock: "1384032635",
 };
 
+/** @typedef {{ name: string; type: string; era: string; searchAliases?: string[] }} GenreInfo */
 const GENRE_INFO = {
   // Rock
   rock_60s: { name: "60's Rock", type: "rock", era: "60s" },

@@ -147,7 +147,7 @@ export class UIManager {
                 <div class="final-lb-row-body">
                   <div class="final-lb-row-top">
                     <div class="final-lb-row-name">${name}</div>
-                    <div class="final-lb-row-score">${score}</div>
+                    <div class="final-lb-row-score">${score} pts</div>
                   </div>
                   <div class="final-lb-row-mode">${escapeHtml(String(e.game_mode || safeMode))}</div>
                 </div>
@@ -540,7 +540,7 @@ export class UIManager {
         <td class="py-2 text-center font-semibold">
           ${
             lastAnswerCorrect
-              ? "+1"
+              ? `+${scoreData.lastRoundPoints ?? 0} pts`
               : timedOut
                 ? '<span class="bg-yellow-800 text-xs px-2 py-1 rounded-full">Missed</span>'
                 : "+0"
@@ -586,8 +586,17 @@ export class UIManager {
     const gameStats = document.getElementById("game-stats");
     const scoreTableBody = document.getElementById("score-table-body");
 
-    // Show final score
-    finalScore.textContent = `${scoreData.score}/${scoreData.totalRounds}`;
+    // Show final score (total points + correct / rounds)
+    finalScore.textContent = `${scoreData.score} pts`;
+    const finalDetail = document.getElementById("final-score-detail");
+    if (finalDetail) {
+      const rounds = scoreData.rounds ?? 0;
+      const correct = scoreData.correctCount ?? 0;
+      finalDetail.textContent =
+        rounds > 0
+          ? `${correct} correct out of ${rounds} ${rounds === 1 ? "round" : "rounds"}`
+          : "";
+    }
 
     // Generate score message
     const percentage = scoreData.accuracy;
@@ -695,37 +704,40 @@ export class UIManager {
         </div>
       </div>
     `;
+    const correct = scoreData.correctCount ?? 0;
+    const rounds = scoreData.rounds ?? 0;
     let statsHTML = `${statsAvatarRow}
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 my-6">
         <div class="bg-gray-800 rounded-lg p-4 text-center animate-fadeInUp" style="animation-delay: 0.1s">
-          <p class="text-gray-400 text-sm">Rounds Played</p>
-          <p class="text-2xl font-bold">${scoreData.rounds}</p>
+          <p class="text-gray-400 text-sm">Total points</p>
+          <p class="text-2xl font-bold">${scoreData.score}</p>
         </div>
         <div class="bg-gray-800 rounded-lg p-4 text-center animate-fadeInUp" style="animation-delay: 0.2s">
+          <p class="text-gray-400 text-sm">Correct</p>
+          <p class="text-2xl font-bold">${correct} / ${rounds}</p>
+        </div>
+        <div class="bg-gray-800 rounded-lg p-4 text-center animate-fadeInUp" style="animation-delay: 0.3s">
           <p class="text-gray-400 text-sm">Accuracy</p>
           <p class="text-2xl font-bold">${scoreData.accuracy}%</p>
         </div>`;
 
     if (scoreData.gameMode === "solo" && scoreData.totalLives !== undefined) {
       statsHTML += `
-        <div class="bg-gray-800 rounded-lg p-4 text-center animate-fadeInUp" style="animation-delay: 0.3s">
+        <div class="bg-gray-800 rounded-lg p-4 text-center animate-fadeInUp" style="animation-delay: 0.4s">
           <p class="text-gray-400 text-sm">Lives Left</p>
           <p class="text-2xl font-bold">${scoreData.totalLives === Infinity ? "∞" : scoreData.remainingLives}</p>
         </div>`;
     } else {
       statsHTML += `
-        <div class="bg-gray-800 rounded-lg p-4 text-center animate-fadeInUp" style="animation-delay: 0.3s">
+        <div class="bg-gray-800 rounded-lg p-4 text-center animate-fadeInUp" style="animation-delay: 0.4s">
           <p class="text-gray-400 text-sm">Avg Response</p>
           <p class="text-2xl font-bold">${scoreData.averageResponseTime.toFixed(1)}s</p>
         </div>`;
     }
 
     statsHTML += `
-        <div class="bg-gray-800 rounded-lg p-4 text-center animate-fadeInUp" style="animation-delay: 0.4s">
-          <p class="text-gray-400 text-sm">Game Mode</p>
-          <p class="text-2xl font-bold">${scoreData.gameMode.charAt(0).toUpperCase() + scoreData.gameMode.slice(1)}</p>
-        </div>
       </div>
+      <p class="text-center text-sm text-purple-300/90 mb-2">${scoreData.gameMode.charAt(0).toUpperCase() + scoreData.gameMode.slice(1)} mode</p>
     `;
 
     gameStats.innerHTML = statsHTML;
@@ -753,7 +765,8 @@ export class UIManager {
         <td class="py-3 text-center text-purple-400">${scoreData.score}</td>
         <td class="py-3 text-right">
           <span class="inline-block bg-gray-800 rounded-full px-2 py-1 text-sm">
-            ${scoreData.accuracy}%
+            ${scoreData.correctCount ?? 0} / ${scoreData.rounds ?? 0}
+            <span class="text-gray-400"> (${scoreData.accuracy}%)</span>
           </span>
         </td>
       `;
@@ -762,8 +775,11 @@ export class UIManager {
       // Multiplayer mode
       const sortedPlayers = [...scoreData.players].sort((a, b) => b.score - a.score);
 
+      const roundsPlayed = scoreData.rounds ?? scoreData.totalRounds ?? 0;
+
       sortedPlayers.forEach((player, i) => {
-        const accuracy = Math.round((player.score / scoreData.totalRounds) * 100);
+        const correctN = player.correctCount ?? 0;
+        const accuracy = roundsPlayed > 0 ? Math.round((correctN / roundsPlayed) * 100) : 0;
 
         const row = document.createElement("tr");
         row.className = i === 0 ? "font-bold animate-fadeInUp" : "animate-fadeInUp";
@@ -789,7 +805,8 @@ export class UIManager {
           <td class="py-3 text-center text-${player.color}-400">${player.score}</td>
           <td class="py-3 text-right">
             <span class="inline-block bg-gray-800 rounded-full px-2 py-1 text-sm">
-              ${accuracy}%
+              ${correctN} / ${roundsPlayed}
+              <span class="text-gray-400"> (${accuracy}%)</span>
             </span>
           </td>
         `;
