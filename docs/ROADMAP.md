@@ -40,13 +40,11 @@ Still intentionally narrow or simulated: full online matchmaking at scale, autho
 > *Making the game engaging, replayable, and user-friendly.*
 
 - [ ] **Phase 1: Advanced Gameplay Mechanics**
-  - [ ] Playlist engine (unique tracks per session).
   - [x] Marathon / extended modes — **basic** marathon-style flow (deeper tuning TBD).
-  - [ ] Smarter difficulty progression.
 
 - [ ] **Phase 2: Smart Algorithms & Data Quality**
-  - [ ] Context-aware wrong answer generation.
-  - [ ] Metadata validation & sanitization.
+  - [x] **Plausible wrong answers (MCQ)** — **partial:** Song questions prefer other tracks by the same artist, then same album, then the rest of the category playlist. Artist questions use other artists from the same playlist (same genre pool). Album questions prefer other album titles from the pool. Distractors use trimmed / case-insensitive matching so near-duplicates do not steal a slot. Padding to four options never duplicates the correct answer (only repeats wrong labels if the pool is tiny). Implemented in `apps/client/src/game/game-engine.js` (`generateAnswerOptions`).
+  - [ ] **Metadata validation & sanitization** — stronger checks at import or API (titles, artists, albums); larger minimum unique counts per category where data allows.
 
 - [ ] **Phase 3: UI / UX Polish**
   - [x] Animations & transitions — **partial:** Tailwind + custom CSS; ambient lyrics/notes; app-level reduced motion and large-tap targets.
@@ -135,4 +133,4 @@ Still intentionally narrow or simulated: full online matchmaking at scale, autho
 
 ---
 
-*Last updated: 2026-03-28 — client i18n, ambient effects, app preferences, social API hooks, roadmap/README Progress sync.*
+*Last updated: 2026-03-28 — plausible MCQ distractors in game engine; roadmap Phase 2 note.*

@@ -211,7 +211,7 @@ export class UIManager {
   // Reset answer buttons
   resetButtons() {
     this.answerButtons.forEach((btn) => {
-      btn.classList.remove("correct", "wrong", "selected", "timeout-correct");
+      btn.classList.remove("correct", "wrong", "selected", "timeout-correct", "hidden");
       btn.disabled = false;
       btn.querySelector(".answer-owner-badge")?.remove();
     });
@@ -265,9 +265,17 @@ export class UIManager {
   // Set answer options on buttons
   setAnswerOptions(options) {
     this.answerButtons.forEach((btn, i) => {
-      if (options[i]) {
-        btn.textContent = options[i];
-        btn.dataset.answer = options[i];
+      const v = options[i];
+      if (v != null && String(v).length > 0) {
+        btn.textContent = v;
+        btn.dataset.answer = v;
+        btn.classList.remove("hidden");
+        btn.disabled = false;
+      } else {
+        btn.textContent = "";
+        btn.dataset.answer = "";
+        btn.classList.add("hidden");
+        btn.disabled = true;
       }
     });
   }

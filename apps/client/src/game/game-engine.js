@@ -324,49 +324,104 @@ export class GameEngine {
     return { questionText, genreInfo, correctAnswer, questionType };
   }
 
-  // Generate answer options
+  // Generate answer options (plausible distractors: same-artist songs, same-genre artists, etc.)
   generateAnswerOptions() {
     const questionType = this.currentQuestionType || "artist";
     const currentTrack = this.currentTrack;
     const pool = Array.isArray(this.currentPlaylistTracks) ? this.currentPlaylistTracks : [];
-    const options = new Set([this.correctAnswer]);
+    const correct = this.correctAnswer;
 
-    const normalizedTitle = (title) => this.uiManager.cleanSongTitle(title || "");
-    const extract = (track) => {
-      if (questionType === "song") return normalizedTitle(track.title);
-      if (questionType === "album") return track.album?.title || "Unknown Album";
-      return track.artist || "Unknown Artist";
-    };
+    const normArtist = (a) =>
+      String(a || "")
+        .trim()
+        .toLowerCase();
+    const normAlbum = (a) =>
+      String(a || "")
+        .trim()
+        .toLowerCase();
+    const normSong = (title) => this.uiManager.cleanSongTitle(title || "");
 
-    const sameArtist = pool.filter(
-      (t) => t.artist === currentTrack.artist && t.id !== currentTrack.id
-    );
-    const sameAlbum = pool.filter(
-      (t) =>
-        t.album?.title && t.album?.title === currentTrack.album?.title && t.id !== currentTrack.id
-    );
+    const extractSong = (t) => normSong(t.title);
+    const extractArtist = (t) => String(t.artist || "").trim() || "Unknown Artist";
+    const extractAlbum = (t) => String(t.album?.title || "").trim() || "Unknown Album";
+    const extractGuitarist = (t) =>
+      String(t.guitarist || t.artist || "").trim() || "Unknown Artist";
 
-    const pushFrom = (list) => {
-      for (const t of this.uiManager.shuffleArray([...list])) {
-        const value = extract(t);
-        if (value && !options.has(value)) options.add(value);
+    const options = new Set([correct]);
+    const notCurrent = (t) => t.id !== currentTrack.id;
+
+    const pushFromTracks = (tracks, extractFn) => {
+      for (const t of this.uiManager.shuffleArray([...tracks])) {
+        const value = extractFn(t);
+        if (!value) continue;
+        if (questionType === "song" && normSong(value) === normSong(correct)) continue;
+        if (questionType === "artist" && normArtist(value) === normArtist(correct)) continue;
+        if (questionType === "album" && normAlbum(value) === normAlbum(correct)) continue;
+        if (questionType === "guitarist" && normArtist(value) === normArtist(correct)) continue;
+        if (!options.has(value)) options.add(value);
         if (options.size >= 4) break;
       }
     };
 
-    const otherTracks = pool.filter((t) => t.id !== currentTrack.id);
+    if (questionType === "song") {
+      const sameArtistOther = pool.filter(
+        (t) => notCurrent(t) && normArtist(t.artist) === normArtist(currentTrack.artist)
+      );
+      const sameAlbumOther = currentTrack.album?.title
+        ? pool.filter(
+            (t) =>
+              notCurrent(t) &&
+              t.album?.title &&
+              normAlbum(t.album.title) === normAlbum(currentTrack.album.title)
+          )
+        : [];
+      const restPool = pool.filter(notCurrent);
+      pushFromTracks(sameArtistOther, extractSong);
+      pushFromTracks(sameAlbumOther, extractSong);
+      pushFromTracks(restPool, extractSong);
+      pushFromTracks(this.playedTracks.filter(notCurrent), extractSong);
+    } else if (questionType === "artist") {
+      const otherArtistTracks = pool.filter(
+        (t) => notCurrent(t) && t.artist && normArtist(t.artist) !== normArtist(currentTrack.artist)
+      );
+      pushFromTracks(otherArtistTracks, extractArtist);
+      pushFromTracks(
+        this.playedTracks.filter(
+          (t) =>
+            notCurrent(t) && t.artist && normArtist(t.artist) !== normArtist(currentTrack.artist)
+        ),
+        extractArtist
+      );
+    } else if (questionType === "album") {
+      const otherAlbumTracks = pool.filter(
+        (t) => notCurrent(t) && t.album?.title && normAlbum(t.album.title) !== normAlbum(correct)
+      );
+      pushFromTracks(otherAlbumTracks, extractAlbum);
+      pushFromTracks(pool.filter(notCurrent), extractAlbum);
+      pushFromTracks(this.playedTracks.filter(notCurrent), extractAlbum);
+    } else if (questionType === "guitarist") {
+      const otherG = pool.filter(
+        (t) => notCurrent(t) && normArtist(extractGuitarist(t)) !== normArtist(correct)
+      );
+      pushFromTracks(otherG, extractGuitarist);
+      pushFromTracks(this.playedTracks.filter(notCurrent), extractGuitarist);
+    } else {
+      pushFromTracks(
+        pool.filter(
+          (t) =>
+            notCurrent(t) && t.artist && normArtist(t.artist) !== normArtist(currentTrack.artist)
+        ),
+        extractArtist
+      );
+    }
 
-    // Balanced default difficulty: mixed distractors with preference for close options
-    pushFrom(this.uiManager.shuffleArray([...sameArtist, ...sameAlbum]));
-    pushFrom(this.uiManager.shuffleArray([...otherTracks]));
-
-    // Last-resort fallback from previously played tracks (also from Deezer)
-    pushFrom(this.playedTracks.filter((t) => t.id !== currentTrack.id));
-
-    const finalOptions = [...options].slice(0, 4);
-    const recycle = finalOptions.length > 0 ? [...finalOptions] : [this.correctAnswer];
-    while (finalOptions.length < 4) {
-      finalOptions.push(recycle[finalOptions.length % recycle.length]);
+    let finalOptions = [...options];
+    finalOptions = finalOptions.slice(0, 4);
+    const wrongOnly = finalOptions.filter((o) => o !== correct);
+    let i = 0;
+    while (finalOptions.length < 4 && wrongOnly.length > 0) {
+      finalOptions.push(wrongOnly[i % wrongOnly.length]);
+      i++;
     }
 
     return this.uiManager.shuffleArray(finalOptions);
