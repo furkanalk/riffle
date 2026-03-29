@@ -1,7 +1,7 @@
 # Riffle Roadmap
 
-- **Current build:** `v0.5.0` (workspace; alpha-quality feature set)
-- **Current focus:** Stage 4 (infrastructure) with overlapping product work in Stages 2–3 and early Stage 6 experiments.
+- **Current build:** `v0.7.0-alpha` (workspace; alpha-quality feature set)
+- **Current focus:** Stage 4 (infrastructure) with overlapping product work in Stages 2–3 (client UX, i18n, social) and early Stage 6 experiments.
 
 This roadmap is organized by **capability maturity**, not linear feature completion. Stages may overlap intentionally as the platform evolves.
 
@@ -11,9 +11,9 @@ This roadmap is organized by **capability maturity**, not linear feature complet
 
 Delivered or materially improved since the last roadmap pass:
 
-- **Core API:** In-memory per-IP rate limiting on auth and leaderboard routes (`simpleRateLimit`); no extra npm dependency. Docker dev entrypoint mitigates stale `node_modules` under bind mounts.
+- **Core API:** In-memory per-IP rate limiting on auth and leaderboard routes (`simpleRateLimit`); no extra npm dependency. Docker dev entrypoint mitigates stale `node_modules` under bind mounts. Social-oriented REST endpoints (friends, presence, notifications) alongside existing auth/profile patterns.
 - **Matchmaker (Go):** `apps/game-engine` — HTTP health, WebSocket `/ws` for lobby state, optional Redis pub/sub for multi-instance fan-out. See [MATCHMAKER.md](./MATCHMAKER.md).
-- **Client:** Guest avatar gate, profile avatar/username for registered users, EN/TR i18n, leaderboard API integration (end-game podium + main menu preview), quick-play–style modes, localStorage lobby MVP and optional `?ws=1` matchmaker connection.
+- **Client:** Guest avatar gate, profile avatar/username for registered users, **EN/TR i18n** across main menu, categories/setup, lobby, and shared UI chrome; leaderboard API integration (end-game podium + main menu preview); quick-play–style modes; localStorage lobby MVP and optional `?ws=1` matchmaker connection. **App preferences** (language, music preview volume, reduced motion, larger touch targets) with `localStorage` persistence. **Ambient effects** module: drifting lyrics + cursor note particles on index, categories, and game (`ambient-effects.css` / `ambient-effects.js`); reduced motion hides lyrics layer; note layer uses a high z-index. **Main menu:** update/news card on mobile under cards; on desktop, same card **fixed bottom-right**. Settings panel no longer duplicates a “game setup” shortcut to categories (Play flow remains primary).
 - **Security / data:** Parameterized SQL, server-side username rules, JWT profile updates.
 
 Still intentionally narrow or simulated: full online matchmaking at scale, authoritative in-game sync, custom rooms listing, chaos/custom unlocked modes.
@@ -49,9 +49,9 @@ Still intentionally narrow or simulated: full online matchmaking at scale, autho
   - [ ] Metadata validation & sanitization.
 
 - [ ] **Phase 3: UI / UX Polish**
-  - [ ] Animations & transitions (Tailwind).
-  - [ ] Category filtering & navigation (beyond current category picker).
-  - [ ] Landing page & menu refinement — **partial:** favicon branding, mode grid, leaderboard preview, profile/auth panels, i18n.
+  - [x] Animations & transitions — **partial:** Tailwind + custom CSS; ambient lyrics/notes; app-level reduced motion and large-tap targets.
+  - [x] Category filtering & navigation — **partial:** type/era/artist filters, mobile filter sheets, category setup UX.
+  - [x] Landing page & menu refinement — **partial:** favicon branding, mode grid, leaderboard preview, profile/auth panels, i18n EN/TR, desktop news card placement, preferences panel.
 
 - [ ] **Phase 4: Accounts & Leaderboards (client + API)**
   - [x] REST leaderboard and score submission for authenticated users.
@@ -135,4 +135,4 @@ Still intentionally narrow or simulated: full online matchmaking at scale, autho
 
 ---
 
-*Last updated: roadmap refresh (matchmaker, rate limiting, client/leaderboard progress).*
+*Last updated: 2026-03-28 — client i18n, ambient effects, app preferences, social API hooks, roadmap/README Progress sync.*
