@@ -1,7 +1,7 @@
 // Category filtering and management
 
 import { getAllGenres } from "../core/music.js";
-import { t } from "../core/i18n.js";
+import { getLang, t, tVar } from "../core/i18n.js";
 import { selectedCategories } from "./state.js";
 
 /** Bumps when a new filter run starts so stale animation timeouts no-op (mobile). */
@@ -164,6 +164,9 @@ export function loadCategories() {
       toggleCategory(genre.id);
     });
   });
+
+  filterCategories(window.currentTypeFilter || "all");
+  initCategoryBulkSelect();
 }
 
 // Toggle category selection
@@ -181,6 +184,7 @@ export function toggleCategory(id) {
     selectedCategories.push(id);
   }
   syncCategoryCardStates();
+  refreshCategorySelectAllUI();
 
   // Animation for panel
   const selectionsPanel = document.getElementById("selections-panel");
@@ -192,28 +196,38 @@ export function toggleCategory(id) {
   }
 }
 
-/**
- * @param {string} [filter]
- * @param {{ preserveCatalogScroll?: boolean }} [options] If true, keep horizontal scroll (artist search typing).
- */
-export function filterCategories(filter, options = {}) {
-  const { preserveCatalogScroll = false } = options;
-  const typeFilter = String(filter || window.currentTypeFilter || "all").toLowerCase();
-  const eraFilter = String(window.currentEraFilter || "all").toLowerCase();
-  const cards = document.querySelectorAll(".category-card");
-  const emptyState = document.getElementById("categories-empty-state");
-  const cardsArray = Array.from(cards);
+const TYPE_FILTER_I18N = {
+  all: "selectAllTypeAll",
+  rock: "filterRock",
+  metal: "filterMetal",
+  mixed: "filterMixed",
+  turkish: "filterTurkish",
+  artist: "filterArtist",
+};
 
-  window.currentTypeFilter = typeFilter;
-  window.currentFilter = typeFilter; // keep backwards compatibility
+function labelForTypeFilter(typeFilter) {
+  const f = String(typeFilter || "all").toLowerCase();
+  const key = TYPE_FILTER_I18N[f];
+  return key ? t(`categoriesPage.${key}`) : f;
+}
+
+function labelForEraFilter(eraFilter) {
+  const e = String(eraFilter || "all").toLowerCase();
+  if (e === "all") return t("categoriesPage.eraAll");
+  if (e === "classic") return t("categoriesPage.eraClassic");
+  return e;
+}
+
+/** Same matching rules as {@link filterCategories} (by current type/era/search). */
+export function partitionCategoryCards() {
+  const typeFilter = String(window.currentTypeFilter || "all").toLowerCase();
+  const eraFilter = String(window.currentEraFilter || "all").toLowerCase();
+  const cardsArray = Array.from(document.querySelectorAll(".category-card"));
+  const searchQ = String(window.currentArtistSearch || "").trim().toLowerCase();
+  const artistSearchActive = typeFilter === "artist" && searchQ.length > 0;
 
   const cardsToShow = [];
   const cardsToHide = [];
-
-  const searchQ = String(window.currentArtistSearch || "")
-    .trim()
-    .toLowerCase();
-  const artistSearchActive = typeFilter === "artist" && searchQ.length > 0;
 
   cardsArray.forEach((card) => {
     const categoryType = card.dataset.category || "";
@@ -227,12 +241,137 @@ export function filterCategories(filter, options = {}) {
       matches = hay.includes(searchQ);
     }
 
-    if (matches) {
-      cardsToShow.push(card);
-    } else {
-      cardsToHide.push(card);
-    }
+    if (matches) cardsToShow.push(card);
+    else cardsToHide.push(card);
   });
+
+  return { cardsToShow, cardsToHide };
+}
+
+/** One tap: add every currently matching catalog card to the session selection. */
+export function selectAllMatchingVisible() {
+  const { cardsToShow } = partitionCategoryCards();
+  let added = 0;
+  for (const card of cardsToShow) {
+    const id = card.dataset.id;
+    if (!id || selectedCategories.includes(id)) continue;
+    selectedCategories.push(id);
+    added++;
+  }
+  if (added === 0) {
+    refreshCategorySelectAllUI();
+    return;
+  }
+  syncCategoryCardStates();
+  refreshCategorySelectAllUI();
+  document.dispatchEvent(new CustomEvent("riffle-categories-selection-changed"));
+  const selectionsPanel = document.getElementById("selections-panel");
+  if (selectionsPanel) {
+    selectionsPanel.classList.add("scale-105", "shadow-xl");
+    setTimeout(() => {
+      selectionsPanel.classList.remove("scale-105", "shadow-xl");
+    }, 300);
+  }
+}
+
+/** Clear the entire category selection (all filters / hidden cards included). */
+export function clearAllCategorySelections() {
+  if (selectedCategories.length === 0) {
+    refreshCategorySelectAllUI();
+    return;
+  }
+  selectedCategories.length = 0;
+  syncCategoryCardStates();
+  refreshCategorySelectAllUI();
+  document.dispatchEvent(new CustomEvent("riffle-categories-selection-changed"));
+  const selectionsPanel = document.getElementById("selections-panel");
+  if (selectionsPanel) {
+    selectionsPanel.classList.add("scale-105", "shadow-xl");
+    setTimeout(() => {
+      selectionsPanel.classList.remove("scale-105", "shadow-xl");
+    }, 300);
+  }
+}
+
+export function refreshCategorySelectAllUI() {
+  const btn = document.getElementById("category-select-all-visible");
+  const deselectBtn = document.getElementById("category-deselect-visible");
+  const hint = document.getElementById("category-select-all-hint");
+  const countEl = document.getElementById("category-select-all-count");
+  const labelEl = document.getElementById("category-select-all-label");
+  const deselectLabelEl = document.getElementById("category-deselect-visible-label");
+  if (!btn) return;
+
+  const lang = getLang();
+  const { cardsToShow } = partitionCategoryCards();
+  const n = cardsToShow.length;
+  const ids = cardsToShow.map((c) => c.dataset.id).filter(Boolean);
+  const allSelected = n > 0 && ids.every((id) => selectedCategories.includes(id));
+  const hasAnySelection = selectedCategories.length > 0;
+
+  btn.disabled = n === 0 || allSelected;
+  btn.setAttribute("aria-disabled", String(btn.disabled));
+
+  if (deselectBtn) {
+    deselectBtn.disabled = !hasAnySelection;
+    deselectBtn.setAttribute("aria-disabled", String(deselectBtn.disabled));
+  }
+
+  if (labelEl) {
+    labelEl.textContent = allSelected && n > 0 ? t("categoriesPage.selectAllReady", lang) : t("categoriesPage.selectAllInView", lang);
+  }
+
+  if (deselectLabelEl) {
+    deselectLabelEl.textContent = hasAnySelection
+      ? t("categoriesPage.clearSelection", lang)
+      : t("categoriesPage.clearSelectionNone", lang);
+  }
+
+  if (countEl) {
+    countEl.textContent = n > 0 ? ` (${n})` : "";
+    countEl.hidden = n === 0;
+  }
+
+  if (hint) {
+    const tf = String(window.currentTypeFilter || "all").toLowerCase();
+    const ef = String(window.currentEraFilter || "all").toLowerCase();
+    if (n === 0) {
+      hint.textContent = t("categoriesPage.selectAllNoMatches", lang);
+    } else {
+      hint.textContent = tVar(
+        "categoriesPage.selectAllHint",
+        {
+          type: labelForTypeFilter(tf),
+          era: labelForEraFilter(ef),
+          n: String(n),
+        },
+        lang,
+      );
+    }
+  }
+}
+
+export function initCategoryBulkSelect() {
+  const root = document.getElementById("category-bulk-select");
+  if (!root || root.dataset.bulkBound === "1") return;
+  root.dataset.bulkBound = "1";
+  document.getElementById("category-select-all-visible")?.addEventListener("click", () => selectAllMatchingVisible());
+  document.getElementById("category-deselect-visible")?.addEventListener("click", () => clearAllCategorySelections());
+}
+
+/**
+ * @param {string} [filter]
+ * @param {{ preserveCatalogScroll?: boolean }} [options] If true, keep horizontal scroll (artist search typing).
+ */
+export function filterCategories(filter, options = {}) {
+  const { preserveCatalogScroll = false } = options;
+  const typeFilter = String(filter || window.currentTypeFilter || "all").toLowerCase();
+  const emptyState = document.getElementById("categories-empty-state");
+
+  window.currentTypeFilter = typeFilter;
+  window.currentFilter = typeFilter; // keep backwards compatibility
+
+  const { cardsToShow, cardsToHide } = partitionCategoryCards();
 
   syncArtistSearchBar(typeFilter);
 
@@ -292,6 +431,8 @@ export function filterCategories(filter, options = {}) {
   if (!preserveCatalogScroll) {
     resetCategoryCatalogScroll();
   }
+
+  refreshCategorySelectAllUI();
 }
 
 export function setEraFilter(era) {

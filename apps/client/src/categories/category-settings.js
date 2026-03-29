@@ -1,7 +1,11 @@
 import { getAllGenres } from "../core/music.js";
 import { t, tVar } from "../core/i18n.js";
 import { sendChatMessage } from "./category-chat.js";
-import { filterCategories, toggleCategory } from "./category-filters.js"; // Importların doğru olduğundan emin ol
+import {
+  filterCategories,
+  refreshCategorySelectAllUI,
+  toggleCategory,
+} from "./category-filters.js"; // Importların doğru olduğundan emin ol
 import { getQuickPlayFixed, isQuickPlayMode } from "./quick-play.js";
 import { gameMode, selectedCategories } from "./state.js";
 
@@ -273,6 +277,7 @@ function updateModeTitle() {
 
 function updateCategoriesList() {
   const list = getEl("selected-categories-list");
+  const mobileText = getEl("mobile-selected-categories-text");
   if (!list) return;
 
   list.innerHTML = "";
@@ -283,6 +288,11 @@ function updateCategoriesList() {
     li.textContent = t("categoriesPage.noCategoriesSelected");
     list.appendChild(li);
 
+    if (mobileText) {
+      mobileText.textContent = t("categoriesPage.noCategoriesSelected");
+      mobileText.classList.add("mobile-selections-categories__text--empty");
+    }
+
     const startBtn = getEl("start-game");
     if (startBtn) startBtn.disabled = true;
     return;
@@ -292,9 +302,12 @@ function updateCategoriesList() {
   if (startBtn) startBtn.disabled = false;
 
   const allGenres = getAllGenres();
+  const names = [];
   selectedCategories.forEach((id) => {
     const genre = allGenres.find((g) => g.id === id);
     if (!genre) return;
+
+    names.push(genre.name);
 
     const li = document.createElement("li");
     li.className =
@@ -302,6 +315,11 @@ function updateCategoriesList() {
     li.innerHTML = `<span class="w-2 h-2 rounded-full bg-purple-400 mr-2"></span>${genre.name}`;
     list.appendChild(li);
   });
+
+  if (mobileText) {
+    mobileText.textContent = names.join(" · ");
+    mobileText.classList.remove("mobile-selections-categories__text--empty");
+  }
 }
 
 function updateSettingsSummary() {
@@ -430,10 +448,15 @@ document.addEventListener("DOMContentLoaded", () => {
 export function refreshCategoriesDynamicI18n() {
   applyModePageMeta();
   updateSelectionsSummary();
+  refreshCategorySelectAllUI();
   const banner = getEl("quick-play-banner");
   if (banner && isQuickPlayMode()) {
     banner.textContent = t(getQuickPlayFixed(gameMode).bannerKey);
   }
 }
+
+document.addEventListener("riffle-categories-selection-changed", () => {
+  updateSelectionsSummary();
+});
 
 export { setupGameModeSettings, loadSavedModeSettings, switchTab, updateSelectionsSummary };

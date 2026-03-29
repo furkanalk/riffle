@@ -506,7 +506,145 @@ button.avatar-option {
 
 .filter-chips--eras {
   margin-top: -0.35rem;
+  margin-bottom: 0.65rem;
+}
+
+/* Bulk select: all visible cards for current type + era (+ artist search) */
+.category-bulk-select {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
   margin-bottom: 1rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(124, 58, 237, 0.28);
+  background: linear-gradient(135deg, rgba(30, 16, 48, 0.65), rgba(12, 8, 24, 0.5));
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+}
+
+.category-bulk-select__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.category-bulk-select__row > .category-select-all-btn,
+.category-bulk-select__row > .category-deselect-visible-btn {
+  flex: 1 1 10rem;
+  min-width: 0;
+  width: auto;
+}
+
+.category-select-all-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  width: 100%;
+  padding: 0.62rem 0.85rem;
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: #faf5ff;
+  background: linear-gradient(120deg, rgba(124, 58, 237, 0.55), rgba(79, 70, 229, 0.45));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition:
+    opacity 0.2s,
+    transform 0.15s;
+}
+
+.category-select-all-btn:hover:not(:disabled) {
+  background: linear-gradient(120deg, rgba(139, 92, 246, 0.65), rgba(99, 102, 241, 0.55));
+}
+
+.category-select-all-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.category-select-all-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.category-deselect-visible-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  width: 100%;
+  padding: 0.62rem 0.85rem;
+  border: 1px solid rgba(244, 63, 94, 0.35);
+  border-radius: 0.75rem;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: #ffe4e6;
+  background: linear-gradient(145deg, rgba(76, 29, 29, 0.45), rgba(24, 12, 20, 0.55));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition:
+    opacity 0.2s,
+    transform 0.15s;
+}
+
+.category-deselect-visible-btn:hover:not(:disabled) {
+  border-color: rgba(251, 113, 133, 0.55);
+  background: linear-gradient(145deg, rgba(100, 40, 40, 0.55), rgba(32, 16, 24, 0.6));
+}
+
+.category-deselect-visible-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.category-deselect-visible-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.category-deselect-visible-btn__icon {
+  font-size: 1.05rem;
+  line-height: 1;
+  font-weight: 700;
+  filter: drop-shadow(0 0 6px rgba(251, 113, 133, 0.35));
+}
+
+.category-deselect-visible-btn__label {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+.category-select-all-btn__icon {
+  font-size: 0.95rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.35));
+}
+
+.category-select-all-btn__label {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+.category-select-all-btn__count {
+  font-weight: 800;
+  color: rgba(253, 224, 71, 0.95);
+}
+
+.category-select-all-hint {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: rgba(196, 181, 253, 0.72);
+  text-align: center;
 }
 
 /* Artist catalog search (shown when Type = Artist) */
@@ -830,6 +968,41 @@ button.avatar-option {
 .start-mobile {
   display: block;
 }
+
+/* Selected categories summary (sidebar hidden below 1024px; mirrors desktop list) */
+.mobile-selections-categories {
+  margin-bottom: 0.75rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(124, 58, 237, 0.28);
+  background: linear-gradient(145deg, rgba(18, 10, 32, 0.72), rgba(8, 8, 20, 0.65));
+}
+
+.mobile-selections-categories__label {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(196, 181, 253, 0.75);
+  margin-bottom: 0.35rem;
+}
+
+.mobile-selections-categories__text {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.45;
+  color: #f5f3ff;
+  word-break: break-word;
+}
+
+.mobile-selections-categories__text--empty {
+  font-weight: 600;
+  font-style: italic;
+  color: rgba(196, 181, 253, 0.85);
+}
+
 @media (min-width: 1024px) {
   .start-mobile {
     display: none;

@@ -317,6 +317,23 @@
             <button data-era-filter="classic" class="era-filter chip bg-purple-600 bg-opacity-40" data-riffle-i18n="categoriesPage.eraClassic">Classic</button>
           </div>
 
+          <div class="category-bulk-select" id="category-bulk-select">
+            <div class="category-bulk-select__row">
+              <button type="button" id="category-select-all-visible" class="category-select-all-btn" disabled
+                aria-describedby="category-select-all-hint" aria-disabled="true">
+                <span class="category-select-all-btn__icon" aria-hidden="true">✓</span>
+                <span id="category-select-all-label" class="category-select-all-btn__label" data-riffle-i18n="categoriesPage.selectAllInView"></span>
+                <span id="category-select-all-count" class="category-select-all-btn__count" hidden></span>
+              </button>
+              <button type="button" id="category-deselect-visible" class="category-deselect-visible-btn" disabled
+                aria-describedby="category-select-all-hint" aria-disabled="true">
+                <span class="category-deselect-visible-btn__icon" aria-hidden="true">×</span>
+                <span id="category-deselect-visible-label" class="category-deselect-visible-btn__label" data-riffle-i18n="categoriesPage.clearSelection"></span>
+              </button>
+            </div>
+            <p id="category-select-all-hint" class="category-select-all-hint" aria-live="polite"></p>
+          </div>
+
           <div id="category-artist-search-wrap" class="category-artist-search-wrap hidden">
             <label for="category-artist-search" class="category-artist-search__label" data-riffle-i18n="categoriesPage.searchArtistsLabel">Search artists</label>
             <input
@@ -363,6 +380,10 @@
 
         <!-- Start button (mobile — shown below categories) -->
         <div class="start-mobile">
+          <div id="mobile-selections-categories" class="mobile-selections-categories" aria-live="polite">
+            <span class="mobile-selections-categories__label" data-riffle-i18n="categoriesPage.summaryCategories">Categories</span>
+            <p id="mobile-selected-categories-text" class="mobile-selections-categories__text"></p>
+          </div>
           <div id="marathon-actions-mobile">
             <button id="start-game" class="start-btn" disabled>
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
