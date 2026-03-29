@@ -103,6 +103,9 @@ body.no-scroll {
   color: #c4b5fd;
   font-weight: 800;
 }
+.site-brand__by:empty {
+  display: none;
+}
 
 .back-link {
   display: flex;
@@ -506,6 +509,53 @@ button.avatar-option {
   margin-bottom: 1rem;
 }
 
+/* Artist catalog search (shown when Type = Artist) */
+.category-artist-search-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.85rem;
+}
+.category-artist-search-wrap.hidden {
+  display: none !important;
+}
+.category-artist-search__label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #c4b5fd;
+}
+.category-artist-search {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 2.65rem;
+  padding: 0.58rem 0.85rem;
+  border-radius: 0.72rem;
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  background: rgba(18, 10, 32, 0.75);
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  outline: none;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.category-artist-search::placeholder {
+  color: rgba(196, 181, 253, 0.45);
+  font-weight: 500;
+}
+.category-artist-search:focus {
+  border-color: rgba(167, 139, 250, 0.65);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+}
+
+.category-filter-mobile-triggers {
+  display: none;
+}
+
 .chip {
   padding: 0.35rem 0.875rem;
   border-radius: 9999px;
@@ -884,23 +934,17 @@ button.avatar-option {
     touch-action: manipulation;
   }
 
-  .filter-chips {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 0.25rem;
-    margin-bottom: 0.75rem;
-    scrollbar-width: none;
-    gap: 0.42rem;
-  }
-
-  .filter-chips--eras {
-    margin-top: -0.25rem;
-    margin-bottom: 0.7rem;
-  }
-
-  .filter-chips::-webkit-scrollbar {
+  /* Music category type/era filters: tap row → sheet (see initMobileCategoryFilterSheets) */
+  .settings-card--music-categories > .filter-chips,
+  .settings-card--music-categories > .filter-chips.filter-chips--eras {
     display: none;
+  }
+
+  .category-filter-mobile-triggers {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin-bottom: 0.75rem;
   }
 
   .chip {

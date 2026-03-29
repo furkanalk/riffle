@@ -1,4 +1,5 @@
 import { getAllGenres } from "../core/music.js";
+import { t, tVar } from "../core/i18n.js";
 import { sendChatMessage } from "./category-chat.js";
 import { filterCategories, toggleCategory } from "./category-filters.js"; // Importların doğru olduğundan emin ol
 import { getQuickPlayFixed, isQuickPlayMode } from "./quick-play.js";
@@ -6,42 +7,42 @@ import { gameMode, selectedCategories } from "./state.js";
 
 // --- CONSTANTS ---
 
-const MODE_LABELS = {
-  solo: "Marathon",
-  marathon: "Marathon",
-  coop: "Cooperative",
-  versus: "Versus",
-  team: "Team",
-  chaos: "Chaos",
-  custom: "Custom",
+const SELECTION_MODE_KEY = {
+  solo: "categoriesPage.selectionModeMarathon",
+  marathon: "categoriesPage.selectionModeMarathon",
+  coop: "categoriesPage.selectionModeCoop",
+  versus: "categoriesPage.selectionModeVersus",
+  team: "categoriesPage.selectionModeTeam",
+  chaos: "categoriesPage.selectionModeChaos",
+  custom: "categoriesPage.selectionModeCustom",
 };
 
-const VISIBILITY_LABELS = {
-  visible: "Answers Visible to All",
-  hidden: "Answers Hidden Until Round End",
-  individual: "Answers Only Visible to Answerer",
+const VISIBILITY_KEY = {
+  visible: "categoriesPage.visVisible",
+  hidden: "categoriesPage.visHidden",
+  individual: "categoriesPage.visIndividual",
 };
 
 const MODE_META = {
   solo: {
     icon: "🏃",
-    title: "Marathon Mode",
-    subtitle: "Endless run - one life, checkpoint boosts every 10 questions.",
+    titleKey: "categoriesPage.heroMarathonTitle",
+    subtitleKey: "categoriesPage.heroMarathonSub",
   },
   coop: {
     icon: "🤝",
-    title: "Co-op Mode",
-    subtitle: "Play together and keep the team streak alive.",
+    titleKey: "categoriesPage.heroCoopTitle",
+    subtitleKey: "categoriesPage.heroCoopSub",
   },
   versus: {
     icon: "⚔️",
-    title: "Solo VS Mode",
-    subtitle: "Fast duel format with quick rounds and instant scoring.",
+    titleKey: "categoriesPage.heroVersusTitle",
+    subtitleKey: "categoriesPage.heroVersusSub",
   },
   team: {
     icon: "🏆",
-    title: "Team VS Mode",
-    subtitle: "Two teams, short timers, tactical answer reveals.",
+    titleKey: "categoriesPage.heroTeamTitle",
+    subtitleKey: "categoriesPage.heroTeamSub",
   },
 };
 
@@ -113,8 +114,8 @@ function applyModePageMeta() {
   const titleEl = getEl("page-hero-title");
   const subEl = getEl("page-hero-sub");
   if (iconEl) iconEl.textContent = mode.icon;
-  if (titleEl) titleEl.textContent = mode.title;
-  if (subEl) subEl.textContent = mode.subtitle;
+  if (titleEl) titleEl.textContent = t(mode.titleKey);
+  if (subEl) subEl.textContent = t(mode.subtitleKey);
 }
 
 function configureTeamSizeFields() {
@@ -136,7 +137,7 @@ function configureQuickPlayLayout() {
   const banner = getEl("quick-play-banner");
   if (banner) {
     banner.classList.toggle("hidden", !quick);
-    if (quick) banner.textContent = quickRules.banner;
+    if (quick) banner.textContent = t(quickRules.bannerKey);
   }
 
   if (marathon) return;
@@ -266,7 +267,8 @@ function updateSelectionsSummary() {
 
 function updateModeTitle() {
   const modeDisplay = getEl("selection-game-mode");
-  if (modeDisplay) modeDisplay.textContent = `${MODE_LABELS[gameMode] || "Marathon"} Mode`;
+  const key = SELECTION_MODE_KEY[gameMode] || SELECTION_MODE_KEY.solo;
+  if (modeDisplay) modeDisplay.textContent = t(key);
 }
 
 function updateCategoriesList() {
@@ -278,7 +280,7 @@ function updateCategoriesList() {
   if (!selectedCategories || selectedCategories.length === 0) {
     const li = document.createElement("li");
     li.className = "text-purple-300 text-sm italic";
-    li.textContent = "No categories selected";
+    li.textContent = t("categoriesPage.noCategoriesSelected");
     list.appendChild(li);
 
     const startBtn = getEl("start-game");
@@ -307,19 +309,25 @@ function updateSettingsSummary() {
 
   const qEl = getEl("selection-questions");
   if (qEl) {
-    if (isMarathon) qEl.textContent = "Unlimited Questions (Checkpoint every 10)";
+    if (isMarathon) qEl.textContent = t("categoriesPage.summaryUnlimitedCp");
     else {
       const val = getEl("round-count")?.value;
-      qEl.textContent = val === "unlimited" ? "Unlimited Questions" : `${val} Questions`;
+      qEl.textContent =
+        val === "unlimited"
+          ? t("categoriesPage.summaryUnlimited")
+          : tVar("categoriesPage.summaryNQuestions", { n: val });
     }
   }
 
   const tEl = getEl("selection-time");
-  if (tEl) tEl.textContent = `${getEl("time-limit")?.value || "15"} seconds per answer`;
+  if (tEl) {
+    const sec = getEl("time-limit")?.value || "15";
+    tEl.textContent = tVar("categoriesPage.summarySecondsPerAnswer", { n: sec });
+  }
 
   const typeEl = getEl("selection-question-type");
   if (typeEl) {
-    typeEl.textContent = "Random (Song / Artist / Album)";
+    typeEl.textContent = t("categoriesPage.summaryRandomMixed");
   }
 
   const visCont = getEl("selection-visibility-container");
@@ -329,7 +337,8 @@ function updateSettingsSummary() {
     else {
       setVisibility(visCont, true, { display: "flex" });
       const val = getEl("answer-visibility")?.value || "visible";
-      visLabel.textContent = VISIBILITY_LABELS[val] || "Answers Visible to All";
+      const vk = VISIBILITY_KEY[val] || "categoriesPage.visVisible";
+      visLabel.textContent = t(vk);
     }
   }
 
@@ -340,7 +349,7 @@ function updateSettingsSummary() {
       setVisibility(livesCont, false);
     } else {
       setVisibility(livesCont, true, { display: "flex" });
-      livesLabel.textContent = "One Life Mode · +1 life every 10 questions";
+      livesLabel.textContent = t("categoriesPage.summaryOneLife");
     }
   }
 }
@@ -390,7 +399,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (link) {
         link.select();
         document.execCommand("copy");
-        alert("Invite link copied!");
+        alert(t("categoriesPage.alertInviteCopied"));
       }
     }
 
@@ -416,5 +425,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 });
+
+/** Re-apply hero + summary + quick-play banner after language change. */
+export function refreshCategoriesDynamicI18n() {
+  applyModePageMeta();
+  updateSelectionsSummary();
+  const banner = getEl("quick-play-banner");
+  if (banner && isQuickPlayMode()) {
+    banner.textContent = t(getQuickPlayFixed(gameMode).bannerKey);
+  }
+}
 
 export { setupGameModeSettings, loadSavedModeSettings, switchTab, updateSelectionsSummary };

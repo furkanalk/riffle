@@ -8,19 +8,19 @@ export const QUICK_PLAY_FIXED_BY_MODE = Object.freeze({
     rounds: "10",
     timeLimit: 15,
     answerVisibility: "visible",
-    banner: "Solo VS: 10 questions · 15s · live answers",
+    bannerKey: "categoriesPage.quickBannerVersus",
   }),
   coop: Object.freeze({
     rounds: "12",
     timeLimit: 20,
     answerVisibility: "visible",
-    banner: "Co-op: 12 questions · 20s · collaborate and climb",
+    bannerKey: "categoriesPage.quickBannerCoop",
   }),
   team: Object.freeze({
     rounds: "15",
     timeLimit: 12,
     answerVisibility: "hidden",
-    banner: "Team VS: 15 questions · 12s · answers revealed at round end",
+    bannerKey: "categoriesPage.quickBannerTeam",
   }),
 });
 

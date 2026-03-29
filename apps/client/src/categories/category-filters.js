@@ -1,7 +1,22 @@
 // Category filtering and management
 
 import { getAllGenres } from "../core/music.js";
+import { t } from "../core/i18n.js";
 import { selectedCategories } from "./state.js";
+
+/** Bumps when a new filter run starts so stale animation timeouts no-op (mobile). */
+let categoryFilterAnimGeneration = 0;
+
+function prefersInstantCategoryFilter() {
+  try {
+    return (
+      window.matchMedia("(min-width: 641px)").matches ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    );
+  } catch {
+    return true;
+  }
+}
 
 const TYPE_META = {
   rock: { label: "Rock", accentClass: "is-rock", icon: "🎸" },
@@ -45,6 +60,51 @@ function normalizeEra(era) {
   return String(era || "").toLowerCase();
 }
 
+/** Lowercase blob for artist search (name + optional aliases from genre data). */
+function genreSearchBlob(genre) {
+  const parts = [genre?.name, ...(Array.isArray(genre.searchAliases) ? genre.searchAliases : [])];
+  return parts.filter(Boolean).join(" ").toLowerCase();
+}
+
+function resetCategoryCatalogScroll() {
+  const el = document.querySelector(".cat-scroll-inner");
+  if (!el) return;
+  el.scrollLeft = 0;
+}
+
+function syncArtistSearchBar(typeFilter) {
+  const wrap = document.getElementById("category-artist-search-wrap");
+  const input = document.getElementById("category-artist-search");
+  if (!wrap) return;
+  const isArtist = String(typeFilter || "").toLowerCase() === "artist";
+  wrap.classList.toggle("hidden", !isArtist);
+  if (!isArtist && input) {
+    input.value = "";
+    window.currentArtistSearch = "";
+  }
+}
+
+/** Call once after DOM; debounced input re-runs filterCategories. */
+export function initCategoryArtistSearch() {
+  window.currentArtistSearch = window.currentArtistSearch || "";
+  const input = document.getElementById("category-artist-search");
+  if (!input) return;
+  let debounceTimer;
+  input.addEventListener("input", () => {
+    window.clearTimeout(debounceTimer);
+    debounceTimer = window.setTimeout(() => {
+      window.currentArtistSearch = input.value;
+      filterCategories(window.currentTypeFilter || "all", { preserveCatalogScroll: true });
+    }, 120);
+  });
+  input.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    input.value = "";
+    window.currentArtistSearch = "";
+    filterCategories(window.currentTypeFilter || "all");
+  });
+}
+
 // Load music categories
 export function loadCategories() {
   const categoriesGrid = document.getElementById("categories-grid");
@@ -69,6 +129,7 @@ export function loadCategories() {
     card.dataset.id = genre.id;
     card.dataset.category = categoryType;
     card.dataset.era = normalizeEra(genre.era);
+    card.dataset.searchText = genreSearchBlob(genre);
 
     card.innerHTML = `
       <div class="category-card__body">
@@ -131,8 +192,12 @@ export function toggleCategory(id) {
   }
 }
 
-// Filter categories by type
-export function filterCategories(filter) {
+/**
+ * @param {string} [filter]
+ * @param {{ preserveCatalogScroll?: boolean }} [options] If true, keep horizontal scroll (artist search typing).
+ */
+export function filterCategories(filter, options = {}) {
+  const { preserveCatalogScroll = false } = options;
   const typeFilter = String(filter || window.currentTypeFilter || "all").toLowerCase();
   const eraFilter = String(window.currentEraFilter || "all").toLowerCase();
   const cards = document.querySelectorAll(".category-card");
@@ -145,46 +210,87 @@ export function filterCategories(filter) {
   const cardsToShow = [];
   const cardsToHide = [];
 
+  const searchQ = String(window.currentArtistSearch || "")
+    .trim()
+    .toLowerCase();
+  const artistSearchActive = typeFilter === "artist" && searchQ.length > 0;
+
   cardsArray.forEach((card) => {
-    const categoryType = card.dataset.category;
+    const categoryType = card.dataset.category || "";
     const era = card.dataset.era || "";
-    const typeMatch = typeFilter === "all" || categoryType?.includes(typeFilter);
+    const typeMatch = typeFilter === "all" || categoryType.includes(typeFilter);
     const eraMatch = eraFilter === "all" || era === eraFilter;
 
-    if (typeMatch && eraMatch) {
+    let matches = typeMatch && eraMatch;
+    if (matches && artistSearchActive && categoryType.includes("artist")) {
+      const hay = card.dataset.searchText || "";
+      matches = hay.includes(searchQ);
+    }
+
+    if (matches) {
       cardsToShow.push(card);
     } else {
       cardsToHide.push(card);
     }
   });
 
-  // Hide Animation
-  cardsToHide.forEach((card, index) => {
-    setTimeout(() => {
-      card.classList.add("opacity-0", "scale-95"); // Fade out
-      setTimeout(() => {
-        card.style.display = "none";
-      }, 300);
-    }, index * 30);
-  });
+  syncArtistSearchBar(typeFilter);
 
-  // Show Animation
-  cardsToShow.forEach((card, index) => {
-    setTimeout(
-      () => {
-        card.style.display = "flex";
-        // Trigger reflow
-        void card.offsetWidth;
+  const instant = prefersInstantCategoryFilter();
 
-        card.classList.remove("opacity-0", "scale-95"); // Fade in
-        card.classList.add("opacity-100", "scale-100");
-      },
-      300 + index * 50
-    );
-  });
+  if (instant) {
+    // Desktop / reduced motion: one pass, no timers, no forced reflow — avoids UI jank.
+    for (const card of cardsToHide) {
+      card.style.display = "none";
+    }
+    for (const card of cardsToShow) {
+      card.style.display = "flex";
+      card.classList.remove("opacity-0", "scale-95");
+      card.classList.add("opacity-100", "scale-100");
+    }
+  } else {
+    const gen = ++categoryFilterAnimGeneration;
+    const isStale = () => gen !== categoryFilterAnimGeneration;
+
+    cardsToHide.forEach((card, index) => {
+      window.setTimeout(() => {
+        if (isStale()) return;
+        card.classList.add("opacity-0", "scale-95");
+        window.setTimeout(() => {
+          if (isStale()) return;
+          card.style.display = "none";
+        }, 300);
+      }, index * 30);
+    });
+
+    cardsToShow.forEach((card, index) => {
+      window.setTimeout(
+        () => {
+          if (isStale()) return;
+          card.style.display = "flex";
+          void card.offsetWidth;
+          card.classList.remove("opacity-0", "scale-95");
+          card.classList.add("opacity-100", "scale-100");
+        },
+        300 + index * 50
+      );
+    });
+  }
 
   if (emptyState) {
     emptyState.classList.toggle("hidden", cardsToShow.length > 0);
+    if (cardsToShow.length === 0) {
+      const sq = String(window.currentArtistSearch || "").trim();
+      if (typeFilter === "artist" && sq) {
+        emptyState.textContent = t("categoriesPage.emptyArtistSearch");
+      } else {
+        emptyState.textContent = t("categoriesPage.emptyCategoriesFilter");
+      }
+    }
+  }
+
+  if (!preserveCatalogScroll) {
+    resetCategoryCatalogScroll();
   }
 }
 

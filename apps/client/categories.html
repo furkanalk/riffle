@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-riffle-root>
 
 <head>
   <meta charset="UTF-8">
@@ -13,6 +13,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap"
     rel="stylesheet" />
   <link rel="stylesheet" href="./src/css/categories.css">
+  <link rel="stylesheet" href="./src/css/social.css">
 </head>
 
 <body>
@@ -21,6 +22,8 @@
   <div class="bg-glow bg-glow--purple"></div>
   <div class="bg-glow bg-glow--pink"></div>
   <div class="bg-glow bg-glow--blue"></div>
+  <div id="lyrics-bg" class="lyrics-bg" aria-hidden="true"></div>
+  <div id="note-particles" class="note-particles" aria-hidden="true"></div>
 
   <!-- Guest: pick avatar before lobby (first time / no selection) -->
   <div id="guest-avatar-modal" class="guest-avatar-modal hidden" role="dialog" aria-modal="true"
@@ -43,7 +46,8 @@
 
   <!-- ── HEADER ─────────────────────────────────────────────────────────── -->
   <header class="site-header">
-    <button id="mobile-history-back" class="mobile-history-back" type="button" aria-label="Go back">
+    <button id="mobile-history-back" class="mobile-history-back" type="button"
+      data-riffle-i18n="categoriesPage.mobileBackAria" data-riffle-i18n-attr="aria-label">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
       </svg>
@@ -51,7 +55,7 @@
     <a href="./index.html" class="site-brand">
       <img class="site-brand__logo" src="./assets/logo-new.png" alt="Redora logo" width="34" height="34" />
       <span class="site-brand__text">
-        <span class="site-brand__by">by</span> Redora
+        <span class="site-brand__by" data-riffle-i18n="main.brandBy"></span> Redora
       </span>
     </a>
 
@@ -64,7 +68,7 @@
             d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
-        Settings
+        <span data-riffle-i18n="categoriesPage.tabSettings"></span>
       </button>
     </div>
 
@@ -72,9 +76,43 @@
       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
       </svg>
-      <span class="hidden sm:inline">Main Menu</span>
+      <span class="hidden sm:inline" data-riffle-i18n="categoriesPage.mainMenu"></span>
     </a>
+
+    <div id="social-header-chrome" class="social-header-chrome social-header-chrome--categories" aria-label="Social">
+      <button type="button" id="friends-nav-btn" class="friends-nav-btn social-nav-btn--disabled" aria-label="Friends"
+        aria-disabled="true" title="You need to log in first.">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+          aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+      </button>
+      <div class="notif-wrap">
+        <button type="button" id="notif-bell-btn" class="notif-bell-btn social-nav-btn--disabled"
+          aria-label="Notifications" aria-expanded="false" aria-controls="notif-dropdown" aria-disabled="true"
+          title="You need to log in first.">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+          <span id="notif-bell-badge" class="notif-bell-badge hidden">0</span>
+        </button>
+      </div>
+    </div>
   </header>
+
+  <div id="notif-dropdown-backdrop" class="notif-dropdown-backdrop hidden" aria-hidden="true"></div>
+  <div id="notif-dropdown" class="notif-dropdown hidden" role="region"
+    data-riffle-i18n="aria.notifRegion" data-riffle-i18n-attr="aria-label">
+    <div class="notif-dropdown__head">
+      <span data-riffle-i18n="notifications.listHead"></span>
+      <button type="button" id="notif-mark-all-read" class="notif-mark-all" data-riffle-i18n="notifications.markAllRead"></button>
+    </div>
+    <div id="notif-dropdown-body" class="notif-dropdown__body"></div>
+    <p id="notif-dropdown-empty" class="notif-dropdown__empty hidden" data-riffle-i18n="notifications.empty"></p>
+  </div>
 
   <!-- ── MAIN ───────────────────────────────────────────────────────────── -->
   <main>
@@ -90,7 +128,7 @@
           <div id="page-hero-icon" class="page-hero__icon">🏃</div>
           <div>
             <h1 id="page-hero-title" class="page-hero__title">Marathon Mode</h1>
-            <p id="page-hero-sub" class="page-hero__sub">Endless run - guess songs, survive as long as you can.</p>
+            <p id="page-hero-sub" class="page-hero__sub">Endless run - one life, checkpoint boosts every 10 questions.</p>
           </div>
         </div>
 
@@ -104,7 +142,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            Game Settings
+            <span data-riffle-i18n="categoriesPage.gameSettings">Game Settings</span>
           </h2>
           <p id="quick-play-banner" class="quick-play-banner hidden" role="status">
             Quick match: 10 questions · 15s per answer · answers visible to everyone
@@ -114,22 +152,22 @@
 
             <!-- Rounds (non-marathon) -->
             <div class="setting-field" id="round-count-container">
-              <div id="marathon-badge" class="mode-badge hidden">Marathon Mode</div>
+              <div id="marathon-badge" class="mode-badge hidden" data-riffle-i18n="categoriesPage.marathonBadge">Marathon Mode</div>
               <label class="field-label">
                 <svg xmlns="http://www.w3.org/2000/svg" class="field-label__icon" fill="none" viewBox="0 0 24 24"
                   stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
                 </svg>
-                Number of Questions
+                <span data-riffle-i18n="categoriesPage.numQuestions">Number of Questions</span>
               </label>
               <select id="round-count" class="field-select">
-                <option value="5">5 Questions</option>
-                <option value="10" selected>10 Questions</option>
-                <option value="15">15 Questions</option>
-                <option value="20">20 Questions</option>
+                <option value="5" data-riffle-i18n="categoriesPage.roundOpt5">5 Questions</option>
+                <option value="10" selected data-riffle-i18n="categoriesPage.roundOpt10">10 Questions</option>
+                <option value="15" data-riffle-i18n="categoriesPage.roundOpt15">15 Questions</option>
+                <option value="20" data-riffle-i18n="categoriesPage.roundOpt20">20 Questions</option>
               </select>
-              <div id="marathon-unlimited-display" class="hidden field-unlimited">
+              <div id="marathon-unlimited-display" class="hidden field-unlimited" data-riffle-i18n="categoriesPage.unlimitedDisplay">
                 ∞ Unlimited Questions
               </div>
               <input type="hidden" id="marathon-round-count-hidden" value="unlimited">
@@ -137,16 +175,16 @@
 
             <!-- Marathon lives (fixed) -->
             <div class="setting-field" id="lives-container">
-              <div id="marathon-badge-lives" class="mode-badge hidden">Marathon Mode</div>
+              <div id="marathon-badge-lives" class="mode-badge hidden" data-riffle-i18n="categoriesPage.marathonBadge">Marathon Mode</div>
               <label class="field-label">
                 <svg xmlns="http://www.w3.org/2000/svg" class="field-label__icon" fill="none" viewBox="0 0 24 24"
                   stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
-                Lives
+                <span data-riffle-i18n="categoriesPage.lives">Lives</span>
               </label>
-              <div class="field-unlimited">
+              <div class="field-unlimited" data-riffle-i18n="categoriesPage.livesMarathonHint">
                 One Life Mode · +1 life every 10 questions
               </div>
             </div>
@@ -159,9 +197,9 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Question Mode
+                <span data-riffle-i18n="categoriesPage.questionMode">Question Mode</span>
               </label>
-              <p class="text-sm text-purple-200">
+              <p class="text-sm text-purple-200" data-riffle-i18n="categoriesPage.questionModeRandom">
                 Always random (Song / Artist / Album)
               </p>
             </div>
@@ -174,12 +212,12 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Answer Time
+                <span data-riffle-i18n="categoriesPage.answerTime">Answer Time</span>
               </label>
               <select id="time-limit" class="field-select">
-                <option value="10">10 s — Hard</option>
-                <option value="15" selected>15 s — Normal</option>
-                <option value="20">20 s — Easy</option>
+                <option value="10" data-riffle-i18n="categoriesPage.timeOpt10">10 s — Hard</option>
+                <option value="15" selected data-riffle-i18n="categoriesPage.timeOpt15">15 s — Normal</option>
+                <option value="20" data-riffle-i18n="categoriesPage.timeOpt20">20 s — Easy</option>
               </select>
             </div>
 
@@ -193,11 +231,11 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
-                Answer Visibility
+                <span data-riffle-i18n="categoriesPage.answerVisibility">Answer Visibility</span>
               </label>
               <select id="answer-visibility" class="field-select">
-                <option value="visible" selected>Show answers in real-time</option>
-                <option value="hidden">Reveal at round end</option>
+                <option value="visible" selected data-riffle-i18n="categoriesPage.visRealtime">Show answers in real-time</option>
+                <option value="hidden" data-riffle-i18n="categoriesPage.visRoundEnd">Reveal at round end</option>
               </select>
             </div>
 
@@ -209,14 +247,15 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                Co-op team size
+                <span data-riffle-i18n="categoriesPage.coopTeamSize">Co-op team size</span>
               </label>
-              <select id="coop-team-size" class="field-select" aria-label="Co-op team size max 5">
-                <option value="1">1 player</option>
-                <option value="2">2 players</option>
-                <option value="3">3 players</option>
-                <option value="4">4 players</option>
-                <option value="5" selected>5 players (max)</option>
+              <select id="coop-team-size" class="field-select"
+                data-riffle-i18n="categoriesPage.coopTeamAria" data-riffle-i18n-attr="aria-label">
+                <option value="1" data-riffle-i18n="categoriesPage.coopOpt1">1 player</option>
+                <option value="2" data-riffle-i18n="categoriesPage.coopOpt2">2 players</option>
+                <option value="3" data-riffle-i18n="categoriesPage.coopOpt3">3 players</option>
+                <option value="4" data-riffle-i18n="categoriesPage.coopOpt4">4 players</option>
+                <option value="5" selected data-riffle-i18n="categoriesPage.coopOpt5">5 players (max)</option>
               </select>
             </div>
 
@@ -228,9 +267,10 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 01-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 01-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 01-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                 </svg>
-                Team VS — players per side
+                <span data-riffle-i18n="categoriesPage.teamVsPerSide">Team VS — players per side</span>
               </label>
-              <select id="team-players-per-side" class="field-select" aria-label="Players per team up to 5">
+              <select id="team-players-per-side" class="field-select"
+                data-riffle-i18n="categoriesPage.teamVsAria" data-riffle-i18n-attr="aria-label">
                 <option value="1">1v1</option>
                 <option value="2">2v2</option>
                 <option value="3">3v3</option>
@@ -243,28 +283,30 @@
         </section>
 
         <!-- ── CATEGORIES ─────────────────────────────────────────────── -->
-        <section class="settings-card">
+        <section class="settings-card settings-card--music-categories">
           <h2 class="card-title">
             <svg xmlns="http://www.w3.org/2000/svg" class="card-title__icon" fill="none" viewBox="0 0 24 24"
               stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
             </svg>
-            Music Categories
+            <span data-riffle-i18n="categoriesPage.musicCategories">Music Categories</span>
           </h2>
+
+          <div id="category-filter-mobile-triggers" class="category-filter-mobile-triggers"></div>
 
           <!-- Filter chips -->
           <div class="filter-chips">
-            <button data-filter="all" class="category-filter chip chip--active">All</button>
-            <button data-filter="rock" class="category-filter chip bg-purple-600 bg-opacity-40">Rock</button>
-            <button data-filter="metal" class="category-filter chip bg-purple-600 bg-opacity-40">Metal</button>
-            <button data-filter="mixed" class="category-filter chip bg-purple-600 bg-opacity-40">Mixed</button>
-            <button data-filter="turkish" class="category-filter chip bg-purple-600 bg-opacity-40">Turkish</button>
-            <button data-filter="artist" class="category-filter chip bg-purple-600 bg-opacity-40">Artist</button>
+            <button data-filter="all" class="category-filter chip chip--active" data-riffle-i18n="categoriesPage.filterAll">All</button>
+            <button data-filter="rock" class="category-filter chip bg-purple-600 bg-opacity-40" data-riffle-i18n="categoriesPage.filterRock">Rock</button>
+            <button data-filter="metal" class="category-filter chip bg-purple-600 bg-opacity-40" data-riffle-i18n="categoriesPage.filterMetal">Metal</button>
+            <button data-filter="mixed" class="category-filter chip bg-purple-600 bg-opacity-40" data-riffle-i18n="categoriesPage.filterMixed">Mixed</button>
+            <button data-filter="turkish" class="category-filter chip bg-purple-600 bg-opacity-40" data-riffle-i18n="categoriesPage.filterTurkish">Turkish</button>
+            <button data-filter="artist" class="category-filter chip bg-purple-600 bg-opacity-40" data-riffle-i18n="categoriesPage.filterArtist">Artist</button>
           </div>
 
           <div class="filter-chips filter-chips--eras">
-            <button data-era-filter="all" class="era-filter chip chip--active">All Eras</button>
+            <button data-era-filter="all" class="era-filter chip chip--active" data-riffle-i18n="categoriesPage.eraAll">All Eras</button>
             <button data-era-filter="60s" class="era-filter chip bg-purple-600 bg-opacity-40">60s</button>
             <button data-era-filter="70s" class="era-filter chip bg-purple-600 bg-opacity-40">70s</button>
             <button data-era-filter="80s" class="era-filter chip bg-purple-600 bg-opacity-40">80s</button>
@@ -272,12 +314,27 @@
             <button data-era-filter="00s" class="era-filter chip bg-purple-600 bg-opacity-40">00s</button>
             <button data-era-filter="10s" class="era-filter chip bg-purple-600 bg-opacity-40">10s</button>
             <button data-era-filter="20s" class="era-filter chip bg-purple-600 bg-opacity-40">20s</button>
-            <button data-era-filter="classic" class="era-filter chip bg-purple-600 bg-opacity-40">Classic</button>
+            <button data-era-filter="classic" class="era-filter chip bg-purple-600 bg-opacity-40" data-riffle-i18n="categoriesPage.eraClassic">Classic</button>
+          </div>
+
+          <div id="category-artist-search-wrap" class="category-artist-search-wrap hidden">
+            <label for="category-artist-search" class="category-artist-search__label" data-riffle-i18n="categoriesPage.searchArtistsLabel">Search artists</label>
+            <input
+              type="search"
+              id="category-artist-search"
+              class="category-artist-search"
+              data-riffle-i18n-placeholder="categoriesPage.searchArtistsPh"
+              placeholder="Search artist or band name…"
+              autocomplete="off"
+              enterkeyhint="search"
+              spellcheck="false"
+            />
           </div>
 
           <!-- Scrollable category cards -->
           <div class="cat-scroll-wrap">
-            <button id="scroll-left" class="scroll-btn scroll-btn--left" aria-label="Scroll left">
+            <button id="scroll-left" class="scroll-btn scroll-btn--left"
+              data-riffle-i18n="categoriesPage.scrollLeft" data-riffle-i18n-attr="aria-label">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                 stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -285,11 +342,17 @@
             </button>
             <div class="overflow-x-auto hide-scrollbar cat-scroll-inner">
               <div class="flex space-x-4 py-2" id="categories-grid"></div>
-              <div id="categories-empty-state" class="categories-empty-state hidden" role="status">
+              <div
+                id="categories-empty-state"
+                class="categories-empty-state hidden"
+                role="status"
+                data-riffle-i18n="categoriesPage.emptyCategoriesFilter"
+              >
                 No categories found for this filter combo. Try another Type or Era.
               </div>
             </div>
-            <button id="scroll-right" class="scroll-btn scroll-btn--right" aria-label="Scroll right">
+            <button id="scroll-right" class="scroll-btn scroll-btn--right"
+              data-riffle-i18n="categoriesPage.scrollRight" data-riffle-i18n-attr="aria-label">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                 stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -309,13 +372,13 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              Start Game
+              <span data-riffle-i18n="categoriesPage.startGame">Start Game</span>
             </button>
-            <p class="start-hint">Select at least one category to start</p>
+            <p class="start-hint" data-riffle-i18n="categoriesPage.startHint">Select at least one category to start</p>
           </div>
           <div id="multiplayer-actions-mobile" class="team-actions mt-3 hidden">
-            <button id="settings-create-game" class="start-btn start-btn--secondary w-full" type="button">Create Game</button>
-            <button id="settings-search-game" class="start-btn start-btn--secondary w-full" type="button">Search Game</button>
+            <button id="settings-create-game" class="start-btn start-btn--secondary w-full" type="button" data-riffle-i18n="categoriesPage.createGame">Create Game</button>
+            <button id="settings-search-game" class="start-btn start-btn--secondary w-full" type="button" data-riffle-i18n="categoriesPage.searchGame">Search Game</button>
           </div>
         </div>
 
@@ -325,19 +388,19 @@
       <aside class="page-sidebar">
         <div id="selections-panel" class="summary-card">
 
-          <h3 class="summary-title">Your Selections</h3>
+          <h3 class="summary-title" data-riffle-i18n="categoriesPage.yourSelections">Your Selections</h3>
 
           <!-- Mode -->
           <div class="summary-row">
-            <span class="summary-label">Mode</span>
+            <span class="summary-label" data-riffle-i18n="categoriesPage.summaryMode">Mode</span>
             <span id="selection-game-mode" class="summary-value text-purple-300">Marathon Mode</span>
           </div>
 
           <!-- Categories -->
           <div class="summary-section">
-            <span class="summary-label">Categories</span>
+            <span class="summary-label" data-riffle-i18n="categoriesPage.summaryCategories">Categories</span>
             <ul id="selected-categories-list" class="summary-cats">
-              <li class="text-purple-300 text-sm italic">No categories selected</li>
+              <li class="text-purple-300 text-sm italic" data-riffle-i18n="categoriesPage.noCategoriesSelected">No categories selected</li>
             </ul>
           </div>
 
@@ -404,13 +467,13 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            Start Game
+            <span data-riffle-i18n="categoriesPage.startGame">Start Game</span>
           </button>
-          <p class="start-hint text-center mt-2" id="start-hint-desktop">Select at least one category</p>
+          <p class="start-hint text-center mt-2" id="start-hint-desktop" data-riffle-i18n="categoriesPage.startHintShort">Select at least one category</p>
         </div>
         <div id="multiplayer-actions-desktop" class="team-actions mt-3 hidden">
-          <button id="settings-create-game-desktop" class="start-btn start-btn--secondary w-full" type="button">Create Game</button>
-          <button id="settings-search-game-desktop" class="start-btn start-btn--secondary w-full" type="button">Search Game</button>
+          <button id="settings-create-game-desktop" class="start-btn start-btn--secondary w-full" type="button" data-riffle-i18n="categoriesPage.createGame">Create Game</button>
+          <button id="settings-search-game-desktop" class="start-btn start-btn--secondary w-full" type="button" data-riffle-i18n="categoriesPage.searchGame">Search Game</button>
         </div>
 
       </aside>
@@ -429,58 +492,61 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
-            Players
+            <span data-riffle-i18n="categoriesPage.playersTitle">Players</span>
           </h2>
           <button id="lobby-back-settings" class="lobby-back-link" type="button">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
             </svg>
-            <span>Back to Settings</span>
+            <span data-riffle-i18n="categoriesPage.backToSettings">Back to Settings</span>
           </button>
           <ul id="players-list" class="players-strip">
             <li class="player-chip">
               <span class="player-chip__avatar-wrap">
                 <img class="player-chip__avatar" src="./assets/avatars/avatar-1.png" alt="">
               </span>
-              <span class="player-chip__name">You • Host</span>
+              <span class="player-chip__name" data-riffle-i18n="categoriesPage.youHost">You • Host</span>
             </li>
             <li class="player-chip player-chip--placeholder">
               <span class="player-chip__avatar-wrap">
                 <span class="player-chip__avatar player-chip__avatar--empty">+</span>
               </span>
-              <span class="player-chip__name">Waiting...</span>
+              <span class="player-chip__name" data-riffle-i18n="categoriesPage.waiting">Waiting...</span>
             </li>
           </ul>
 
           <div class="invite-box mt-4">
-            <div class="text-xs text-purple-400 block mb-1">Room code</div>
+            <div class="text-xs text-purple-400 block mb-1" data-riffle-i18n="categoriesPage.roomCode">Room code</div>
             <div class="room-code-row">
               <input id="room-code-input" type="password"
                 class="flex-1 bg-transparent text-white text-sm outline-none px-2 py-2 rounded"
                 placeholder="------" maxlength="6" autocomplete="off" spellcheck="false" readonly />
-              <button id="toggle-room-code-visibility" class="copy-btn" type="button" title="Show room code">
+              <button id="toggle-room-code-visibility" class="copy-btn" type="button"
+                data-riffle-i18n="categoriesPage.roomCodeShow" data-riffle-i18n-attr="title">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                   <path
                     d="M12 5c5.23 0 9.11 3.44 10.5 6.5C21.11 14.56 17.23 18 12 18S2.89 14.56 1.5 11.5C2.89 8.44 6.77 5 12 5zm0 2C8.23 7 5.21 9.24 3.92 11.5 5.2 13.76 8.23 16 12 16s6.79-2.24 8.08-4.5C18.8 9.24 15.77 7 12 7zm0 1.75A2.75 2.75 0 1112 14.25 2.75 2.75 0 0112 8.75z" />
                 </svg>
               </button>
             </div>
-            <div class="text-[11px] text-purple-200 mt-2">
+            <div class="text-[11px] text-purple-200 mt-2" data-riffle-i18n="categoriesPage.roomCodeHint">
               Share this code or invite link with your friends.
             </div>
           </div>
 
           <div class="invite-box mt-4">
-            <span class="text-xs text-purple-400 block mb-1">Invite link</span>
+            <span class="text-xs text-purple-400 block mb-1" data-riffle-i18n="categoriesPage.inviteLink">Invite link</span>
             <div class="flex items-center gap-2">
               <input type="text" readonly id="invite-link" value="https://riffle.game/join/ABCDEF"
                 class="flex-1 bg-transparent text-white text-sm outline-none min-w-0 truncate">
-              <button id="share-invite" class="copy-btn" title="Share link">
+              <button id="share-invite" class="copy-btn"
+                data-riffle-i18n="categoriesPage.shareLink" data-riffle-i18n-attr="title">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M18 16a3 3 0 00-2.24 1.01l-6.21-3.11a3.02 3.02 0 000-1.8l6.2-3.1A3 3 0 1015 7a2.98 2.98 0 00.07.64l-6.2 3.1a3 3 0 100 4.52l6.2 3.1A3 3 0 1018 16z"/>
                 </svg>
               </button>
-              <button id="copy-invite" class="copy-btn" title="Copy link">
+              <button id="copy-invite" class="copy-btn"
+                data-riffle-i18n="categoriesPage.copyLink" data-riffle-i18n-attr="title">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
                   <path
@@ -490,35 +556,44 @@
             </div>
           </div>
 
+          <div id="lobby-friends-invite" class="lobby-friends-invite mt-4 hidden">
+            <div class="lobby-friends-invite__title" data-riffle-i18n="categoriesPage.inviteOnlineFriends">Invite online friends</div>
+            <div id="lobby-friends-invite-list"></div>
+            <p class="lobby-friends-invite__hint" data-riffle-i18n="categoriesPage.inviteOnlineHint">They get a notification with your lobby link. Online means logged in
+              recently (about 2 minutes).</p>
+          </div>
+
           <div id="team-setup" class="invite-box mt-4 hidden">
-            <div class="text-xs text-purple-400 block mb-2">Arena Teams</div>
+            <div class="text-xs text-purple-400 block mb-2" data-riffle-i18n="categoriesPage.arenaTeams">Arena Teams</div>
             <div class="arena-split-layout">
               <div id="arena-team-blue" class="arena-team-zone arena-team-zone--blue">
-                <div class="arena-team-zone__title">Blue Team</div>
+                <div class="arena-team-zone__title" data-riffle-i18n="categoriesPage.blueTeam">Blue Team</div>
                 <ul id="team-a-seats" class="arena-team-list"></ul>
               </div>
               <div id="arena-team-red" class="arena-team-zone arena-team-zone--red">
-                <div class="arena-team-zone__title">Red Team</div>
+                <div class="arena-team-zone__title" data-riffle-i18n="categoriesPage.redTeam">Red Team</div>
                 <ul id="team-b-seats" class="arena-team-list"></ul>
               </div>
             </div>
             <div class="arena-waiting mt-2">
-              <div class="arena-waiting__title">Waiting Area</div>
+              <div class="arena-waiting__title" data-riffle-i18n="categoriesPage.waitingArea">Waiting Area</div>
               <ul id="team-waiting-list" class="arena-waiting-list"></ul>
             </div>
-            <div class="text-[11px] text-purple-200 mt-2">Tap left/right arena to join a team.</div>
+            <div class="text-[11px] text-purple-200 mt-2" data-riffle-i18n="categoriesPage.arenaTapHint">Tap left/right arena to join a team.</div>
           </div>
 
           <div class="invite-box mt-4">
-            <div class="text-xs text-purple-400 block mb-2">Lobby Chat</div>
+            <div class="text-xs text-purple-400 block mb-2" data-riffle-i18n="categoriesPage.lobbyChat">Lobby Chat</div>
             <div id="chat-messages" class="chat-messages">
               <div class="chat-system-msg">
-                <span class="text-purple-400 font-semibold text-sm">System</span>
-                <span class="text-white ml-2">Lobby is live. Invite players and chat here.</span>
+                <span class="text-purple-400 font-semibold text-sm" data-riffle-i18n="categoriesPage.systemLabel">System</span>
+                <span class="text-white ml-2" data-riffle-i18n="categoriesPage.lobbySystemMsg">Lobby is live. Invite players and chat here.</span>
               </div>
             </div>
             <div class="chat-input-row mt-2">
-              <input type="text" id="chat-input" placeholder="Type a message..." class="chat-input">
+              <input type="text" id="chat-input" class="chat-input"
+                data-riffle-i18n-placeholder="categoriesPage.chatPlaceholder"
+                placeholder="Type a message...">
               <button id="send-message" class="chat-send" type="button">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                   <path
@@ -537,9 +612,9 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              Start Game
+              <span data-riffle-i18n="categoriesPage.startGame">Start Game</span>
             </button>
-            <p id="lobby-start-hint" class="start-hint text-center mt-2">Select categories and wait for players</p>
+            <p id="lobby-start-hint" class="start-hint text-center mt-2" data-riffle-i18n="categoriesPage.lobbyStartHint">Select categories and wait for players</p>
           </div>
         </div>
 
@@ -553,16 +628,17 @@
     <div class="mobile-select-sheet__backdrop" data-close-match-search="1"></div>
     <div class="mobile-select-sheet__panel">
       <div class="mobile-select-sheet__head">
-        <h3 class="mobile-select-sheet__title">Searching game...</h3>
-        <button id="cancel-match-search" type="button" class="mobile-select-sheet__close" aria-label="Cancel search">
+        <h3 class="mobile-select-sheet__title" data-riffle-i18n="categoriesPage.matchSearchTitle">Searching game...</h3>
+        <button id="cancel-match-search" type="button" class="mobile-select-sheet__close"
+          data-riffle-i18n="categoriesPage.matchSearchCancelAria" data-riffle-i18n-attr="aria-label">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
       <div class="chat-system-msg">
-        <span class="text-purple-400 font-semibold text-sm">Matchmaker</span>
-        <span class="text-white ml-2">Finding players with same mode and categories...</span>
+        <span class="text-purple-400 font-semibold text-sm" data-riffle-i18n="categoriesPage.matchmakerLabel">Matchmaker</span>
+        <span class="text-white ml-2" data-riffle-i18n="categoriesPage.matchSearchBody">Finding players with same mode and categories...</span>
       </div>
     </div>
   </div>
@@ -571,8 +647,9 @@
     <div class="mobile-select-sheet__backdrop" data-close-team-pick="1"></div>
     <div class="mobile-select-sheet__panel team-pick-panel">
       <div class="mobile-select-sheet__head">
-        <h3 class="mobile-select-sheet__title">Pick your team</h3>
-        <button id="team-pick-close" type="button" class="mobile-select-sheet__close" aria-label="Close">
+        <h3 class="mobile-select-sheet__title" data-riffle-i18n="categoriesPage.teamPickTitle">Pick your team</h3>
+        <button id="team-pick-close" type="button" class="mobile-select-sheet__close"
+          data-riffle-i18n="categoriesPage.teamPickCloseAria" data-riffle-i18n-attr="aria-label">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -580,11 +657,13 @@
       </div>
       <div id="team-pick-players" class="team-pick-players"></div>
       <div class="team-pick-actions">
-        <button id="team-pick-blue" type="button" class="team-pick-btn team-pick-btn--blue">Join Blue</button>
-        <button id="team-pick-red" type="button" class="team-pick-btn team-pick-btn--red">Join Red</button>
+        <button id="team-pick-blue" type="button" class="team-pick-btn team-pick-btn--blue" data-riffle-i18n="categoriesPage.teamPickBlue">Join Blue</button>
+        <button id="team-pick-red" type="button" class="team-pick-btn team-pick-btn--red" data-riffle-i18n="categoriesPage.teamPickRed">Join Red</button>
       </div>
     </div>
   </div>
+
+  <div id="riffle-social-toast" class="riffle-social-toast" role="status" aria-live="polite" aria-hidden="true"></div>
 
   <script type="module" src="./src/categories/module-import.js"></script>
 

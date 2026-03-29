@@ -1,34 +1,66 @@
+import "../css/ambient-effects.css";
+import "../css/app-preferences.css";
+import { initAmbientEffects } from "../core/ambient-effects.js";
+import { applyAppPreferenceClasses } from "../core/app-preferences.js";
 import { initRoomSim } from "../lobby/room-sim.js";
 import { sendChatMessage } from "./category-chat.js";
 import {
   debugCategories,
   filterCategories,
+  initCategoryArtistSearch,
   loadCategories,
   setEraFilter,
 } from "./category-filters.js";
 import { startGame } from "./category-game.js";
-import { setupGameModeSettings, switchTab, updateSelectionsSummary } from "./category-settings.js";
+import {
+  refreshCategoriesDynamicI18n,
+  setupGameModeSettings,
+  switchTab,
+  updateSelectionsSummary,
+} from "./category-settings.js";
 import { maybeShowGuestAvatarGate } from "./guest-avatar-gate.js";
 import { applyModeLayout } from "./mode-layout.js";
 import "./menu-navigation.js";
-import { applyCategoriesLanguage, getLang } from "../core/i18n.js";
+import { applyCategoriesPageLanguage, getLang, t } from "../core/i18n.js";
+import { initLobbyFriendInvites } from "../social/lobby-friend-invites.js";
+import { initSocialFeatures } from "../social/social-init.js";
 import { gameMode, selectedCategories } from "./state.js";
+
+/** Set in `initMobileCategoryFilterSheets` (mobile) so language changes can refresh trigger labels. */
+let syncMobileCategoryFilterTriggers = null;
 
 // Init DOM
 document.addEventListener("DOMContentLoaded", async () => {
-  applyCategoriesLanguage(getLang());
+  applyAppPreferenceClasses();
+  initAmbientEffects();
+  applyCategoriesPageLanguage(getLang());
   await maybeShowGuestAvatarGate();
   applyModeLayout();
   init();
+  window.addEventListener("riffle-lang-changed", () => {
+    applyCategoriesPageLanguage(getLang());
+    refreshCategoriesDynamicI18n();
+    filterCategories(window.currentTypeFilter || "all", { preserveCatalogScroll: true });
+    syncMobileCategoryFilterTriggers?.();
+    const sheet = document.getElementById("mobile-select-sheet");
+    const sheetTitle = document.getElementById("mobile-select-sheet-title");
+    const sheetClose = document.getElementById("mobile-select-sheet-close");
+    if (sheet?.classList.contains("hidden") && sheetTitle) {
+      sheetTitle.textContent = t("categoriesPage.selectPlaceholder");
+    }
+    if (sheetClose) sheetClose.setAttribute("aria-label", t("categoriesPage.sheetCloseAria"));
+  });
 });
 
 function init() {
+  initSocialFeatures({ categoriesOnly: true });
   initMobileBackButton();
   initModeActionLayout();
   initGameSettings();
   initStartButton();
   initLobbyStartMirror();
   initRoomSim();
+  initLobbyFriendInvites();
   initScrollButtons();
   initTouchInteractions();
   initMobileSelectSheet();
@@ -37,7 +69,26 @@ function init() {
   initInviteCopy();
   initChat();
   initCategoryFilters();
+  initMobileCategoryFilterSheets();
+  initCategoryArtistSearch();
   initTabs();
+  consumeCategoriesEntryIntent();
+}
+
+const RIFFLE_CATEGORIES_INITIAL_TAB_KEY = "riffle_categories_initial_tab";
+
+/** Main menu “Settings” card lands here and opens the game settings tab (not the account profile). */
+function consumeCategoriesEntryIntent() {
+  try {
+    const initial = sessionStorage.getItem(RIFFLE_CATEGORIES_INITIAL_TAB_KEY);
+    if (initial !== "settings") return;
+    sessionStorage.removeItem(RIFFLE_CATEGORIES_INITIAL_TAB_KEY);
+    const p = new URLSearchParams(window.location.search);
+    if (p.get("lobby") === "1" || p.get("search") === "1") return;
+    switchTab("settings");
+  } catch {
+    /* ignore */
+  }
 }
 
 function initMobileBackButton() {
@@ -62,7 +113,7 @@ function initLobbyStartMirror() {
   const sync = () => {
     lobbyBtn.disabled = realBtn.disabled;
     if (lobbyHint && sourceHint) {
-      lobbyHint.textContent = sourceHint.textContent || "Select categories and wait for players";
+      lobbyHint.textContent = sourceHint.textContent || t("categoriesPage.lobbyStartHint");
     }
   };
 
@@ -151,21 +202,16 @@ function initTouchInteractions() {
   // panel changes while horizontally scrolling/filtering on mobile.
 }
 
-function initMobileSelectSheet() {
-  if (window.matchMedia("(min-width: 641px)").matches) return;
+/** @type {HTMLSelectElement | null} */
+let mobileSelectSheetActiveSelect = null;
 
-  const selectIds = [
-    "round-count",
-    "time-limit",
-    "answer-visibility",
-    "coop-team-size",
-    "team-players-per-side",
-  ];
+function closeMobileSelectSheet() {
+  document.getElementById("mobile-select-sheet")?.classList.add("hidden");
+  document.body.classList.remove("no-scroll");
+  mobileSelectSheetActiveSelect = null;
+}
 
-  const selectElements = selectIds.map((id) => document.getElementById(id)).filter(Boolean);
-
-  if (selectElements.length === 0) return;
-
+function ensureMobileSelectSheetBase() {
   let sheet = document.getElementById("mobile-select-sheet");
   if (!sheet) {
     sheet = document.createElement("div");
@@ -186,27 +232,49 @@ function initMobileSelectSheet() {
       </div>
     `;
     document.body.appendChild(sheet);
+    const st = document.getElementById("mobile-select-sheet-title");
+    if (st) st.textContent = t("categoriesPage.selectPlaceholder");
+    document
+      .getElementById("mobile-select-sheet-close")
+      ?.setAttribute("aria-label", t("categoriesPage.sheetCloseAria"));
   }
+  if (sheet.dataset.sheetBound === "1") return;
+  sheet.dataset.sheetBound = "1";
+  document
+    .getElementById("mobile-select-sheet-close")
+    ?.addEventListener("click", closeMobileSelectSheet);
+  sheet.addEventListener("click", (e) => {
+    if (e.target?.dataset?.closeSheet === "1") closeMobileSelectSheet();
+  });
+}
 
+function initMobileSelectSheet() {
+  if (window.matchMedia("(min-width: 641px)").matches) return;
+
+  ensureMobileSelectSheetBase();
+
+  const selectIds = [
+    "round-count",
+    "time-limit",
+    "answer-visibility",
+    "coop-team-size",
+    "team-players-per-side",
+  ];
+
+  const selectElements = selectIds.map((id) => document.getElementById(id)).filter(Boolean);
+
+  const sheet = document.getElementById("mobile-select-sheet");
   const titleEl = document.getElementById("mobile-select-sheet-title");
   const optionsEl = document.getElementById("mobile-select-sheet-options");
-  const closeBtn = document.getElementById("mobile-select-sheet-close");
-  let activeSelect = null;
   const triggerMap = new Map();
 
-  const closeSheet = () => {
-    sheet.classList.add("hidden");
-    document.body.classList.remove("no-scroll");
-    activeSelect = null;
-  };
-
   const openSheetForSelect = (selectEl) => {
-    activeSelect = selectEl;
+    mobileSelectSheetActiveSelect = selectEl;
     const labelText =
       selectEl.closest(".setting-field")?.querySelector(".field-label")?.textContent?.trim() ||
-      "Select";
+      t("categoriesPage.selectPlaceholder");
     if (titleEl) titleEl.textContent = labelText;
-    if (!optionsEl) return;
+    if (!optionsEl || !sheet) return;
 
     optionsEl.innerHTML = "";
     Array.from(selectEl.options).forEach((opt) => {
@@ -218,10 +286,10 @@ function initMobileSelectSheet() {
         ${opt.value === selectEl.value ? '<span class="mobile-select-sheet__check">✓</span>' : ""}
       `;
       rowBtn.addEventListener("click", () => {
-        if (!activeSelect) return;
-        activeSelect.value = opt.value;
-        activeSelect.dispatchEvent(new Event("change", { bubbles: true }));
-        closeSheet();
+        if (!mobileSelectSheetActiveSelect) return;
+        mobileSelectSheetActiveSelect.value = opt.value;
+        mobileSelectSheetActiveSelect.dispatchEvent(new Event("change", { bubbles: true }));
+        closeMobileSelectSheet();
       });
       optionsEl.appendChild(rowBtn);
     });
@@ -229,6 +297,8 @@ function initMobileSelectSheet() {
     sheet.classList.remove("hidden");
     document.body.classList.add("no-scroll");
   };
+
+  if (selectElements.length === 0) return;
 
   selectElements.forEach((selectEl) => {
     const isMarathon = gameMode === "solo" || gameMode === "marathon";
@@ -242,7 +312,8 @@ function initMobileSelectSheet() {
     const trigger = document.createElement("button");
     trigger.type = "button";
     trigger.className = "mobile-select-trigger";
-    trigger.textContent = selectEl.options[selectEl.selectedIndex]?.textContent || "Select";
+    trigger.textContent =
+      selectEl.options[selectEl.selectedIndex]?.textContent || t("categoriesPage.selectPlaceholder");
     triggerMap.set(selectEl, trigger);
 
     trigger.addEventListener("click", () => {
@@ -251,15 +322,153 @@ function initMobileSelectSheet() {
     });
     selectEl.insertAdjacentElement("afterend", trigger);
     selectEl.addEventListener("change", () => {
-      const t = triggerMap.get(selectEl);
-      if (t) t.textContent = selectEl.options[selectEl.selectedIndex]?.textContent || "Select";
+      const trig = triggerMap.get(selectEl);
+      if (trig) {
+        trig.textContent =
+          selectEl.options[selectEl.selectedIndex]?.textContent || t("categoriesPage.selectPlaceholder");
+      }
     });
   });
+}
 
-  closeBtn?.addEventListener("click", closeSheet);
-  sheet.addEventListener("click", (e) => {
-    if (e.target?.dataset?.closeSheet === "1") closeSheet();
-  });
+/** Mobile: replace horizontal genre/era chips with tap → bottom sheet (same UX as setting selects). */
+function initMobileCategoryFilterSheets() {
+  if (window.matchMedia("(min-width: 641px)").matches) return;
+
+  const triggersRoot = document.getElementById("category-filter-mobile-triggers");
+  if (!triggersRoot) return;
+
+  const typeButtons = () => Array.from(document.querySelectorAll(".category-filter"));
+  const eraButtons = () => Array.from(document.querySelectorAll(".era-filter"));
+  if (typeButtons().length === 0 || eraButtons().length === 0) return;
+
+  ensureMobileSelectSheetBase();
+
+  const sheet = document.getElementById("mobile-select-sheet");
+  const titleEl = document.getElementById("mobile-select-sheet-title");
+  const optionsEl = document.getElementById("mobile-select-sheet-options");
+  if (!sheet || !titleEl || !optionsEl) return;
+
+  const typeTrigger = document.createElement("button");
+  typeTrigger.type = "button";
+  typeTrigger.className = "mobile-select-trigger";
+  typeTrigger.setAttribute("aria-haspopup", "dialog");
+
+  const eraTrigger = document.createElement("button");
+  eraTrigger.type = "button";
+  eraTrigger.className = "mobile-select-trigger";
+  eraTrigger.setAttribute("aria-haspopup", "dialog");
+
+  function findActiveTypeBtn() {
+    return (
+      document.querySelector(".category-filter.bg-purple-800") ||
+      document.querySelector(".category-filter.chip--active") ||
+      typeButtons()[0]
+    );
+  }
+
+  function findActiveEraBtn() {
+    return (
+      document.querySelector(".era-filter.bg-purple-800") ||
+      document.querySelector(".era-filter.chip--active") ||
+      eraButtons()[0]
+    );
+  }
+
+  function syncTriggerLabels() {
+    const tb = findActiveTypeBtn();
+    const eb = findActiveEraBtn();
+    typeTrigger.textContent = tb
+      ? `${t("categoriesPage.mobileStylePrefix")} ${tb.textContent.trim()}`
+      : t("categoriesPage.mobileStyleFallback");
+    eraTrigger.textContent = eb
+      ? `${t("categoriesPage.mobileEraPrefix")} ${eb.textContent.trim()}`
+      : t("categoriesPage.mobileEraFallback");
+  }
+
+  function applyTypeFilterUI(btn) {
+    typeButtons().forEach((b) => {
+      b.classList.remove("bg-purple-800", "bg-opacity-80", "chip--active");
+      b.classList.add("bg-purple-600", "bg-opacity-40");
+    });
+    btn.classList.remove("bg-purple-600", "bg-opacity-40");
+    btn.classList.add("bg-purple-800", "bg-opacity-80", "chip--active");
+    filterCategories(btn.dataset.filter);
+    syncTriggerLabels();
+  }
+
+  function applyEraFilterUI(btn) {
+    eraButtons().forEach((b) => {
+      b.classList.remove("bg-purple-800", "bg-opacity-80", "chip--active");
+      b.classList.add("bg-purple-600", "bg-opacity-40");
+    });
+    btn.classList.remove("bg-purple-600", "bg-opacity-40");
+    btn.classList.add("bg-purple-800", "bg-opacity-80", "chip--active");
+    setEraFilter(btn.dataset.eraFilter);
+    syncTriggerLabels();
+  }
+
+  function openTypeSheet() {
+    mobileSelectSheetActiveSelect = null;
+    titleEl.textContent = t("categoriesPage.sheetMusicStyle");
+    optionsEl.innerHTML = "";
+    const active = findActiveTypeBtn();
+    for (const btn of typeButtons()) {
+      const isActive =
+        btn === active ||
+        (btn.dataset.filter &&
+          active?.dataset?.filter &&
+          btn.dataset.filter === active.dataset.filter);
+      const rowBtn = document.createElement("button");
+      rowBtn.type = "button";
+      rowBtn.className = `mobile-select-sheet__option${isActive ? " is-active" : ""}`;
+      rowBtn.innerHTML = `
+        <span class="mobile-select-sheet__option-label">${btn.textContent.trim()}</span>
+        ${isActive ? '<span class="mobile-select-sheet__check">✓</span>' : ""}
+      `;
+      rowBtn.addEventListener("click", () => {
+        applyTypeFilterUI(btn);
+        closeMobileSelectSheet();
+      });
+      optionsEl.appendChild(rowBtn);
+    }
+    sheet.classList.remove("hidden");
+    document.body.classList.add("no-scroll");
+  }
+
+  function openEraSheet() {
+    mobileSelectSheetActiveSelect = null;
+    titleEl.textContent = t("categoriesPage.sheetEraTitle");
+    optionsEl.innerHTML = "";
+    const active = findActiveEraBtn();
+    for (const btn of eraButtons()) {
+      const isActive =
+        btn === active ||
+        (btn.dataset.eraFilter &&
+          active?.dataset?.eraFilter &&
+          btn.dataset.eraFilter === active.dataset.eraFilter);
+      const rowBtn = document.createElement("button");
+      rowBtn.type = "button";
+      rowBtn.className = `mobile-select-sheet__option${isActive ? " is-active" : ""}`;
+      rowBtn.innerHTML = `
+        <span class="mobile-select-sheet__option-label">${btn.textContent.trim()}</span>
+        ${isActive ? '<span class="mobile-select-sheet__check">✓</span>' : ""}
+      `;
+      rowBtn.addEventListener("click", () => {
+        applyEraFilterUI(btn);
+        closeMobileSelectSheet();
+      });
+      optionsEl.appendChild(rowBtn);
+    }
+    sheet.classList.remove("hidden");
+    document.body.classList.add("no-scroll");
+  }
+
+  triggersRoot.replaceChildren(typeTrigger, eraTrigger);
+  typeTrigger.addEventListener("click", openTypeSheet);
+  eraTrigger.addEventListener("click", openEraSheet);
+  syncTriggerLabels();
+  syncMobileCategoryFilterTriggers = syncTriggerLabels;
 }
 
 function initSettingsListeners() {
@@ -280,7 +489,7 @@ function initInviteCopy() {
     const link = document.getElementById("invite-link");
     link.select();
     document.execCommand("copy");
-    alert("Copy!");
+    alert(t("categoriesPage.alertCopyShort"));
   });
 }
 
@@ -352,7 +561,7 @@ function initMatchEntryActions() {
 
   const go = ({ search = false } = {}) => {
     if (selectedCategories.length === 0) {
-      alert("Please select at least one category!");
+      alert(t("categoriesPage.alertSelectCategory"));
       return;
     }
     const url = new URL(window.location.href);
