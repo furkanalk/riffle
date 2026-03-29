@@ -1,16 +1,29 @@
 // audio-manager.js
+
 import { getMusicPreviewVolume } from "../core/app-preferences.js";
 
 export class AudioManager {
   constructor() {
     this.musicPlayer = document.getElementById("music-player");
-    this.musicProgressTimer = null;
+    /** @type {number | null} requestAnimationFrame id for preview bar */
+    this._previewRafId = null;
     this.audioAnimationFrameId = null;
     this.currentTrack = null;
+    /** Last answer-window length (s); reused when resuming playback without an argument. */
+    this._previewWindowSec = 10;
     this._onMusicVolumeChanged = () => {
       if (this.musicPlayer) this.musicPlayer.volume = getMusicPreviewVolume();
     };
     window.addEventListener("riffle-music-volume-changed", this._onMusicVolumeChanged);
+
+    if (this.musicPlayer) {
+      this.musicPlayer.addEventListener("play", () => {
+        document.getElementById("album-cover")?.classList.remove("album-cover--audio-paused");
+      });
+      this.musicPlayer.addEventListener("pause", () => {
+        document.getElementById("album-cover")?.classList.add("album-cover--audio-paused");
+      });
+    }
   }
 
   // Initialize audio API in the browser before use
@@ -47,22 +60,14 @@ export class AudioManager {
     this.musicPlayer.volume = getMusicPreviewVolume();
   }
 
-  // Play music preview with enhanced effects
-  async playMusic() {
-    const albumCover = document.querySelector(".album-cover");
-    if (albumCover) {
-      albumCover.style.transition = "all 0.5s ease-in-out";
-      albumCover.style.transform = "scale(1.05)";
-      albumCover.style.boxShadow = "0 0 20px rgba(139, 92, 246, 0.7)";
-
-      setTimeout(() => {
-        albumCover.style.transform = "scale(1)";
-        albumCover.style.boxShadow = "0 8px 16px rgba(0, 0, 0, 0.5)";
-      }, 500);
+  /** @param {number} [previewWindowSec] Answer-window seconds; falls back to last round. */
+  async playMusic(previewWindowSec) {
+    if (typeof previewWindowSec === "number" && previewWindowSec > 0) {
+      this._previewWindowSec = previewWindowSec;
     }
 
     await this.attemptAutoplay();
-    this.startMusicDurationBar();
+    this.startMusicDurationBar(this._previewWindowSec);
     this.startMusicVisualizer();
   }
 
@@ -110,55 +115,75 @@ export class AudioManager {
     this.stopMusicVisualizer();
   }
 
+  _setPreviewTimerUi(remainingSec, fillRatio) {
+    const fill = document.getElementById("music-preview-progress");
+    const track = document.getElementById("music-preview-track");
+    const pct = Math.max(0, Math.min(100, fillRatio * 100));
+
+    if (fill) {
+      fill.style.width = `${pct}%`;
+    }
+    if (track) {
+      track.setAttribute("aria-valuenow", String(Math.round(pct)));
+      track.setAttribute(
+        "aria-valuetext",
+        `${Math.max(0, Math.ceil(remainingSec))} seconds remaining`
+      );
+    }
+  }
+
   // Reset music player
   resetMusicPlayer() {
     this.musicPlayer.pause();
     this.musicPlayer.currentTime = 0;
 
-    const musicProgress = document.getElementById("music-progress");
-    if (musicProgress) {
-      musicProgress.style.width = "100%";
-    }
+    this._setPreviewTimerUi(this._previewWindowSec, 1);
 
-    if (this.musicProgressTimer) {
-      clearInterval(this.musicProgressTimer);
-      this.musicProgressTimer = null;
+    if (this._previewRafId != null) {
+      cancelAnimationFrame(this._previewRafId);
+      this._previewRafId = null;
     }
 
     this.stopMusicVisualizer();
   }
 
-  // Start music duration bar
-  startMusicDurationBar() {
-    const musicProgress = document.getElementById("music-progress");
-    musicProgress.style.width = "100%";
+  // Preview countdown bar (synced to answer window; rAF avoids 100ms stepping)
+  startMusicDurationBar(musicDurationSec) {
+    const fill = document.getElementById("music-preview-progress");
+    if (!fill) return null;
 
-    const musicDuration = 10; // Default 10 seconds
-    let timeElapsed = 0;
+    const dur = Math.max(0.5, Number(musicDurationSec) || this._previewWindowSec);
 
-    if (this.musicProgressTimer) {
-      clearInterval(this.musicProgressTimer);
+    if (this._previewRafId != null) {
+      cancelAnimationFrame(this._previewRafId);
+      this._previewRafId = null;
     }
 
-    this.musicProgressTimer = setInterval(() => {
+    let timeElapsed = 0;
+    let lastTs = performance.now();
+    this._setPreviewTimerUi(dur, 1);
+
+    const tick = (now) => {
       if (!this.musicPlayer.paused) {
-        timeElapsed += 0.1;
-        const percentage = 100 - (timeElapsed / musicDuration) * 100;
-
-        if (musicProgress) {
-          musicProgress.style.width = `${percentage}%`;
-        }
-
-        if (timeElapsed >= musicDuration) {
-          clearInterval(this.musicProgressTimer);
-          if (musicProgress) {
-            musicProgress.style.width = "100%";
-          }
-        }
+        timeElapsed += (now - lastTs) / 1000;
+        timeElapsed = Math.min(timeElapsed, dur);
       }
-    }, 100);
+      lastTs = now;
 
-    return this.musicProgressTimer;
+      const remaining = Math.max(0, dur - timeElapsed);
+      const ratio = remaining / dur;
+      this._setPreviewTimerUi(remaining, ratio);
+
+      if (remaining <= 0) {
+        this._previewRafId = null;
+        this._setPreviewTimerUi(0, 0);
+        return;
+      }
+      this._previewRafId = requestAnimationFrame(tick);
+    };
+
+    this._previewRafId = requestAnimationFrame(tick);
+    return this._previewRafId;
   }
 
   // Create music visualizer

@@ -1,5 +1,6 @@
 // ui-manager.js
 import { avatarImgSrcFromRoot, DEFAULT_AVATAR_ID, normalizeAvatarId } from "../core/avatars.js";
+import { getLang, t, tVar } from "../core/i18n.js";
 import { submitScoreIfLoggedIn } from "../core/leaderboard-submit.js";
 
 function escapeHtml(s) {
@@ -31,6 +32,35 @@ function getFavoritesStorageKey() {
   }
 }
 
+/** Subline after a correct answer — needs enough rounds before “on fire” etc. */
+function roundCompletionDetailKeyCorrect(scoreData) {
+  const rounds = Number(scoreData?.rounds ?? 0);
+  const acc = Number(scoreData?.accuracy ?? 0);
+  if (rounds <= 1) return "gamePage.roundMsgCorrect1";
+  if (rounds === 2) return "gamePage.roundMsgCorrect2";
+  if (rounds < 5) {
+    return acc === 100 ? "gamePage.roundMsgCorrectEarlyPerfect" : "gamePage.roundMsgCorrectEarly";
+  }
+  if (rounds >= 6 && acc >= 80) return "gamePage.roundMsgCorrectHot";
+  if (rounds >= 5 && acc >= 65) return "gamePage.roundMsgCorrectStrong";
+  if (rounds >= 4 && acc >= 50) return "gamePage.roundMsgCorrectSolid";
+  return "gamePage.roundMsgCorrectNeutral";
+}
+
+function roundCompletionDetailKeyWrong(scoreData) {
+  const rounds = Number(scoreData?.rounds ?? 0);
+  const acc = Number(scoreData?.accuracy ?? 0);
+  if (rounds <= 2) return "gamePage.roundWrongEarly";
+  if (acc >= 60) return "gamePage.roundWrongStillGood";
+  return "gamePage.roundWrongMsg";
+}
+
+function roundCompletionDetailKeyTimeout(scoreData) {
+  const rounds = Number(scoreData?.rounds ?? 0);
+  if (rounds <= 2) return "gamePage.roundTimeUpEarly";
+  return "gamePage.roundTimeUpMsg";
+}
+
 function getFavoriteTrackKey(track) {
   if (track?.id !== undefined && track?.id !== null) {
     return `deezer:${String(track.id)}`;
@@ -53,6 +83,9 @@ function writeFavoriteTracks(items) {
 }
 
 export class UIManager {
+  /** Plak giriş animasyonu süresi (ms); şıklar bundan sonra sırayla gelir. */
+  static VINYL_INTRO_MS = 720;
+
   constructor() {
     this.answerButtons = document.querySelectorAll(".answer-btn");
     this.loadingScreen = document.getElementById("loading-screen");
@@ -62,6 +95,12 @@ export class UIManager {
     this.favToastTimer;
     /** @type {number | undefined} */
     this.favToastHideTimer;
+    /** @type {number | undefined} */
+    this._roundRevealStripTimer;
+    /** @type {number | undefined} */
+    this._vinylStripTimer;
+    /** @type {number | undefined} */
+    this._vinylPhaseStartMs;
   }
 
   async loadFinalModeLeaderboard(mode) {
@@ -208,6 +247,151 @@ export class UIManager {
     this.createMusicVisualizer();
   }
 
+  /** Clear question/answers and mark UI as “loading track” (vinyl + timer + şıklar hidden until reveal). */
+  prepareRoundFetchSurface() {
+    if (this._roundRevealStripTimer != null) {
+      clearTimeout(this._roundRevealStripTimer);
+      this._roundRevealStripTimer = undefined;
+    }
+    if (this._vinylStripTimer != null) {
+      clearTimeout(this._vinylStripTimer);
+      this._vinylStripTimer = undefined;
+    }
+    this._vinylPhaseStartMs = undefined;
+    const shell = document.getElementById("round-challenge-shell");
+    shell?.classList.remove(
+      "round-challenge-shell--reveal-play-surface",
+      "round-challenge-shell--vinyl-enter",
+      "round-challenge-shell--answers-prep"
+    );
+    shell?.classList.add("round-challenge-shell--awaiting-track");
+    const cover = document.getElementById("album-cover");
+    cover?.classList.remove("album-cover--load-spin", "album-cover--playing");
+    document
+      .getElementById("music-stage-cluster")
+      ?.classList.remove("music-stage__cluster--round-enter");
+
+    this.updateQuestion("", "");
+    this.answerButtons.forEach((btn) => {
+      btn.classList.remove(
+        "correct",
+        "wrong",
+        "selected",
+        "timeout-correct",
+        "answer-btn--round-enter"
+      );
+      btn.style.removeProperty("--answer-enter-delay");
+      btn.textContent = "";
+      btn.dataset.answer = "";
+      btn.classList.add("hidden");
+      btn.disabled = true;
+      btn.setAttribute("aria-hidden", "true");
+      btn.querySelector(".answer-owner-badge")?.remove();
+    });
+  }
+
+  /**
+   * Parça fetch ile paralel: önce plak + süre çubuğu animasyonu, plak hemen dönmeye başlar.
+   * Şıklar henüz yok; `setAnswerOptions` + `answers-prep` sonrası `revealRoundAnswersStagger` kullan.
+   */
+  beginRoundVinylPhase() {
+    this._vinylPhaseStartMs = performance.now();
+    const shell = document.getElementById("round-challenge-shell");
+    const cover = document.getElementById("album-cover");
+    if (!shell) return;
+
+    if (this._vinylStripTimer != null) {
+      clearTimeout(this._vinylStripTimer);
+      this._vinylStripTimer = undefined;
+    }
+
+    shell.classList.remove(
+      "round-challenge-shell--vinyl-enter",
+      "round-challenge-shell--answers-prep"
+    );
+    const cluster = document.getElementById("music-stage-cluster");
+    /* Plak + süre çubuğu tek cluster girişi; awaiting varken paused. disc-spin tur boyunca kalır. */
+    cover?.classList.remove("album-cover--audio-paused");
+    cluster?.classList.add("music-stage__cluster--round-enter");
+    void cluster?.offsetWidth;
+    shell.classList.remove("round-challenge-shell--awaiting-track");
+    cover?.classList.add("album-cover--disc-spin");
+
+    this._vinylStripTimer = window.setTimeout(() => {
+      this._vinylStripTimer = undefined;
+      cluster?.classList.remove("music-stage__cluster--round-enter");
+    }, UIManager.VINYL_INTRO_MS);
+  }
+
+  /** Vinil fazının başından beri geçen süre (şık gecikmesi hesabı için). */
+  getMsSinceRoundVinylStart() {
+    if (this._vinylPhaseStartMs == null) return UIManager.VINYL_INTRO_MS;
+    return performance.now() - this._vinylPhaseStartMs;
+  }
+
+  /** Vinil girişi bittikten sonra: şıklar yukarıdan aşağı (DOM sırası) teker teker. */
+  revealRoundAnswersStagger() {
+    const shell = document.getElementById("round-challenge-shell");
+    if (!shell) return;
+
+    shell.classList.remove("round-challenge-shell--answers-prep");
+    void shell.offsetWidth;
+
+    const visible = [...this.answerButtons].filter((b) => !b.classList.contains("hidden"));
+    const staggerMs = 72;
+    visible.forEach((btn, i) => {
+      btn.style.setProperty("--answer-enter-delay", `${i * staggerMs}ms`);
+      btn.classList.add("answer-btn--round-enter");
+    });
+
+    if (this._roundRevealStripTimer != null) {
+      clearTimeout(this._roundRevealStripTimer);
+    }
+    const stripAfterMs = Math.max(420, visible.length * staggerMs + 500);
+    this._roundRevealStripTimer = window.setTimeout(() => {
+      this._roundRevealStripTimer = undefined;
+      visible.forEach((btn) => {
+        btn.classList.remove("answer-btn--round-enter");
+        btn.style.removeProperty("--answer-enter-delay");
+      });
+    }, stripAfterMs);
+  }
+
+  /** Hata veya iptal: bekleyen tur yüzeyi sınıflarını sıfırla. */
+  abortRoundSurfaceLoadingState() {
+    if (this._roundRevealStripTimer != null) {
+      clearTimeout(this._roundRevealStripTimer);
+      this._roundRevealStripTimer = undefined;
+    }
+    if (this._vinylStripTimer != null) {
+      clearTimeout(this._vinylStripTimer);
+      this._vinylStripTimer = undefined;
+    }
+    this._vinylPhaseStartMs = undefined;
+    const shell = document.getElementById("round-challenge-shell");
+    shell?.classList.remove(
+      "round-challenge-shell--awaiting-track",
+      "round-challenge-shell--reveal-play-surface",
+      "round-challenge-shell--vinyl-enter",
+      "round-challenge-shell--answers-prep"
+    );
+    document
+      .getElementById("album-cover")
+      ?.classList.remove(
+        "album-cover--load-spin",
+        "album-cover--playing",
+        "album-cover--disc-spin",
+        "album-cover--audio-paused"
+      );
+    document
+      .getElementById("music-stage-cluster")
+      ?.classList.remove("music-stage__cluster--round-enter");
+    this.answerButtons.forEach((btn) => {
+      btn.classList.remove("answer-btn--round-enter");
+      btn.style.removeProperty("--answer-enter-delay");
+    });
+  }
+
   // Reset answer buttons
   resetButtons() {
     this.answerButtons.forEach((btn) => {
@@ -224,6 +408,11 @@ export class UIManager {
       timerBar.style.width = "100%";
       timerBar.style.backgroundColor = "";
       timerBar.textContent = "";
+    }
+    const expiredMsg = document.getElementById("timer-expired-msg");
+    if (expiredMsg) {
+      expiredMsg.textContent = "";
+      expiredMsg.classList.add("hidden");
     }
   }
 
@@ -243,14 +432,32 @@ export class UIManager {
   // Update round information display
   updateRoundInfo(currentRound, totalRounds, isUnlimited = false, checkpointInterval = 10) {
     const roundInfo = document.getElementById("round-info");
-    if (roundInfo) {
-      if (isUnlimited) {
-        const progressToCheckpoint = checkpointInterval - ((currentRound - 1) % checkpointInterval);
-        roundInfo.textContent = `Question ${currentRound} · +1 life in ${progressToCheckpoint}`;
-      } else {
-        roundInfo.textContent = `Question ${currentRound}/${totalRounds}`;
-      }
+    if (!roundInfo) return;
+    const lang = getLang();
+    if (isUnlimited) {
+      const k = checkpointInterval - ((currentRound - 1) % checkpointInterval);
+      roundInfo.textContent = tVar(
+        "gamePage.roundInfoUnlimited",
+        { n: String(currentRound), k: String(k) },
+        lang
+      );
+    } else {
+      roundInfo.textContent = tVar(
+        "gamePage.roundInfoFixed",
+        { n: String(currentRound), total: String(totalRounds) },
+        lang
+      );
     }
+  }
+
+  /** Brief highlight when Marathon checkpoint grants +1 life */
+  flashMarathonCheckpoint() {
+    const el = document.getElementById("lives-display");
+    if (!el) return;
+    el.classList.remove("lives-chip--checkpoint");
+    void el.offsetWidth;
+    el.classList.add("lives-chip--checkpoint");
+    window.setTimeout(() => el.classList.remove("lives-chip--checkpoint"), 1000);
   }
 
   // Update question display
@@ -271,11 +478,13 @@ export class UIManager {
         btn.dataset.answer = v;
         btn.classList.remove("hidden");
         btn.disabled = false;
+        btn.removeAttribute("aria-hidden");
       } else {
         btn.textContent = "";
         btn.dataset.answer = "";
         btn.classList.add("hidden");
         btn.disabled = true;
+        btn.setAttribute("aria-hidden", "true");
       }
     });
   }
@@ -433,23 +642,18 @@ export class UIManager {
     const lastAnswerCorrect = selectedAnswer?.classList.contains("correct");
     const timeoutOccurred = document.querySelector(".timeout-correct") !== null;
 
+    const lang = getLang();
     if (!selectedAnswer && timeoutOccurred) {
-      roundResult.textContent = "Time's Up!";
-      roundMessage.textContent = "You didn't select an answer in time.";
+      roundResult.textContent = t("gamePage.roundTimeUp", lang);
+      roundMessage.textContent = t(roundCompletionDetailKeyTimeout(scoreData), lang);
       roundResult.className = "text-4xl font-bold text-red-400";
     } else if (lastAnswerCorrect) {
-      roundResult.textContent = "Correct!";
-      if (scoreData.accuracy > 80) {
-        roundMessage.textContent = "You're on fire! Keep it up!";
-      } else if (scoreData.accuracy > 50) {
-        roundMessage.textContent = "Well done! You're doing great!";
-      } else {
-        roundMessage.textContent = "Correct! Keep improving!";
-      }
+      roundResult.textContent = t("gamePage.roundCorrect", lang);
+      roundMessage.textContent = t(roundCompletionDetailKeyCorrect(scoreData), lang);
       roundResult.className = "text-4xl font-bold text-yellow-400";
     } else if (selectedAnswer) {
-      roundResult.textContent = "Wrong Answer!";
-      roundMessage.textContent = "Better luck on the next one!";
+      roundResult.textContent = t("gamePage.roundWrong", lang);
+      roundMessage.textContent = t(roundCompletionDetailKeyWrong(scoreData), lang);
       roundResult.className = "text-4xl font-bold text-red-400";
     }
 
@@ -463,14 +667,25 @@ export class UIManager {
 
     // Update button text
     if (isGameOver) {
-      nextRoundBtn.textContent = "See Final Results";
+      nextRoundBtn.textContent = t("gamePage.roundSeeFinal", lang);
       if (scoreData.gameMode === "solo") {
-        roundResult.textContent = "Game Over!";
-        roundMessage.textContent = "You ran out of lives!";
+        roundResult.textContent = t("gamePage.roundGameOver", lang);
+        roundMessage.textContent = t("gamePage.roundOutOfLives", lang);
         roundResult.className = "text-4xl font-bold text-red-400";
       }
     } else {
-      nextRoundBtn.textContent = "Next Round";
+      nextRoundBtn.textContent = t("gamePage.roundNext", lang);
+    }
+
+    if (
+      !isGameOver &&
+      scoreData.marathonCheckpointBonus &&
+      (scoreData.gameMode === "solo" || scoreData.gameMode === "marathon")
+    ) {
+      const bonus = t("gamePage.marathonCheckpointLife", lang);
+      roundMessage.textContent = roundMessage.textContent
+        ? `${roundMessage.textContent} · ${bonus}`
+        : bonus;
     }
 
     // Set button click handler
@@ -733,7 +948,7 @@ export class UIManager {
       statsHTML += `
         <div class="bg-gray-800 rounded-lg p-4 text-center animate-fadeInUp" style="animation-delay: 0.4s">
           <p class="text-gray-400 text-sm">Lives Left</p>
-          <p class="text-2xl font-bold">${scoreData.totalLives === Infinity ? "∞" : scoreData.remainingLives}</p>
+          <p class="text-2xl font-bold">${scoreData.remainingLives}</p>
         </div>`;
     } else {
       statsHTML += `

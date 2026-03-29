@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-riffle-root>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -28,7 +28,7 @@
       <div class="w-64 h-2 bg-gray-800 rounded-full mx-auto overflow-hidden loading-track">
         <div id="loading-progress" class="h-full bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full" style="width: 0%"></div>
       </div>
-      <p class="mt-4 text-purple-300" id="loading-text">Loading music tracks...</p>
+      <p class="mt-4 text-purple-300" id="loading-text" data-riffle-i18n="gamePage.loadingTracks">Loading music tracks…</p>
     </div>
   </div>
 
@@ -59,7 +59,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-500 mr-1" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
         </svg>
-        <span id="lives-count" class="font-bold text-red-400">3</span>
+        <span id="lives-count" class="font-bold text-red-400">1</span>
       </div>
     </div>
   </header>
@@ -73,40 +73,58 @@
       <div class="timer-track">
         <div id="timer-bar" class="timer-bar progress-bar" style="width: 100%"></div>
       </div>
+      <p id="timer-expired-msg" class="timer-expired-msg hidden" aria-live="polite"></p>
     </div>
 
-    <!-- Album Art & Visualizer -->
-    <div class="music-stage">
-      <div class="album-cover pulse-animation">
-        <div class="album-cover__inner">
-          <!-- Audio Bar Visualizer -->
-          <div id="music-visualizer" class="w-full h-full flex items-center justify-center">
-            <div class="audio-bars-container flex items-center justify-center space-x-1 h-16">
-              <!-- Audio bars will be created dynamically with JavaScript -->
+    <div id="round-challenge-shell" class="round-challenge-shell">
+      <!-- Album Art & Visualizer -->
+      <div class="music-stage">
+        <div class="music-stage__cluster" id="music-stage-cluster">
+          <div class="album-cover" id="album-cover">
+            <div class="album-cover__enter-wrap">
+              <div class="album-cover__rotate" id="album-cover-rotate">
+                <div class="album-cover__art" id="album-cover-art" aria-hidden="true"></div>
+              </div>
+              <div class="album-cover__inner">
+                <div id="music-visualizer" class="w-full h-full flex items-center justify-center">
+                  <div class="audio-bars-container flex items-center justify-center space-x-1 h-16">
+                    <!-- Audio bars will be created dynamically with JavaScript -->
+                  </div>
+                </div>
+                <span class="album-cover__sticker" aria-hidden="true">Riffle</span>
+              </div>
+            </div>
+          </div>
+
+          <div id="music-duration-bar" class="duration-bar preview-timer-bar" role="group">
+            <div
+              id="music-preview-track"
+              class="preview-timer-bar__track"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="100"
+              aria-label="Preview time remaining"
+            >
+              <div id="music-preview-progress" class="preview-timer-bar__fill"></div>
             </div>
           </div>
         </div>
       </div>
-      
-      <!-- Duration Bar - Above the Disk (Higher position) -->
-      <div id="music-duration-bar" class="duration-bar">
-        <div id="music-progress" class="h-full bg-gradient-to-r from-purple-500 to-indigo-500" style="width: 100%"></div>
+
+      <!-- Question -->
+      <div class="question-panel">
+        <h2 id="question-text" class="text-3xl md:text-4xl font-bold mb-2 text-white"></h2>
+        <p id="genre-info" class="text-lg text-purple-300"></p>
       </div>
-    </div>
 
-    <!-- Question -->
-    <!-- This section needs to be updated with the correct question and genre information and should be dynamic and fetched from js, not static hardcoded here -->
-    <div class="question-panel">
-      <h2 id="question-text" class="text-3xl md:text-4xl font-bold mb-2 text-white">Which album is this track from?</h2>
-      <p id="genre-info" class="text-lg text-purple-300">70's Rock</p>
-    </div>
-
-    <!-- Answer Options -->
-    <div class="answers-grid">
-      <button class="answer-btn">Answer 1</button>
-      <button class="answer-btn">Answer 2</button>
-      <button class="answer-btn">Answer 3</button>
-      <button class="answer-btn">Answer 4</button>
+      <!-- Answer Options -->
+      <div class="answers-grid">
+        <button type="button" class="answer-btn hidden" disabled aria-hidden="true"></button>
+        <button type="button" class="answer-btn hidden" disabled aria-hidden="true"></button>
+        <button type="button" class="answer-btn hidden" disabled aria-hidden="true"></button>
+        <button type="button" class="answer-btn hidden" disabled aria-hidden="true"></button>
+      </div>
     </div>
 
     <!-- Players (For multiplayer modes) -->

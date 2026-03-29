@@ -173,20 +173,10 @@
               <input type="hidden" id="marathon-round-count-hidden" value="unlimited">
             </div>
 
-            <!-- Marathon lives (fixed) -->
+            <!-- Marathon: single fixed life rule (no alternate life modes) -->
             <div class="setting-field" id="lives-container">
               <div id="marathon-badge-lives" class="mode-badge hidden" data-riffle-i18n="categoriesPage.marathonBadge">Marathon Mode</div>
-              <label class="field-label">
-                <svg xmlns="http://www.w3.org/2000/svg" class="field-label__icon" fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-                <span data-riffle-i18n="categoriesPage.lives">Lives</span>
-              </label>
-              <div class="field-unlimited" data-riffle-i18n="categoriesPage.livesMarathonHint">
-                One Life Mode · +1 life every 10 questions
-              </div>
+              <p class="text-sm text-purple-200 leading-relaxed" data-riffle-i18n="categoriesPage.marathonLifeInfo"></p>
             </div>
 
             <!-- Question mode -->

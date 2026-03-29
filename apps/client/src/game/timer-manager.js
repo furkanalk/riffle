@@ -1,4 +1,6 @@
 // timer-manager.js
+import { getLang, t } from "../core/i18n.js";
+
 export class TimerManager {
   constructor() {
     this.timer = null;
@@ -21,6 +23,11 @@ export class TimerManager {
     this.timerBar.style.width = "100%";
     this.timerBar.style.backgroundColor = "";
     this.timerBar.textContent = "";
+    const expiredMsg = document.getElementById("timer-expired-msg");
+    if (expiredMsg) {
+      expiredMsg.textContent = "";
+      expiredMsg.classList.add("hidden");
+    }
 
     if (this.timer) {
       clearInterval(this.timer);
@@ -35,9 +42,14 @@ export class TimerManager {
 
       if (timeLeft <= 0) {
         clearInterval(this.timer);
-        this.timerBar.style.width = "100%";
+        this.timerBar.style.width = "0%";
         this.timerBar.style.backgroundColor = "#ef4444";
-        this.timerBar.textContent = "Süre Bitti";
+        this.timerBar.textContent = "";
+        const msg = document.getElementById("timer-expired-msg");
+        if (msg) {
+          msg.textContent = t("gamePage.roundTimeUp", getLang());
+          msg.classList.remove("hidden");
+        }
         if (!this.answerSelected && onTimeout) {
           onTimeout();
         }
@@ -63,6 +75,11 @@ export class TimerManager {
     this.timerBar.style.width = "100%";
     this.timerBar.style.backgroundColor = "";
     this.timerBar.textContent = "";
+    const expiredMsg = document.getElementById("timer-expired-msg");
+    if (expiredMsg) {
+      expiredMsg.textContent = "";
+      expiredMsg.classList.add("hidden");
+    }
     this.timeoutHandled = false;
     this.answerSelected = false;
   }

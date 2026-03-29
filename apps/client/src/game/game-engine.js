@@ -27,7 +27,7 @@ export class GameEngine {
       categories: [],
       questionType: "mixed",
       previewLength: 10,
-      lives: "3",
+      lives: "1",
     };
     this.playedTracks = [];
     this.currentPlaylistTracks = [];
@@ -93,6 +93,10 @@ export class GameEngine {
       }
     }
 
+    if (this.gameMode === "solo") {
+      this.settings.lives = "1";
+    }
+
     const avatar = normalizeAvatarId(this.settings.avatar || getEffectiveAvatarId());
     const avatarElement = document.getElementById("player-avatar");
     if (avatarElement) {
@@ -154,36 +158,56 @@ export class GameEngine {
         this.marathonCheckpointInterval
       );
 
-      // Reset UI for new round
-      this.uiManager.resetUI();
+      this.uiManager.prepareRoundFetchSurface();
+      this.uiManager.resetTimerDisplay();
+      this.uiManager.createMusicVisualizer();
       this.audioManager.createMusicVisualizer();
       this.timerManager.resetTimer();
 
-      // Get random track and source playlist for dynamic question generation
+      // Plak hemen (fetch ile paralel); kullanıcı beklemez, plak bu sırada döner
+      this.uiManager.beginRoundVinylPhase();
+
       const roundData = await this.getRandomTrack();
       const track = roundData.track;
       this.currentPlaylistTracks = roundData.playlistTracks;
       this.currentTrack = track;
       this.audioManager.setCurrentTrack(track);
 
-      // Prepare question
       const { questionText, genreInfo, correctAnswer, questionType } = this.prepareQuestion(track);
       this.correctAnswer = correctAnswer;
       this.currentQuestionType = questionType;
 
-      // Update question display
       this.uiManager.updateQuestion(questionText, genreInfo);
 
-      // Generate and set answer options
       const answerOptions = this.generateAnswerOptions();
+      const shell = document.getElementById("round-challenge-shell");
+      shell?.classList.add("round-challenge-shell--answers-prep");
       this.uiManager.setAnswerOptions(answerOptions);
 
-      // Start the round with delay
-      setTimeout(() => {
+      const waitAnswersMs = Math.max(
+        0,
+        UIManager.VINYL_INTRO_MS - this.uiManager.getMsSinceRoundVinylStart()
+      );
+      window.setTimeout(() => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            this.uiManager.revealRoundAnswersStagger();
+          });
+        });
+      }, waitAnswersMs);
+
+      const staggerMs = 72;
+      const answerKeyMs = 480;
+      const n = answerOptions.filter((v) => v != null && String(v).length > 0).length;
+      const answersAnimMs = n > 0 ? (n - 1) * staggerMs + answerKeyMs + 120 : 0;
+      const startRoundDelayMs = waitAnswersMs + answersAnimMs + 200;
+
+      window.setTimeout(() => {
         this.startRound();
-      }, 1000);
+      }, startRoundDelayMs);
     } catch (error) {
       console.error("Error starting new round:", error);
+      this.uiManager.abortRoundSurfaceLoadingState();
       alert("An error occurred while loading the track. Please try again.");
     }
   }
@@ -206,20 +230,10 @@ export class GameEngine {
 
   // Start the round (play music, start timers)
   startRound() {
-    // Visual effects
-    const pulseEffect = document.createElement("div");
-    pulseEffect.className = "fixed inset-0 bg-purple-900 bg-opacity-10 z-20";
-    document.body.appendChild(pulseEffect);
-
-    pulseEffect.animate([{ opacity: 0.2 }, { opacity: 0 }], {
-      duration: 800,
-      easing: "ease-out",
-    }).onfinish = () => pulseEffect.remove();
-
-    // Play music
-    this.audioManager.playMusic();
-
     const answerSec = this.getAnswerWindowSeconds();
+
+    // Play music (note strip length matches answer window)
+    this.audioManager.playMusic(answerSec);
     this.roundAnswerPhaseStartMs = performance.now();
 
     // Start timers
@@ -513,27 +527,27 @@ export class GameEngine {
 
   // Check game progress and decide next action
   checkGameProgress() {
-    // Check if game should end
     if (this.scoreManager.isGameOver()) {
       this.showRoundCompletionScreen(true);
       return;
     }
 
-    // Marathon checkpoint: every 10 completed questions grants +1 life.
+    let marathonCheckpointBonus = false;
     if (
       this.gameMode === "solo" &&
       this.scoreManager.getCurrentRound() > 0 &&
       this.scoreManager.getCurrentRound() % this.marathonCheckpointInterval === 0
     ) {
       this.scoreManager.addLife(1);
+      marathonCheckpointBonus = true;
+      this.uiManager.flashMarathonCheckpoint();
     }
 
-    // Show round completion screen
-    this.showRoundCompletionScreen();
+    this.showRoundCompletionScreen(false, marathonCheckpointBonus);
   }
 
   // Show round completion screen
-  showRoundCompletionScreen(isGameOver = false) {
+  showRoundCompletionScreen(isGameOver = false, marathonCheckpointBonus = false) {
     // Allow music to continue if not paused
     if (this.audioManager.musicPlayer.paused) {
       this.audioManager.stopMusicVisualizer();
@@ -547,6 +561,7 @@ export class GameEngine {
       avatar: this.settings.avatar || getEffectiveAvatarId(),
       totalRounds: this.totalRounds,
       players: this.scoreManager.players,
+      marathonCheckpointBonus,
     };
 
     // Show completion screen

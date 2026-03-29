@@ -135,6 +135,32 @@ const DICT = {
       coopTitle: "Co-op Mode",
       coopDesc: "Play together, keep the streak alive, and climb as one.",
     },
+    gamePage: {
+      loadingTracks: "Loading music tracks…",
+      roundInfoUnlimited: "Question {n} · +1 life in {k}",
+      roundInfoFixed: "Question {n}/{total}",
+      marathonCheckpointLife: "Checkpoint — +1 life!",
+      roundTimeUp: "Time's up!",
+      roundTimeUpMsg: "You didn't pick an answer in time.",
+      roundTimeUpEarly: "Ran out of time — jump in quicker on the next clip.",
+      roundCorrect: "Correct!",
+      roundMsgCorrect1: "Great start — one down!",
+      roundMsgCorrect2: "Two in a row. Nice ear!",
+      roundMsgCorrectEarlyPerfect: "Still spotless. Keep that energy.",
+      roundMsgCorrectEarly: "Nice — you're warming up.",
+      roundMsgCorrectHot: "You're on fire — this run is serious!",
+      roundMsgCorrectStrong: "Really sharp session. Don't let up!",
+      roundMsgCorrectSolid: "Solid work — stay locked in.",
+      roundMsgCorrectNeutral: "Correct. On to the next one.",
+      roundWrong: "Wrong!",
+      roundWrongMsg: "Next one will be yours.",
+      roundWrongEarly: "Not quite — you'll nail the next one.",
+      roundWrongStillGood: "Tough one — your overall run is still strong.",
+      roundGameOver: "Game over",
+      roundOutOfLives: "You're out of lives.",
+      roundNext: "Next question",
+      roundSeeFinal: "See final results",
+    },
     friends: {
       title: "Friends",
       desc: "Find people, accept requests, see who is online.",
@@ -200,8 +226,8 @@ const DICT = {
       roundOpt20: "20 Questions",
       marathonBadge: "Marathon Mode",
       unlimitedDisplay: "∞ Unlimited Questions",
-      lives: "Lives",
-      livesMarathonHint: "One Life Mode · +1 life every 10 questions",
+      marathonLifeInfo:
+        "You start with one life. Every 10 questions, a checkpoint restores +1 life.",
       questionMode: "Question Mode",
       questionModeRandom: "Always random (Song / Artist / Album)",
       answerTime: "Answer Time",
@@ -467,6 +493,32 @@ const DICT = {
       coopTitle: "Ko-op modu",
       coopDesc: "Birlikte oyna, seriyi koru, birlikte yüksel.",
     },
+    gamePage: {
+      loadingTracks: "Müzik parçaları yükleniyor…",
+      roundInfoUnlimited: "Soru {n} · {k} soru sonra +1 can",
+      roundInfoFixed: "Soru {n}/{total}",
+      marathonCheckpointLife: "Kontrol noktası — +1 can!",
+      roundTimeUp: "Süre doldu!",
+      roundTimeUpMsg: "Süre içinde seçim yapmadın.",
+      roundTimeUpEarly: "Süre yetmedi — bir sonraki önizlemeye daha çabuk dal.",
+      roundCorrect: "Doğru!",
+      roundMsgCorrect1: "Süper başlangıç — ilk soru tamam!",
+      roundMsgCorrect2: "İki doğru üst üste — kulakların sağlam!",
+      roundMsgCorrectEarlyPerfect: "Hâlâ hatasız — böyle devam.",
+      roundMsgCorrectEarly: "Güzel — ısınıyorsun.",
+      roundMsgCorrectHot: "Alev gibisin — seri ciddi gidiyor!",
+      roundMsgCorrectStrong: "Çok net bir oturum — bırakma!",
+      roundMsgCorrectSolid: "Sağlam gidiyorsun — konsantrasyonu koru.",
+      roundMsgCorrectNeutral: "Doğru — sırada yeni parça var.",
+      roundWrong: "Yanlış!",
+      roundWrongMsg: "Bir sonrakini alırsın.",
+      roundWrongEarly: "Tam isabet değil — sıradakini alırsın.",
+      roundWrongStillGood: "Zor bir soruydu — genel performansın hâlâ iyi.",
+      roundGameOver: "Oyun bitti",
+      roundOutOfLives: "Canların bitti.",
+      roundNext: "Sonraki soru",
+      roundSeeFinal: "Sonuçları gör",
+    },
     friends: {
       title: "Arkadaşlar",
       desc: "İnsanları bul, istekleri kabul et, kimlerin çevrimiçi olduğunu gör.",
@@ -532,8 +584,7 @@ const DICT = {
       roundOpt20: "20 soru",
       marathonBadge: "Maraton modu",
       unlimitedDisplay: "∞ Sınırsız soru",
-      lives: "Can",
-      livesMarathonHint: "Tek can modu · Her 10 soruda +1 can",
+      marathonLifeInfo: "Tek canla başlarsın. Her 10 soruda kontrol noktasında +1 can kazanırsın.",
       questionMode: "Soru modu",
       questionModeRandom: "Her zaman rastgele (Şarkı / Sanatçı / Albüm)",
       answerTime: "Cevap süresi",
@@ -775,6 +826,12 @@ export function applyCategoriesPageLanguage(lang = getLang()) {
   document.documentElement.setAttribute("lang", lang === "tr" ? "tr" : "en");
   applyDataRiffleI18n(document, lang);
   applyGuestAvatarModalStrings(lang);
+}
+
+/** game.html: `lang` and static `[data-riffle-i18n]` nodes. */
+export function applyGamePageLanguage(lang = getLang()) {
+  document.documentElement.setAttribute("lang", lang === "tr" ? "tr" : "en");
+  applyDataRiffleI18n(document, lang);
 }
 
 /** @deprecated use applyGuestAvatarModalStrings */

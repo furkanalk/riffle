@@ -27,15 +27,16 @@ export class ScoreManager {
   }
 
   // Initialize score manager with game settings
-  initialize(gameMode, settings) {
+  initialize(gameMode, _settings) {
     this.score = 0;
     this.correctCount = 0;
     this.currentRound = 0;
     this.responseTimeHistory = [];
 
-    if (settings.lives && gameMode === "solo") {
-      this.lives = settings.lives === "unlimited" ? Infinity : parseInt(settings.lives, 10);
-      this.remainingLives = this.lives;
+    if (gameMode === "solo") {
+      // Marathon: always exactly one starting life; checkpoints add more. No "unlimited lives".
+      this.lives = 1;
+      this.remainingLives = 1;
     }
 
     this.updateScoreHud();
@@ -45,12 +46,7 @@ export class ScoreManager {
 
     if (gameMode === "solo" && livesDisplay && livesCount) {
       livesDisplay.classList.remove("hidden");
-
-      if (this.lives === Infinity) {
-        livesCount.textContent = "∞";
-      } else {
-        livesCount.textContent = this.remainingLives;
-      }
+      livesCount.textContent = String(this.remainingLives);
     }
   }
 
@@ -78,25 +74,22 @@ export class ScoreManager {
 
   // Reduce lives (for Marathon mode)
   reduceLives() {
-    if (this.lives !== Infinity) {
-      this.remainingLives--;
-      document.getElementById("lives-count").textContent = this.remainingLives;
+    this.remainingLives--;
+    const livesCount = document.getElementById("lives-count");
+    if (livesCount) livesCount.textContent = String(this.remainingLives);
 
-      // Visual effect for losing a life
-      const livesDisplay = document.getElementById("lives-display");
-      if (livesDisplay) {
-        livesDisplay.classList.add("animate-pulse");
-        setTimeout(() => {
-          livesDisplay.classList.remove("animate-pulse");
-        }, 1000);
-      }
+    const livesDisplay = document.getElementById("lives-display");
+    if (livesDisplay) {
+      livesDisplay.classList.add("animate-pulse");
+      setTimeout(() => {
+        livesDisplay.classList.remove("animate-pulse");
+      }, 1000);
     }
     return this.remainingLives;
   }
 
   // Award a life on marathon checkpoints.
   addLife(points = 1) {
-    if (this.lives === Infinity) return this.remainingLives;
     this.remainingLives += points;
     const livesCount = document.getElementById("lives-count");
     if (livesCount) livesCount.textContent = this.remainingLives;
@@ -105,7 +98,7 @@ export class ScoreManager {
 
   // Check if game over (no lives left)
   isGameOver() {
-    return this.lives !== Infinity && this.remainingLives <= 0;
+    return this.remainingLives <= 0;
   }
 
   // Get current score
@@ -208,11 +201,7 @@ export class ScoreManager {
     this.updateScoreHud();
     const livesCount = document.getElementById("lives-count");
     if (livesCount) {
-      if (this.lives === Infinity) {
-        livesCount.textContent = "∞";
-      } else {
-        livesCount.textContent = this.remainingLives;
-      }
+      livesCount.textContent = String(this.remainingLives);
     }
   }
 

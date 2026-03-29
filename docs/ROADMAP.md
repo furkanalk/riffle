@@ -13,7 +13,7 @@ Delivered or materially improved since the last roadmap pass:
 
 - **Core API:** In-memory per-IP rate limiting on auth and leaderboard routes (`simpleRateLimit`); no extra npm dependency. Docker dev entrypoint mitigates stale `node_modules` under bind mounts. Social-oriented REST endpoints (friends, presence, notifications) alongside existing auth/profile patterns.
 - **Matchmaker (Go):** `apps/game-engine` — HTTP health, WebSocket `/ws` for lobby state, optional Redis pub/sub for multi-instance fan-out. See [MATCHMAKER.md](./MATCHMAKER.md).
-- **Client:** Guest avatar gate, profile avatar/username for registered users, **EN/TR i18n** across main menu, categories/setup, lobby, and shared UI chrome; leaderboard API integration (end-game podium + main menu preview); quick-play–style modes; localStorage lobby MVP and optional `?ws=1` matchmaker connection. **App preferences** (language, music preview volume, reduced motion, larger touch targets) with `localStorage` persistence. **Ambient effects** module: drifting lyrics + cursor note particles on index, categories, and game (`ambient-effects.css` / `ambient-effects.js`); reduced motion hides lyrics layer; note layer uses a high z-index. **Main menu:** update/news card on mobile under cards; on desktop, same card **fixed bottom-right**. Settings panel no longer duplicates a “game setup” shortcut to categories (Play flow remains primary).
+- **Client:** Guest avatar gate, profile avatar/username for registered users, **EN/TR i18n** across main menu, categories/setup, lobby, **game round / marathon UI** (`gamePage`), and shared UI chrome; leaderboard API integration (end-game podium + main menu preview); quick-play–style modes; localStorage lobby MVP and optional `?ws=1` matchmaker connection. **App preferences** (language, music preview volume, reduced motion, larger touch targets) with `localStorage` persistence. **Ambient effects** module: drifting lyrics + cursor note particles on index, categories, and game (`ambient-effects.css` / `ambient-effects.js`); reduced motion hides lyrics layer; note layer uses a high z-index. **Main menu:** update/news card on mobile under cards; on desktop, same card **fixed bottom-right**. Settings panel no longer duplicates a “game setup” shortcut to categories (Play flow remains primary).
 - **Security / data:** Parameterized SQL, server-side username rules, JWT profile updates.
 
 Still intentionally narrow or simulated: full online matchmaking at scale, authoritative in-game sync, custom rooms listing, chaos/custom unlocked modes.
@@ -40,7 +40,7 @@ Still intentionally narrow or simulated: full online matchmaking at scale, autho
 > *Making the game engaging, replayable, and user-friendly.*
 
 - [ ] **Phase 1: Advanced Gameplay Mechanics**
-  - [x] Marathon / extended modes — **basic** marathon-style flow (deeper tuning TBD).
+  - [x] **Marathon (solo) — v1 complete:** Unlimited or fixed **question count** from setup; **exactly one starting life** (no unlimited-lives mode); **+1 life every 10 questions** at checkpoints; game over at zero lives; checkpoint pulse + copy on the round summary; round HUD and summary strings **EN/TR** (`gamePage` in `i18n.js`). Optional tuning later: difficulty curve, marathon-specific leaderboards, anti-abuse.
 
 - [ ] **Phase 2: Smart Algorithms & Data Quality**
   - [x] **Plausible wrong answers (MCQ)** — **partial:** Song questions prefer other tracks by the same artist, then same album, then the rest of the category playlist. Artist questions use other artists from the same playlist (same genre pool). Album questions prefer other album titles from the pool. Distractors use trimmed / case-insensitive matching so near-duplicates do not steal a slot. Padding to four options never duplicates the correct answer (only repeats wrong labels if the pool is tiny). Implemented in `apps/client/src/game/game-engine.js` (`generateAnswerOptions`).
@@ -133,4 +133,4 @@ Still intentionally narrow or simulated: full online matchmaking at scale, autho
 
 ---
 
-*Last updated: 2026-03-28 — plausible MCQ distractors in game engine; roadmap Phase 2 note.*
+*Last updated: 2026-03-28 — Marathon v1 (checkpoint UX + game i18n); plausible MCQ distractors.*

@@ -161,6 +161,21 @@ body {
   margin-left: 0.2rem;
 }
 
+.lives-chip--checkpoint {
+  animation: lives-checkpoint-glow 1s ease-out;
+}
+
+@keyframes lives-checkpoint-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.55);
+    filter: brightness(1.15);
+  }
+  100% {
+    box-shadow: 0 0 0 12px rgba(34, 197, 94, 0);
+    filter: brightness(1);
+  }
+}
+
 .game-main {
   position: relative;
   z-index: 10;
@@ -192,18 +207,80 @@ body {
   background: linear-gradient(90deg, #ef4444, #f59e0b);
 }
 
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
+.timer-expired-msg {
+  margin: 0.4rem 0 0;
+  padding: 0;
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #f87171;
+}
+
+.round-challenge-shell {
+  position: relative;
+  width: 100%;
+  max-width: 780px;
+  isolation: isolate;
+}
+
+/* Track yüklenirken plak + önizleme süre çubuğu tek blok olarak gizli */
+.round-challenge-shell--awaiting-track .music-stage__cluster {
+  opacity: 0;
+  transform: scale(0.82) translateY(1.35rem);
+}
+
+.round-challenge-shell--awaiting-track .answer-btn:not(.hidden) {
+  opacity: 0;
+  transform: translateY(0.85rem);
+}
+
+/*
+ * Plak + süre çubuğu tek sarmalayıcıda giriş (transform plak atasının üstünde değil: dönüş katmanı .album-cover altında).
+ * awaiting sırasında paused → gizliyken timeline ilerlemez.
+ */
+.music-stage__cluster.music-stage__cluster--round-enter {
+  animation: music-stage-cluster-enter 0.68s cubic-bezier(0.22, 1, 0.32, 1) both;
+  animation-play-state: running;
+}
+
+.round-challenge-shell--awaiting-track .music-stage__cluster.music-stage__cluster--round-enter {
+  animation-play-state: paused;
+}
+
+/* Şıklar DOM’da hazır ama vinil bitene kadar görünmez */
+.round-challenge-shell--answers-prep .answer-btn:not(.hidden) {
+  opacity: 0;
+  transform: translateY(0.85rem);
+  pointer-events: none;
+}
+
+.answer-btn.answer-btn--round-enter {
+  animation: answer-round-enter 0.48s cubic-bezier(0.22, 1, 0.32, 1) both;
+  animation-delay: var(--answer-enter-delay, 0ms);
+}
+
+@keyframes music-stage-cluster-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.82) translateY(1.35rem);
   }
-  50% {
-    transform: scale(1.05);
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }
 
-.pulse-animation {
-  animation: pulse 2s infinite;
+@keyframes answer-round-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.85rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .progress-bar {
@@ -213,21 +290,158 @@ body {
 .music-stage {
   position: relative;
   margin: 0.7rem 0 1.3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.music-stage__cluster {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
 .album-cover {
+  position: relative;
   width: 11.5rem;
   height: 11.5rem;
   border-radius: 9999px;
-  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 16px 48px rgba(76, 29, 149, 0.45),
+    inset 0 2px 4px rgba(255, 255, 255, 0.09),
+    inset 0 -6px 16px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(120, 100, 170, 0.35);
+}
+
+.album-cover__enter-wrap {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 16px 48px rgba(76, 29, 149, 0.45);
-  border: 1px solid rgba(167, 139, 250, 0.25);
+}
+
+/* Küçük sabit 12h işareti — groove’ları kapatmaz, dönüşe referans */
+.album-cover__enter-wrap::after {
+  content: "";
+  position: absolute;
+  top: 0.2rem;
+  left: 50%;
+  width: 0.14rem;
+  height: 0.42rem;
+  margin-left: -0.07rem;
+  border-radius: 1px;
+  background: linear-gradient(180deg, rgba(230, 220, 255, 0.55), rgba(100, 80, 140, 0.35));
+  box-shadow: 0 0 6px rgba(196, 181, 253, 0.35);
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* Groove disk: spins under label; keep below inner (z-index) so ring stays visible */
+.album-cover__rotate {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  animation: album-vinyl-spin 48s linear infinite;
+  animation-play-state: paused;
+  will-change: transform;
+}
+
+/* Oyun turunda bir kez eklenir; süre sabit — duration değişmeden sadece play-state (reset yok) */
+.album-cover--disc-spin .album-cover__rotate {
+  animation-play-state: running;
+}
+
+/* Müzik durunca plak donar; sürdürünce kaldığı açıdan devam (animasyon yeniden başlamaz) */
+.album-cover--audio-paused .album-cover__rotate {
+  animation-play-state: paused !important;
+}
+
+@keyframes album-vinyl-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Outer ring: pure CSS vinyl (grooves, label band, sheen — no bitmap) */
+.album-cover__art {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background-color: #1a0a2e;
+  background-image:
+    /* Bold rotating wedge + ticks — obvious motion vs static outer ring */
+    conic-gradient(
+      from 18deg at 50% 50%,
+      transparent 0deg,
+      rgba(255, 255, 255, 0.14) 8deg,
+      rgba(255, 255, 255, 0.04) 16deg,
+      transparent 28deg,
+      transparent 100deg,
+      rgba(0, 0, 0, 0.22) 118deg,
+      rgba(0, 0, 0, 0.22) 124deg,
+      transparent 132deg
+    ),
+    conic-gradient(
+      from 228deg at 50% 50%,
+      transparent 0deg,
+      rgba(255, 255, 255, 0.07) 22deg,
+      transparent 48deg,
+      transparent 200deg,
+      rgba(255, 255, 255, 0.04) 218deg,
+      transparent 255deg
+    ),
+    radial-gradient(
+      circle at 50% 50%,
+      transparent 23%,
+      rgba(0, 0, 0, 0.45) 24%,
+      rgba(88, 28, 135, 0.55) 27%,
+      rgba(30, 15, 55, 0.65) 30.5%,
+      transparent 31.5%
+    ),
+    repeating-radial-gradient(
+      circle at 50% 50%,
+      rgba(0, 0, 0, 0.2) 0,
+      rgba(0, 0, 0, 0.2) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    repeating-radial-gradient(
+      circle at 50% 50%,
+      transparent 0,
+      transparent 5px,
+      rgba(0, 0, 0, 0.1) 5px,
+      rgba(0, 0, 0, 0.1) 6px
+    ),
+    radial-gradient(ellipse 118% 112% at 40% 36%, #6d28d9 0%, #4c1d95 38%, #2e1065 58%, #0f0618 88%);
+  background-size: cover, cover, cover, cover, cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.album-cover__rotate::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  background: linear-gradient(158deg, rgba(255, 255, 255, 0.08) 0%, transparent 48%);
+  mix-blend-mode: soft-light;
 }
 
 .album-cover__inner {
+  position: relative;
+  z-index: 2;
   width: 6rem;
   height: 6rem;
   border-radius: 9999px;
@@ -236,24 +450,70 @@ body {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  box-shadow:
+    inset 0 2px 12px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(167, 139, 250, 0.12);
 }
 
-.duration-bar {
+.album-cover__sticker {
+  position: absolute;
+  bottom: 0.32rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.42rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(196, 181, 253, 0.38);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .album-cover__rotate {
+    animation: none;
+  }
+
+  .round-challenge-shell--awaiting-track .music-stage__cluster,
+  .round-challenge-shell--awaiting-track .answer-btn:not(.hidden),
+  .round-challenge-shell--answers-prep .answer-btn:not(.hidden) {
+    opacity: 1;
+    transform: none;
+  }
+
+  .music-stage__cluster.music-stage__cluster--round-enter,
+  .answer-btn.answer-btn--round-enter {
+    animation: none !important;
+  }
+}
+
+.duration-bar.preview-timer-bar {
   position: absolute;
   left: 50%;
-  top: -1.3rem;
+  top: -1.55rem;
   transform: translateX(-50%);
   width: 11.5rem;
-  height: 0.55rem;
+  padding: 0.26rem 0.5rem;
   border-radius: 9999px;
-  overflow: hidden;
-  background: rgba(0, 0, 0, 0.58);
+  overflow: visible;
+  background: rgba(0, 0, 0, 0.52);
   border: 1px solid rgba(167, 139, 250, 0.28);
-  box-shadow: 0 0 14px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 0 14px rgba(139, 92, 246, 0.35);
 }
 
-#music-progress {
-  transition: width 0.1s linear;
+.preview-timer-bar__track {
+  width: 100%;
+  height: 0.52rem;
+  border-radius: 9999px;
+  overflow: hidden;
+  background: rgba(15, 23, 42, 0.75);
+}
+
+.preview-timer-bar__fill {
+  height: 100%;
+  width: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #c4b5fd, #818cf8 55%, #6366f1);
+  transition: none;
 }
 
 .question-panel {
@@ -280,6 +540,7 @@ body {
   display: grid;
   grid-template-columns: 1fr;
   gap: 0.7rem;
+  overflow: visible;
 }
 
 .answer-btn {
@@ -947,7 +1208,7 @@ body {
     width: 7.4rem;
     height: 7.4rem;
   }
-  .duration-bar {
+  .duration-bar.preview-timer-bar {
     width: 14.5rem;
   }
   .answers-grid {
