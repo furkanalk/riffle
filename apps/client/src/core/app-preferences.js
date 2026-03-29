@@ -31,7 +31,10 @@ function setVolumePercent(p) {
 export function applyAppPreferenceClasses() {
   const root = document.documentElement;
   try {
-    root.classList.toggle("riffle-reduced-motion", localStorage.getItem(STORAGE_REDUCED_MOTION) === "1");
+    root.classList.toggle(
+      "riffle-reduced-motion",
+      localStorage.getItem(STORAGE_REDUCED_MOTION) === "1"
+    );
     root.classList.toggle("riffle-large-tap", localStorage.getItem(STORAGE_LARGE_TAP) === "1");
   } catch {
     /* ignore */

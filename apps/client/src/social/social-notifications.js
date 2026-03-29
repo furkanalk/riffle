@@ -1,3 +1,4 @@
+import { applyDataRiffleI18n, getLang, t, tVar } from "../core/i18n.js";
 import {
   acceptFriendRequest,
   hasAuthToken,
@@ -5,7 +6,6 @@ import {
   markAllNotificationsRead,
   markNotificationRead,
 } from "./social-api.js";
-import { applyDataRiffleI18n, getLang, t, tVar } from "../core/i18n.js";
 import { isSocialGuest, maybeShowGuestSocialHint } from "./social-nav-state.js";
 import { showSocialToast } from "./social-toast.js";
 
@@ -85,8 +85,8 @@ function renderDropdown(data) {
 
     const meta = document.createElement("div");
     meta.className = "notif-item__meta";
-    const t = new Date(n.created_at);
-    meta.textContent = Number.isNaN(t.getTime()) ? "" : t.toLocaleString();
+    const createdAt = new Date(n.created_at);
+    meta.textContent = Number.isNaN(createdAt.getTime()) ? "" : createdAt.toLocaleString();
 
     const actions = document.createElement("div");
     actions.className = "notif-item__actions";
@@ -105,7 +105,9 @@ function renderDropdown(data) {
           const dataFresh = await refreshNotifications({ silent: true });
           if (dataFresh) renderDropdown(dataFresh);
         } catch (e) {
-          showSocialToast(e instanceof Error ? e.message : t("notifications.toastCouldNotAccept", getLang()));
+          showSocialToast(
+            e instanceof Error ? e.message : t("notifications.toastCouldNotAccept", getLang())
+          );
         }
       });
       actions.appendChild(accept);

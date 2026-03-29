@@ -1,5 +1,5 @@
-import { getLang, t } from "../core/i18n.js";
 import { avatarImgSrcFromRoot, DEFAULT_AVATAR_ID, normalizeAvatarId } from "../core/avatars.js";
+import { getLang, t } from "../core/i18n.js";
 
 function escapeHtml(s) {
   const d = document.createElement("div");

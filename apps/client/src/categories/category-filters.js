@@ -1,7 +1,7 @@
 // Category filtering and management
 
-import { getAllGenres } from "../core/music.js";
 import { getLang, t, tVar } from "../core/i18n.js";
+import { getAllGenres } from "../core/music.js";
 import { selectedCategories } from "./state.js";
 
 /** Bumps when a new filter run starts so stale animation timeouts no-op (mobile). */
@@ -223,7 +223,9 @@ export function partitionCategoryCards() {
   const typeFilter = String(window.currentTypeFilter || "all").toLowerCase();
   const eraFilter = String(window.currentEraFilter || "all").toLowerCase();
   const cardsArray = Array.from(document.querySelectorAll(".category-card"));
-  const searchQ = String(window.currentArtistSearch || "").trim().toLowerCase();
+  const searchQ = String(window.currentArtistSearch || "")
+    .trim()
+    .toLowerCase();
   const artistSearchActive = typeFilter === "artist" && searchQ.length > 0;
 
   const cardsToShow = [];
@@ -318,7 +320,10 @@ export function refreshCategorySelectAllUI() {
   }
 
   if (labelEl) {
-    labelEl.textContent = allSelected && n > 0 ? t("categoriesPage.selectAllReady", lang) : t("categoriesPage.selectAllInView", lang);
+    labelEl.textContent =
+      allSelected && n > 0
+        ? t("categoriesPage.selectAllReady", lang)
+        : t("categoriesPage.selectAllInView", lang);
   }
 
   if (deselectLabelEl) {
@@ -345,7 +350,7 @@ export function refreshCategorySelectAllUI() {
           era: labelForEraFilter(ef),
           n: String(n),
         },
-        lang,
+        lang
       );
     }
   }
@@ -355,8 +360,12 @@ export function initCategoryBulkSelect() {
   const root = document.getElementById("category-bulk-select");
   if (!root || root.dataset.bulkBound === "1") return;
   root.dataset.bulkBound = "1";
-  document.getElementById("category-select-all-visible")?.addEventListener("click", () => selectAllMatchingVisible());
-  document.getElementById("category-deselect-visible")?.addEventListener("click", () => clearAllCategorySelections());
+  document
+    .getElementById("category-select-all-visible")
+    ?.addEventListener("click", () => selectAllMatchingVisible());
+  document
+    .getElementById("category-deselect-visible")
+    ?.addEventListener("click", () => clearAllCategorySelections());
 }
 
 /**

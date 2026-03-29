@@ -1,8 +1,8 @@
 import "./css/ambient-effects.css";
 import "./css/main-menu-responsive.css";
 import "./css/app-preferences.css";
-import { initAmbientEffects } from "./core/ambient-effects.js";
 import { initAuthUI } from "./auth/auth-ui.js";
+import { initAmbientEffects } from "./core/ambient-effects.js";
 import { applyAppPreferenceClasses, initAppPreferencesPanel } from "./core/app-preferences.js";
 import { initLanguageControl } from "./core/i18n.js";
 import { initMainLeaderboardPreview } from "./menu/leaderboard-preview-ui.js";

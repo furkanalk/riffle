@@ -1,5 +1,5 @@
-import { getAllGenres } from "../core/music.js";
 import { t, tVar } from "../core/i18n.js";
+import { getAllGenres } from "../core/music.js";
 import { sendChatMessage } from "./category-chat.js";
 import {
   filterCategories,

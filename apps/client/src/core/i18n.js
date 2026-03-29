@@ -233,8 +233,7 @@ const DICT = {
       searchArtistsPh: "Search artist or band name…",
       scrollLeft: "Scroll left",
       scrollRight: "Scroll right",
-      emptyCategoriesFilter:
-        "No categories found for this filter combo. Try another Type or Era.",
+      emptyCategoriesFilter: "No categories found for this filter combo. Try another Type or Era.",
       emptyArtistSearch:
         "No artists match your search. Try different keywords or clear the search.",
       selectAllInView: "Select all in view",
@@ -441,7 +440,8 @@ const DICT = {
       learnMoreTitle: "Riffle hakkında",
       learnMoreBack: "Ana menü",
       supportCardTitle: "Buy Me a Coffee",
-      supportCardText: "Riffle’ı seviyorsan desteğin yeni modlar ve özellikler için bize yardım eder.",
+      supportCardText:
+        "Riffle’ı seviyorsan desteğin yeni modlar ve özellikler için bize yardım eder.",
       deezerEyebrow: "Deezer",
       deezerTitle: "Müzik için teşekkürler",
       deezerText:
@@ -565,8 +565,7 @@ const DICT = {
       searchArtistsPh: "Sanatçı veya grup adı…",
       scrollLeft: "Sola kaydır",
       scrollRight: "Sağa kaydır",
-      emptyCategoriesFilter:
-        "Bu filtreyle eşleşen kategori yok. Tür veya dönemi değiştir.",
+      emptyCategoriesFilter: "Bu filtreyle eşleşen kategori yok. Tür veya dönemi değiştir.",
       emptyArtistSearch:
         "Aramanla eşleşen sanatçı yok. Farklı kelimeler dene veya aramayı temizle.",
       selectAllInView: "Görünenlerin tümünü seç",
@@ -684,9 +683,7 @@ export function setLang(lang) {
   applyIndexLanguage(next);
   applyGuestAvatarModalStrings(next);
   window.dispatchEvent(new CustomEvent("riffle-lang-changed", { detail: { lang: next } }));
-  import("../social/social-nav-state.js")
-    .then((m) => m.syncSocialNavAuthState?.())
-    .catch(() => {});
+  import("../social/social-nav-state.js").then((m) => m.syncSocialNavAuthState?.()).catch(() => {});
 }
 
 export function t(path, lang = getLang()) {

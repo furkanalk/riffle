@@ -32,12 +32,18 @@ export function syncSocialNavAuthState() {
     friendsBtn.classList.toggle("social-nav-btn--disabled", !authed);
     friendsBtn.setAttribute("aria-disabled", authed ? "false" : "true");
     friendsBtn.title = authed ? t("social.friendsTitle", lang) : t("social.guestPrompt", lang);
-    friendsBtn.setAttribute("aria-label", authed ? t("social.friendsTitle", lang) : t("social.guestPrompt", lang));
+    friendsBtn.setAttribute(
+      "aria-label",
+      authed ? t("social.friendsTitle", lang) : t("social.guestPrompt", lang)
+    );
   }
   if (bell) {
     bell.classList.toggle("social-nav-btn--disabled", !authed);
     bell.setAttribute("aria-disabled", authed ? "false" : "true");
     bell.title = authed ? t("social.notificationsTitle", lang) : t("social.guestPrompt", lang);
-    bell.setAttribute("aria-label", authed ? t("social.notificationsTitle", lang) : t("social.guestPrompt", lang));
+    bell.setAttribute(
+      "aria-label",
+      authed ? t("social.notificationsTitle", lang) : t("social.guestPrompt", lang)
+    );
   }
 }

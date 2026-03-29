@@ -313,7 +313,8 @@ function initMobileSelectSheet() {
     trigger.type = "button";
     trigger.className = "mobile-select-trigger";
     trigger.textContent =
-      selectEl.options[selectEl.selectedIndex]?.textContent || t("categoriesPage.selectPlaceholder");
+      selectEl.options[selectEl.selectedIndex]?.textContent ||
+      t("categoriesPage.selectPlaceholder");
     triggerMap.set(selectEl, trigger);
 
     trigger.addEventListener("click", () => {
@@ -325,7 +326,8 @@ function initMobileSelectSheet() {
       const trig = triggerMap.get(selectEl);
       if (trig) {
         trig.textContent =
-          selectEl.options[selectEl.selectedIndex]?.textContent || t("categoriesPage.selectPlaceholder");
+          selectEl.options[selectEl.selectedIndex]?.textContent ||
+          t("categoriesPage.selectPlaceholder");
       }
     });
   });

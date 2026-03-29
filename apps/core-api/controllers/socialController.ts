@@ -14,7 +14,7 @@ function validateJoinPath(p: string): boolean {
   if (/^https?:\/\//i.test(p)) return false;
   if (!p.includes("room=")) return false;
   if (!p.includes("categories.html")) return false;
-  return /^[a-zA-Z0-9_./?&=%\-]+$/.test(p);
+  return /^[a-zA-Z0-9_./?&=%-]+$/.test(p);
 }
 
 export async function pingPresence(req: FastifyRequest, reply: FastifyReply): Promise<void> {
@@ -34,7 +34,9 @@ export async function pingPresence(req: FastifyRequest, reply: FastifyReply): Pr
 
 export async function searchUsers(req: FastifyRequest, reply: FastifyReply): Promise<void> {
   const userId = (req as JwtRequest).userId;
-  const rawQ = String((req.query as { q?: string }).q ?? "").trim().slice(0, 30);
+  const rawQ = String((req.query as { q?: string }).q ?? "")
+    .trim()
+    .slice(0, 30);
   const safe = rawQ.replace(/[%_]/g, "");
   if (safe.length < 2) {
     reply.send({ users: [] });
@@ -135,10 +137,10 @@ export async function sendFriendRequest(req: FastifyRequest, reply: FastifyReply
       const rid = (reverse.rows[0] as { id: number }).id;
       await query("DELETE FROM friend_requests WHERE id = $1", [rid]);
       const [a, b] = pairKey(me, toUserId);
-      await query("INSERT INTO friendships (user_a, user_b) VALUES ($1, $2) ON CONFLICT DO NOTHING", [
-        a,
-        b,
-      ]);
+      await query(
+        "INSERT INTO friendships (user_a, user_b) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+        [a, b]
+      );
       await insertNotification(toUserId, "friend_accepted", me, {});
       reply.send({ ok: true, autoAccepted: true });
       return;
@@ -205,7 +207,10 @@ export async function acceptFriendRequest(req: FastifyRequest, reply: FastifyRep
     const fromId = (fr.rows[0] as { from_user_id: number }).from_user_id;
     await query("DELETE FROM friend_requests WHERE id = $1", [requestId]);
     const [a, b] = pairKey(me, fromId);
-    await query("INSERT INTO friendships (user_a, user_b) VALUES ($1, $2) ON CONFLICT DO NOTHING", [a, b]);
+    await query("INSERT INTO friendships (user_a, user_b) VALUES ($1, $2) ON CONFLICT DO NOTHING", [
+      a,
+      b,
+    ]);
     await query(
       `UPDATE notifications SET read_at = NOW()
        WHERE user_id = $1 AND type = 'friend_request' AND (payload->>'requestId')::int = $2`,
@@ -219,7 +224,10 @@ export async function acceptFriendRequest(req: FastifyRequest, reply: FastifyRep
   }
 }
 
-export async function declineFriendRequest(req: FastifyRequest, reply: FastifyReply): Promise<void> {
+export async function declineFriendRequest(
+  req: FastifyRequest,
+  reply: FastifyReply
+): Promise<void> {
   const me = (req as JwtRequest).userId;
   const requestId = parseInt(String((req.params as { id?: string }).id ?? ""), 10);
   if (!Number.isInteger(requestId)) {
@@ -317,7 +325,10 @@ export async function listNotifications(req: FastifyRequest, reply: FastifyReply
   }
 }
 
-export async function markNotificationRead(req: FastifyRequest, reply: FastifyReply): Promise<void> {
+export async function markNotificationRead(
+  req: FastifyRequest,
+  reply: FastifyReply
+): Promise<void> {
   const me = (req as JwtRequest).userId;
   const id = parseInt(String((req.params as { id?: string }).id ?? ""), 10);
   if (!Number.isInteger(id)) {
@@ -336,10 +347,15 @@ export async function markNotificationRead(req: FastifyRequest, reply: FastifyRe
   }
 }
 
-export async function markAllNotificationsRead(req: FastifyRequest, reply: FastifyReply): Promise<void> {
+export async function markAllNotificationsRead(
+  req: FastifyRequest,
+  reply: FastifyReply
+): Promise<void> {
   const me = (req as JwtRequest).userId;
   try {
-    await query("UPDATE notifications SET read_at = NOW() WHERE user_id = $1 AND read_at IS NULL", [me]);
+    await query("UPDATE notifications SET read_at = NOW() WHERE user_id = $1 AND read_at IS NULL", [
+      me,
+    ]);
     reply.send({ ok: true });
   } catch (e) {
     req.log.error(e, "markAllNotificationsRead");
