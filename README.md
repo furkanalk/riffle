@@ -172,17 +172,17 @@ node -e "console.log(require('crypto').randomBytes(16).toString('hex'))"
 
 ## Progress
 
-- **Current build:** `v0.5.0` (workspace; alpha-quality)
-- **Current stage:** **Stage 4** — Infrastructure Foundation (with overlapping work in Stages 2–3 and early experiments in Stage 6)
-- **Active focus:** Docker Compose dev/prod layers, **Core API** (Fastify, auth, PostgreSQL, in-memory rate limits on sensitive routes), **Go matchmaker** (HTTP health + WebSocket `/ws`, optional Redis fan-out), **client** (vanilla JS, i18n EN/TR, avatars, leaderboards, localStorage lobby MVP and optional `?ws=1` matchmaker)
+- **Current build:** `v0.7.0-alpha` (workspace; alpha-quality)
+- **Current stage:** **Stage 4** — Infrastructure Foundation (with overlapping work in **Stages 2–3**: client UX, i18n, social features; early **Stage 6** experiments)
+- **Active focus:** Docker Compose dev/prod layers; **Core API** (Fastify, auth, PostgreSQL, rate limits, social REST endpoints); **Go matchmaker** (HTTP health + WebSocket `/ws`, optional Redis fan-out); **client** (vanilla JS modules, **EN/TR i18n** on main menu + categories + lobby, app preferences, shared ambient background effects on index/categories/game, leaderboards, localStorage lobby MVP, optional `?ws=1` matchmaker, friends/notifications UI)
 
 ```text
 Stage 1: Proof of Concept (PoC)       ██████████ 100%
-Stage 2: Gameplay Depth & UX        ███░░░░░░░ ~35%  (modes, leaderboards, UX polish partial)
+Stage 2: Gameplay Depth & UX        ████░░░░░░ ~45%  (modes, leaderboards, i18n & setup UX, filters; polish TBD)
 Stage 3: Platform Architecture       ████████░░ ~85%  (monorepo, services, tooling; Go matchmaker shipped)
 Stage 4: Infrastructure Foundation  ██████░░░░ ~60%  (compose, Caddy prod, basic rate limits; hardening TBD)
 Stage 5: Production Operations       ██░░░░░░░░ ~15%  (Prom/Grafana/Loki in prod stack; CI/CD TBD)
-Stage 6: Expansion & Integrity       █░░░░░░░░░ ~10%  (lobby groundwork; full online sync & anti-cheat TBD)
+Stage 6: Expansion & Integrity       ██░░░░░░░░ ~15%  (lobby + social groundwork; full online sync & anti-cheat TBD)
 ```
 
 Explore the **[Project Roadmap](./docs/ROADMAP.md)** (full checklist), **[Matchmaker](./docs/MATCHMAKER.md)** (WebSocket service), and **[Changelog](./docs/CHANGELOG.md)**.
