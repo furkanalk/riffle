@@ -223,6 +223,8 @@ body {
   width: 100%;
   max-width: 780px;
   isolation: isolate;
+  /* Keep a stable block height so content reveal doesn't recenter/jump the vinyl. */
+  min-height: 34.5rem;
 }
 
 /* Track yüklenirken plak + önizleme süre çubuğu tek blok olarak gizli */
@@ -489,7 +491,7 @@ body {
 .duration-bar.preview-timer-bar {
   position: absolute;
   left: 50%;
-  top: -1.55rem;
+  top: -2.15rem;
   transform: translateX(-50%);
   width: 11.5rem;
   padding: 0.26rem 0.5rem;
@@ -520,6 +522,7 @@ body {
   text-align: center;
   margin-bottom: 1.2rem;
   padding: 0 0.3rem;
+  min-height: 5.9rem;
 }
 
 .question-panel #question-text {
@@ -541,6 +544,8 @@ body {
   grid-template-columns: 1fr;
   gap: 0.7rem;
   overflow: visible;
+  /* Reserve answer area so vinyl cluster doesn't jump when options are injected/revealed. */
+  min-height: calc(4 * 3.3rem + 3 * 0.7rem);
 }
 
 .answer-btn {
@@ -1191,7 +1196,7 @@ body {
     font-size: 1.08rem;
   }
   .game-main {
-    /* Fill viewport below fixed header and vertically center the play column on desktop */
+    /* Fill viewport below header; center the play column on desktop */
     min-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
     justify-content: center;
     padding-top: calc(4.5rem + env(safe-area-inset-top));
@@ -1211,9 +1216,13 @@ body {
   .duration-bar.preview-timer-bar {
     width: 14.5rem;
   }
+  .round-challenge-shell {
+    min-height: 28.5rem;
+  }
   .answers-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.9rem;
+    min-height: calc(2 * 4rem + 0.9rem);
   }
   .answer-btn {
     min-height: 4rem;
