@@ -11,6 +11,8 @@ export class AudioManager {
     this.currentTrack = null;
     /** Last answer-window length (s); reused when resuming playback without an argument. */
     this._previewWindowSec = 10;
+    /** Soft fade duration near preview end (s). */
+    this._previewFadeOutSec = 0.9;
     this._onMusicVolumeChanged = () => {
       if (this.musicPlayer) this.musicPlayer.volume = getMusicPreviewVolume();
     };
@@ -66,6 +68,7 @@ export class AudioManager {
       this._previewWindowSec = previewWindowSec;
     }
 
+    this.musicPlayer.volume = getMusicPreviewVolume();
     await this.attemptAutoplay();
     this.startMusicDurationBar(this._previewWindowSec);
     this.startMusicVisualizer();
@@ -83,6 +86,7 @@ export class AudioManager {
       await this.musicPlayer.play();
       setTimeout(() => {
         this.musicPlayer.muted = false;
+        this.musicPlayer.volume = getMusicPreviewVolume();
       }, 100);
     } catch (_e) {
       const handlePageInteraction = () => {
@@ -112,6 +116,7 @@ export class AudioManager {
   // Pause music
   pauseMusic() {
     this.musicPlayer.pause();
+    this.musicPlayer.volume = getMusicPreviewVolume();
     this.stopMusicVisualizer();
   }
 
@@ -132,10 +137,24 @@ export class AudioManager {
     }
   }
 
+  // Reset preview bar immediately at round start (before audio begins)
+  primePreviewTimerUi(previewWindowSec) {
+    if (typeof previewWindowSec === "number" && previewWindowSec > 0) {
+      this._previewWindowSec = previewWindowSec;
+    }
+    if (this._previewRafId != null) {
+      cancelAnimationFrame(this._previewRafId);
+      this._previewRafId = null;
+    }
+    this.musicPlayer.volume = getMusicPreviewVolume();
+    this._setPreviewTimerUi(this._previewWindowSec, 1);
+  }
+
   // Reset music player
   resetMusicPlayer() {
     this.musicPlayer.pause();
     this.musicPlayer.currentTime = 0;
+    this.musicPlayer.volume = getMusicPreviewVolume();
 
     this._setPreviewTimerUi(this._previewWindowSec, 1);
 
@@ -153,6 +172,7 @@ export class AudioManager {
     if (!fill) return null;
 
     const dur = Math.max(0.5, Number(musicDurationSec) || this._previewWindowSec);
+    const fadeSec = Math.min(this._previewFadeOutSec, Math.max(0.25, dur * 0.22));
 
     if (this._previewRafId != null) {
       cancelAnimationFrame(this._previewRafId);
@@ -174,8 +194,20 @@ export class AudioManager {
       const ratio = remaining / dur;
       this._setPreviewTimerUi(remaining, ratio);
 
+      const baseVol = getMusicPreviewVolume();
+      if (!this.musicPlayer.paused) {
+        if (remaining <= fadeSec) {
+          const fadeRatio = Math.max(0, Math.min(1, remaining / fadeSec));
+          this.musicPlayer.volume = baseVol * fadeRatio;
+        } else {
+          this.musicPlayer.volume = baseVol;
+        }
+      }
+
       if (remaining <= 0) {
         this._previewRafId = null;
+        this.musicPlayer.pause();
+        this.musicPlayer.volume = baseVol;
         this._setPreviewTimerUi(0, 0);
         return;
       }

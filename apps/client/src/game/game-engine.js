@@ -162,6 +162,7 @@ export class GameEngine {
       this.uiManager.resetTimerDisplay();
       this.uiManager.createMusicVisualizer();
       this.audioManager.createMusicVisualizer();
+      this.audioManager.primePreviewTimerUi(this.getAnswerWindowSeconds());
       this.timerManager.resetTimer();
 
       // Plak hemen (fetch ile paralel); kullanıcı beklemez, plak bu sırada döner
