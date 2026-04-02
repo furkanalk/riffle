@@ -10,13 +10,14 @@ This document summarizes **recent work** and **planned work** for the real-time 
 
 - **HTTP**
   - `GET /health` — JSON: `{"ok":true,"service":"matchmaker"}`
+  - `GET /lobbies` — JSON: `{ "lobbies": [ ... ] }` — open, non-stale rooms with at least one connected WebSocket client (lobby name, mode, privacy flags, host display name / `hostUserId` when JWT present, player counts, timestamps). Proxied to the web client as `GET /api/matchmaker/lobbies` via **core-api** (`MATCHMAKER_HTTP_URL`, default `http://127.0.0.1:8080`).
 - **WebSocket** — `GET /ws` (query parameters)
   - `room` — 6-character `[A-Z0-9]` room code
   - `clientId` — client identity (for reconnects)
   - `name`, `avatar`, `required` — lobby parameters
   - `token` — optional JWT (same `JWT_SECRET` as `core-api`, `id` claim)
 - **Server → client message types**
-  - `room_state` — player list, host, `requiredCount`, `started`
+  - `room_state` — player list, host, `requiredCount`, `started`, plus lobby metadata: `lobbyName`, `mode`, `isPrivate`, `friendsOnly`, `hostUserId`, `createdAt`, `lastSeenAt`
   - `game_started` — broadcast when the host starts the game
   - `pong` — response to `ping`
   - `error` — when `start_game` is rejected: `not_host`, `already_started`, `lobby_not_ready`
