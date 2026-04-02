@@ -54,12 +54,20 @@ func main() {
 		_, _ = w.Write([]byte(`{"ok":true,"service":"matchmaker"}`))
 	})
 
+	http.HandleFunc("/lobbies", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, `{"error":"method not allowed"}`, http.StatusMethodNotAllowed)
+			return
+		}
+		h.ServeLobbyList(w, r)
+	})
+
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		h.ServeWS(w, r, upgrader)
 	})
 
 	addr := ":" + port
-	log.Printf("matchmaker listening on %s (GET /health, /ws)", addr)
+	log.Printf("matchmaker listening on %s (GET /health, /lobbies, /ws)", addr)
 	log.Fatal(http.ListenAndServe(addr, nil))
 }
 

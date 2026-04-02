@@ -59,13 +59,20 @@ func (h *Hub) HasRedis() bool {
 }
 
 type Room struct {
-	ID         string
-	HostID     string
-	Required   int
-	Started    bool
-	StartedAt  int64
-	Players    map[string]*Player
-	joinOrder  []string
+	ID          string
+	HostID      string
+	Required    int
+	Started     bool
+	StartedAt   int64
+	Name        string
+	Mode        string
+	IsPrivate   bool
+	FriendsOnly bool
+	Password    string
+	CreatedAt   int64
+	LastSeenAt  int64
+	Players     map[string]*Player
+	joinOrder   []string
 	clients    map[string]*Client
 	mu         sync.RWMutex
 }
@@ -97,11 +104,12 @@ func (h *Hub) getOrCreateRoom(roomID string, required int) *Room {
 		required = 20
 	}
 	r := &Room{
-		ID:        roomID,
-		Required:  required,
-		Players:   make(map[string]*Player),
-		clients:   make(map[string]*Client),
-		joinOrder: nil,
+		ID:         roomID,
+		Required:   required,
+		Players:    make(map[string]*Player),
+		clients:    make(map[string]*Client),
+		joinOrder:  nil,
+		LastSeenAt: time.Now().UnixMilli(),
 	}
 	h.rooms[roomID] = r
 	return r
@@ -175,12 +183,60 @@ func (h *Hub) ServeWS(w http.ResponseWriter, r *http.Request, upgrader websocket
 		jwtSecret = "riffle_dev_jwt_secret"
 	}
 	var userID *int64
-	if tok := q.Get("token"); tok != "" {
-		if id, err := auth.ParseUserID(tok, jwtSecret); err == nil {
+	tokenStr := strings.TrimSpace(q.Get("token"))
+	if tokenStr != "" {
+		if id, err := auth.ParseUserID(tokenStr, jwtSecret); err == nil {
 			userID = new(int64)
 			*userID = id
 		}
 	}
+
+	// Validate lobby join / set host metadata before upgrading the socket.
+	room := h.getOrCreateRoom(roomID, required)
+	room.mu.Lock()
+	isFirst := len(room.joinOrder) == 0
+	_, reconnecting := room.clients[clientID]
+	if !isFirst && room.IsPrivate && room.Password != "" && !reconnecting {
+		if strings.TrimSpace(q.Get("lobbyPassword")) != room.Password {
+			room.mu.Unlock()
+			http.Error(w, `{"error":"wrong password"}`, http.StatusForbidden)
+			return
+		}
+	}
+	if !isFirst && room.FriendsOnly && !reconnecting && tokenStr == "" {
+		room.mu.Unlock()
+		http.Error(w, `{"error":"login required"}`, http.StatusUnauthorized)
+		return
+	}
+	if isFirst {
+		room.Name = strings.TrimSpace(q.Get("lobbyName"))
+		if room.Name == "" {
+			room.Name = "Lobby"
+		}
+		if m := strings.TrimSpace(q.Get("mode")); m != "" {
+			room.Mode = m
+		} else {
+			room.Mode = "versus"
+		}
+		room.IsPrivate = q.Get("lobbyPrivate") == "1" || q.Get("isPrivate") == "1"
+		room.FriendsOnly = q.Get("lobbyFriends") == "1"
+		if room.IsPrivate {
+			room.Password = strings.TrimSpace(q.Get("lobbyPassword"))
+		}
+		if room.FriendsOnly && userID == nil {
+			room.mu.Unlock()
+			http.Error(w, `{"error":"login required"}`, http.StatusUnauthorized)
+			return
+		}
+		ts := time.Now().UnixMilli()
+		if room.CreatedAt == 0 {
+			room.CreatedAt = ts
+		}
+		room.LastSeenAt = ts
+	} else {
+		room.LastSeenAt = time.Now().UnixMilli()
+	}
+	room.mu.Unlock()
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -188,7 +244,7 @@ func (h *Hub) ServeWS(w http.ResponseWriter, r *http.Request, upgrader websocket
 		return
 	}
 
-	room := h.getOrCreateRoom(roomID, required)
+	room = h.getOrCreateRoom(roomID, required)
 	room.mu.Lock()
 	if old, exists := room.clients[clientID]; exists {
 		ch := old.gone
@@ -253,27 +309,39 @@ func SignatureToRoomCode(sig string) string {
 }
 
 func (h *Hub) broadcastRoomStateFor(room *Room) {
-	room.mu.RLock()
+	room.mu.Lock()
+	room.LastSeenAt = time.Now().UnixMilli()
 	players := make([]Player, 0, len(room.joinOrder))
 	for _, id := range room.joinOrder {
 		if p, ok := room.Players[id]; ok {
 			players = append(players, *p)
 		}
 	}
+	var hostUserID any
+	if p, ok := room.Players[room.HostID]; ok && p.UserID != nil {
+		hostUserID = *p.UserID
+	}
 	msg := map[string]any{
-		"type":            "room_state",
-		"roomId":          room.ID,
-		"requiredCount":   room.Required,
-		"hostClientId":    room.HostID,
-		"started":         room.Started,
-		"players":         players,
+		"type":          "room_state",
+		"roomId":        room.ID,
+		"requiredCount": room.Required,
+		"hostClientId":  room.HostID,
+		"started":       room.Started,
+		"players":       players,
+		"lobbyName":     room.Name,
+		"mode":          room.Mode,
+		"isPrivate":     room.IsPrivate,
+		"friendsOnly":   room.FriendsOnly,
+		"hostUserId":    hostUserID,
+		"createdAt":     room.CreatedAt,
+		"lastSeenAt":    room.LastSeenAt,
 	}
 	payload, _ := json.Marshal(msg)
 	clients := make([]*Client, 0, len(room.clients))
 	for _, cl := range room.clients {
 		clients = append(clients, cl)
 	}
-	room.mu.RUnlock()
+	room.mu.Unlock()
 
 	broadcastToClients(clients, payload)
 	h.maybePublishRedis(room.ID, payload)
@@ -510,6 +578,12 @@ func applyRoomStateFromJSON(room *Room, payload []byte) error {
 		HostClientID  string   `json:"hostClientId"`
 		Started       bool     `json:"started"`
 		Players       []Player `json:"players"`
+		LobbyName     string   `json:"lobbyName"`
+		Mode          string   `json:"mode"`
+		IsPrivate     bool     `json:"isPrivate"`
+		FriendsOnly   bool     `json:"friendsOnly"`
+		CreatedAt     int64    `json:"createdAt"`
+		LastSeenAt    int64    `json:"lastSeenAt"`
 	}
 	if err := json.Unmarshal(payload, &rs); err != nil {
 		return err
@@ -519,6 +593,20 @@ func applyRoomStateFromJSON(room *Room, payload []byte) error {
 		room.Required = rs.RequiredCount
 	}
 	room.Started = rs.Started
+	if rs.LobbyName != "" {
+		room.Name = rs.LobbyName
+	}
+	if rs.Mode != "" {
+		room.Mode = rs.Mode
+	}
+	room.IsPrivate = rs.IsPrivate
+	room.FriendsOnly = rs.FriendsOnly
+	if rs.CreatedAt > 0 {
+		room.CreatedAt = rs.CreatedAt
+	}
+	if rs.LastSeenAt > 0 {
+		room.LastSeenAt = rs.LastSeenAt
+	}
 	room.Players = make(map[string]*Player)
 	room.joinOrder = room.joinOrder[:0]
 	for i := range rs.Players {
@@ -528,6 +616,66 @@ func applyRoomStateFromJSON(room *Room, payload []byte) error {
 		room.joinOrder = append(room.joinOrder, p.ClientID)
 	}
 	return nil
+}
+
+// ServeLobbyList returns active, non-started rooms with at least one connected client (JSON).
+func (h *Hub) ServeLobbyList(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	h.mu.RLock()
+	roomPtrs := make([]*Room, 0, len(h.rooms))
+	for _, rm := range h.rooms {
+		roomPtrs = append(roomPtrs, rm)
+	}
+	h.mu.RUnlock()
+
+	now := time.Now().UnixMilli()
+	const staleMs int64 = 120_000
+	list := make([]map[string]any, 0)
+	for _, room := range roomPtrs {
+		room.mu.RLock()
+		if room.Started || len(room.clients) == 0 {
+			room.mu.RUnlock()
+			continue
+		}
+		if now-room.LastSeenAt > staleMs {
+			room.mu.RUnlock()
+			continue
+		}
+		hostName := ""
+		var hostUID *int64
+		if p, ok := room.Players[room.HostID]; ok {
+			hostName = p.Username
+			hostUID = p.UserID
+		}
+		n := len(room.clients)
+		displayName := room.Name
+		if displayName == "" {
+			displayName = "Lobby"
+		}
+		mode := room.Mode
+		if mode == "" {
+			mode = "versus"
+		}
+		entry := map[string]any{
+			"roomId":        room.ID,
+			"name":          displayName,
+			"mode":          mode,
+			"requiredCount": room.Required,
+			"playerCount":   n,
+			"hostUsername":  hostName,
+			"isPrivate":     room.IsPrivate,
+			"friendsOnly":   room.FriendsOnly,
+			"createdAt":     room.CreatedAt,
+			"lastSeenAt":    room.LastSeenAt,
+			"started":       room.Started,
+		}
+		if hostUID != nil {
+			entry["hostUserId"] = *hostUID
+		}
+		room.mu.RUnlock()
+		list = append(list, entry)
+	}
+	_ = json.NewEncoder(w).Encode(map[string]any{"lobbies": list})
 }
 
 // OnRedisMessage applies a fan-out message from another matchmaker instance (no re-publish).
