@@ -166,6 +166,23 @@ export function getUser() {
   };
 }
 
+/** Numeric user id when logged in, else null. */
+export function getRegisteredUserId() {
+  const token = localStorage.getItem("token") || localStorage.getItem("auth_token");
+  if (!token) return null;
+  try {
+    const u = JSON.parse(
+      localStorage.getItem("user") || localStorage.getItem("user_profile") || "{}"
+    );
+    const id = u?.id;
+    if (id == null) return null;
+    const n = Number(id);
+    return Number.isFinite(n) ? n : null;
+  } catch {
+    return null;
+  }
+}
+
 // Logout user (legacy keys + auth-ui keys)
 export function logoutUser() {
   localStorage.removeItem("auth_token");
