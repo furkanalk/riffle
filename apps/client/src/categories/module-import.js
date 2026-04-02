@@ -561,8 +561,8 @@ function initMatchEntryActions() {
     document.getElementById("settings-search-game-desktop"),
   ].filter(Boolean);
 
-  const go = ({ search = false } = {}) => {
-    if (selectedCategories.length === 0) {
+  const go = ({ search = false, requireCategory = true, sigOverride = "" } = {}) => {
+    if (requireCategory && selectedCategories.length === 0) {
       alert(t("categoriesPage.alertSelectCategory"));
       return;
     }
@@ -572,7 +572,7 @@ function initMatchEntryActions() {
     url.searchParams.set("lobby", "1");
     if (search) {
       url.searchParams.set("search", "1");
-      url.searchParams.set("sig", buildMatchSignature());
+      url.searchParams.set("sig", sigOverride || buildMatchSignature());
     } else {
       url.searchParams.delete("search");
       url.searchParams.delete("sig");
@@ -581,12 +581,34 @@ function initMatchEntryActions() {
     window.location.href = url.toString();
   };
 
-  createBtns.forEach((btn) => {
-    btn.addEventListener("click", () => go({ search: false }));
-  });
-  searchBtns.forEach((btn) => {
-    btn.addEventListener("click", () => go({ search: true }));
-  });
+  // Solo VS: offer two paths on the same screen
+  // 1) Quick Match -> no category requirement, search with "any" signature.
+  // 2) Category Match -> requires selected category.
+  if (gameMode === "versus") {
+    createBtns.forEach((btn) => {
+      btn.removeAttribute("data-riffle-i18n");
+      btn.textContent = "Quick Match";
+      btn.title = "Find the fastest available Solo VS match";
+      btn.addEventListener("click", () => {
+        const timeLimit = document.getElementById("time-limit")?.value || "15";
+        const quickSig = `${gameMode}|any|${timeLimit}`;
+        go({ search: true, requireCategory: false, sigOverride: quickSig });
+      });
+    });
+    searchBtns.forEach((btn) => {
+      btn.removeAttribute("data-riffle-i18n");
+      btn.textContent = "Category Match";
+      btn.title = "Search using your selected categories";
+      btn.addEventListener("click", () => go({ search: true, requireCategory: true }));
+    });
+  } else {
+    createBtns.forEach((btn) => {
+      btn.addEventListener("click", () => go({ search: false }));
+    });
+    searchBtns.forEach((btn) => {
+      btn.addEventListener("click", () => go({ search: true }));
+    });
+  }
 
   const p = new URLSearchParams(window.location.search);
   if (p.get("lobby") === "1" || p.get("search") === "1") {
