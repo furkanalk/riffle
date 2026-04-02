@@ -24,6 +24,7 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@store-game-pg:5432/${POSTGRES_DB}
       REDIS_HOST: active-game-redis
       JWT_SECRET: ${JWT_SECRET}
+      MATCHMAKER_HTTP_URL: http://matchmaker:8080
       CORS_ORIGIN: ${CORS_ORIGIN}
       RIFFLE_API_KEY: ${RIFFLE_API_KEY}
       DEEZER_API_KEY: ${DEEZER_API_KEY}
@@ -40,6 +41,8 @@ services:
     depends_on:
       store-game-pg:
         condition: service_healthy
+      matchmaker:
+        condition: service_started
 
   matchmaker:
     build:
