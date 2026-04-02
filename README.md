@@ -173,12 +173,12 @@ node -e "console.log(require('crypto').randomBytes(16).toString('hex'))"
 ## Progress
 
 - **Current build:** `v0.7.0-alpha` (workspace; alpha-quality)
-- **Current stage:** **Stage 4** — Infrastructure Foundation (with overlapping work in **Stages 2–3**: client UX, i18n, social features; early **Stage 6** experiments)
-- **Active focus:** Docker Compose dev/prod layers; **Core API** (Fastify, auth, PostgreSQL, rate limits, social REST endpoints); **Go matchmaker** (HTTP health + WebSocket `/ws`, optional Redis fan-out); **client** (vanilla JS modules, **EN/TR i18n** on main menu + categories + lobby, app preferences, shared ambient background effects on index/categories/game, leaderboards, localStorage lobby MVP, optional `?ws=1` matchmaker, friends/notifications UI)
+- **Current stage:** **Stage 4** — Infrastructure Foundation (with overlapping work in **Stages 2–3**: gameplay UX polish, i18n, social features; early **Stage 6** experiments)
+- **Active focus:** Docker Compose dev/prod layers; **Core API** (Fastify, auth, PostgreSQL, rate limits, social REST endpoints); **Go matchmaker** (HTTP health + WebSocket `/ws`, optional Redis fan-out); **client** (vanilla JS modules, **EN/TR i18n** on main menu + categories + lobby, app preferences, ambient effects on index/categories/game, leaderboards, localStorage lobby MVP, optional `?ws=1` matchmaker, friends/notifications UI, smoother round flow: vinyl/timer entrance timing, stable layout, preview bar reset, and soft audio fade-out)
 
 ```text
 Stage 1: Proof of Concept (PoC)       ██████████ 100%
-Stage 2: Gameplay Depth & UX        ████░░░░░░ ~45%  (modes, leaderboards, i18n & setup UX, filters; polish TBD)
+Stage 2: Gameplay Depth & UX        █████░░░░░ ~50%  (modes, leaderboards, i18n/setup UX, round-flow polish ongoing)
 Stage 3: Platform Architecture       ████████░░ ~85%  (monorepo, services, tooling; Go matchmaker shipped)
 Stage 4: Infrastructure Foundation  ██████░░░░ ~60%  (compose, Caddy prod, basic rate limits; hardening TBD)
 Stage 5: Production Operations       ██░░░░░░░░ ~15%  (Prom/Grafana/Loki in prod stack; CI/CD TBD)
