@@ -2259,6 +2259,22 @@ body.mode-marathon-solo .header-tabs {
   background: rgba(124, 58, 237, 0.12);
   border: 1px solid rgba(124, 58, 237, 0.25);
 }
+
+/* In lobby, only host can change room settings/categories. */
+.settings-panel--locked .settings-card .field-select,
+.settings-panel--locked #category-select-all-visible,
+.settings-panel--locked #category-deselect-visible,
+.settings-panel--locked #category-artist-search {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.settings-panel--locked .category-filter,
+.settings-panel--locked .era-filter,
+.settings-panel--locked .category-card {
+  pointer-events: none;
+  opacity: 0.6;
+}
 body.mode-quick-play .settings-card .card-title {
   margin-bottom: 0.35rem;
 }
