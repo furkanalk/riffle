@@ -9,6 +9,7 @@ export default defineConfig({
         main: resolve(__dirname, "index.html"),
         categories: resolve(__dirname, "categories.html"),
         game: resolve(__dirname, "game.html"),
+        lobby: resolve(__dirname, "lobby.html"),
       },
     },
   },

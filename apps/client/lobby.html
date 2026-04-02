@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Riffle — Lobby</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./src/css/main-menu-responsive.css" />
+  <link rel="stylesheet" href="./src/css/lobby-browser.css" />
+</head>
+<body>
+  <div class="bg-glow bg-glow--purple"></div>
+  <div class="bg-glow bg-glow--pink"></div>
+  <div class="bg-glow bg-glow--blue"></div>
+
+  <header class="site-header">
+    <a href="./index.html" class="site-brand">
+      <img class="site-brand__logo" src="./assets/logo-new.png" alt="Redora logo" width="34" height="34" />
+      <span class="site-brand__text"><span class="site-brand__by">by</span> Redora</span>
+    </a>
+    <a href="./index.html" class="btn btn--ghost">Back</a>
+  </header>
+
+  <main class="lobby-main">
+    <section class="lobby-top">
+      <h1>Lobby Browser</h1>
+      <p>Create a room or join an existing one (private/public).</p>
+      <aside id="lobby-notice" class="lobby-notice" role="status">
+        <strong>Loading…</strong>
+      </aside>
+    </section>
+
+    <section class="lobby-grid">
+      <div class="lobby-card">
+        <h2>Create Lobby</h2>
+        <label>Room Name
+          <input id="create-room-name" class="field__input" maxlength="40" placeholder="My Metal Room" />
+        </label>
+        <label>Mode
+          <select id="create-room-mode" class="field__input">
+            <option value="versus">Solo VS</option>
+            <option value="team">Team VS</option>
+            <option value="coop">Co-op</option>
+          </select>
+        </label>
+        <label class="inline-opt lobby-switch">
+          <input id="create-room-private" class="lobby-switch__input" type="checkbox" />
+          <span class="lobby-switch__control" aria-hidden="true"></span>
+          <span class="lobby-switch__text">Private room (password)</span>
+        </label>
+        <label class="inline-opt lobby-switch">
+          <input id="create-room-friends-only" class="lobby-switch__input" type="checkbox" />
+          <span class="lobby-switch__control" aria-hidden="true"></span>
+          <span class="lobby-switch__text">Friends-only room</span>
+        </label>
+        <label>Password
+          <input id="create-room-password" class="field__input" maxlength="24" placeholder="Optional for private rooms" />
+        </label>
+        <button id="create-lobby-btn" class="start-btn">Create & Enter</button>
+      </div>
+
+      <div class="lobby-card">
+        <div class="lobby-list-head">
+          <h2>Open Lobbies</h2>
+          <div class="lobby-list-head__actions">
+            <select id="lobby-filter" class="field__input lobby-filter-select">
+              <option value="all">All</option>
+              <option value="public">Public</option>
+              <option value="friends">Friends-only</option>
+            </select>
+            <button id="refresh-lobbies-btn" type="button" class="btn btn--ghost">Refresh</button>
+            <button id="clear-local-lobbies-btn" type="button" class="btn btn--ghost lobby-btn--danger" title="Remove all riffle_room_* entries from this browser">
+              Clear local
+            </button>
+          </div>
+        </div>
+        <div class="lobby-toolbar" role="search">
+          <label class="lobby-toolbar__search">
+            <input
+              id="lobby-search"
+              class="field__input"
+              type="search"
+              maxlength="48"
+              placeholder="Search by name or code…"
+              autocomplete="off"
+              aria-label="Search lobbies by name or room code"
+            />
+          </label>
+          <select id="lobby-mode-filter" class="field__input lobby-filter-select" title="Game mode">
+            <option value="all">All modes</option>
+            <option value="versus">Solo VS</option>
+            <option value="team">Team VS</option>
+            <option value="coop">Co-op</option>
+          </select>
+          <select id="lobby-players-filter" class="field__input lobby-filter-select" title="Player slots">
+            <option value="any">Any slots</option>
+            <option value="open">Has open slots</option>
+            <option value="full">Full</option>
+          </select>
+        </div>
+        <div id="lobby-list" class="lobby-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="./src/lobby/lobby-browser.js"></script>
+</body>
+</html>
