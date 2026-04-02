@@ -249,30 +249,71 @@ function syncStartButtonState() {
   if (!roomId) return;
 
   const room = loadRoom(roomId);
+  const myClientId = getOrCreateClientId();
+  const isHost = room?.hostClientId === myClientId;
   const required = room?.requiredCount ?? computeRequiredPlayers();
   const participantCount = Array.isArray(room?.players) ? room.players.length : 0;
 
   const categoriesOk = selectedCategories.length > 0;
   const lobbyOk = participantCount >= required;
 
-  const shouldDisable = !categoriesOk || !lobbyOk;
+  const shouldDisable = !isHost || !categoriesOk || !lobbyOk;
   btn.disabled = shouldDisable;
   if (desktopBtn) desktopBtn.disabled = shouldDisable;
 
   if (hint) {
-    hint.textContent = !categoriesOk
-      ? "Select at least one category"
-      : !lobbyOk
-        ? `Waiting for ${required - participantCount} players…`
-        : "Ready!";
+    hint.textContent = !isHost
+      ? "Only host can change settings and start."
+      : !categoriesOk
+        ? "Select at least one category"
+        : !lobbyOk
+          ? `Waiting for ${required - participantCount} players…`
+          : "Ready!";
   }
   if (hintDesktop) {
-    hintDesktop.textContent = !categoriesOk
-      ? "Select at least one category"
-      : !lobbyOk
-        ? `Waiting for ${required - participantCount} players…`
-        : "Start!";
+    hintDesktop.textContent = !isHost
+      ? "Host only"
+      : !categoriesOk
+        ? "Select at least one category"
+        : !lobbyOk
+          ? `Waiting for ${required - participantCount} players…`
+          : "Start!";
   }
+}
+
+function applyHostSettingsLock(room, myClientId) {
+  const settingsPanel = document.getElementById("settings-panel");
+  if (!settingsPanel) return;
+  const isHost = room?.hostClientId === myClientId;
+  settingsPanel.classList.toggle("settings-panel--locked", !isHost);
+
+  const lockableIds = [
+    "round-count",
+    "time-limit",
+    "answer-visibility",
+    "coop-team-size",
+    "team-players-per-side",
+    "category-select-all-visible",
+    "category-deselect-visible",
+    "category-artist-search",
+  ];
+  lockableIds.forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.disabled = !isHost;
+  });
+
+  settingsPanel
+    .querySelectorAll(
+      ".category-filter, .era-filter, .category-card, #start-game, #start-game-desktop"
+    )
+    .forEach((el) => {
+      if ("disabled" in el) {
+        el.disabled = !isHost;
+      }
+      if (!isHost) el.setAttribute("aria-disabled", "true");
+      else el.removeAttribute("aria-disabled");
+    });
 }
 
 let syncTimer = null;
@@ -309,6 +350,12 @@ function matchmakerWsEndpoint() {
 
 function mapServerRoomToLocal(msg) {
   const existing = loadRoom(msg.roomId);
+  const created =
+    typeof msg.createdAt === "number"
+      ? msg.createdAt
+      : Number(existing?.createdAt || Date.now());
+  const lastSeen =
+    typeof msg.lastSeenAt === "number" ? msg.lastSeenAt : Number(existing?.lastSeenAt || Date.now());
   return {
     roomId: msg.roomId,
     hostClientId: msg.hostClientId,
@@ -316,8 +363,15 @@ function mapServerRoomToLocal(msg) {
     players: Array.isArray(msg.players) ? msg.players : [],
     chat: Array.isArray(existing?.chat) ? existing.chat : [],
     started: Boolean(msg.started),
+    closedAt: existing?.closedAt || null,
+    name: typeof msg.lobbyName === "string" ? msg.lobbyName : existing?.name,
+    mode: typeof msg.mode === "string" ? msg.mode : existing?.mode,
+    isPrivate: Boolean(msg.isPrivate),
+    friendsOnly: Boolean(msg.friendsOnly),
+    hostUserId: msg.hostUserId ?? existing?.hostUserId,
+    lastSeenAt: lastSeen,
     updatedAt: Date.now(),
-    createdAt: Date.now(),
+    createdAt: Number.isFinite(created) ? created : Date.now(),
   };
 }
 
@@ -436,6 +490,8 @@ function setupRoomChat(roomId, myClientId, username) {
       players: [],
       chat: [],
       started: false,
+      closedAt: null,
+      lastSeenAt: Date.now(),
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
@@ -448,6 +504,7 @@ function setupRoomChat(roomId, myClientId, username) {
       at: Date.now(),
     });
     room.chat = room.chat.slice(-MAX_CHAT_MESSAGES);
+    room.lastSeenAt = Date.now();
     room.updatedAt = Date.now();
     saveRoom(currentRoomId, room);
     renderRoomChat(room, myClientId);
@@ -496,6 +553,13 @@ function initMatchmakerWsLobby() {
     },
     myClientId
   );
+  applyHostSettingsLock(
+    {
+      roomId: roomId || "__pending__",
+      hostClientId: myClientId,
+    },
+    myClientId
+  );
   renderTeamSetup(
     {
       roomId: roomId || "__pending__",
@@ -520,11 +584,19 @@ function initMatchmakerWsLobby() {
     clientId: myClientId,
     required: String(computeRequiredPlayers()),
   });
+  wsParams.set("mode", String(gameMode || "versus"));
   if (roomId) wsParams.set("room", roomId);
   if (isSearch && sig) {
     wsParams.set("search", "1");
     wsParams.set("sig", sig);
   }
+  const pageParams = new URLSearchParams(window.location.search);
+  const lobbyName = pageParams.get("lobbyName");
+  if (lobbyName) wsParams.set("lobbyName", lobbyName);
+  if (pageParams.get("lobbyPrivate") === "1") wsParams.set("lobbyPrivate", "1");
+  if (pageParams.get("lobbyFriends") === "1") wsParams.set("lobbyFriends", "1");
+  const lobbyPw = pageParams.get("lobbyPassword");
+  if (lobbyPw) wsParams.set("lobbyPassword", lobbyPw);
   const token = localStorage.getItem("token");
   if (token) wsParams.set("token", token);
 
@@ -548,6 +620,7 @@ function initMatchmakerWsLobby() {
       renderPlayersList(room, myClientId);
       renderTeamSetup(room, myClientId);
       renderRoomChat(loadRoom(roomId), myClientId);
+      applyHostSettingsLock(room, myClientId);
       syncStartButtonState();
       const invite = document.getElementById("invite-link");
       if (invite && roomId) {
@@ -608,6 +681,8 @@ export function initRoomSim() {
       roomId,
       hostClientId: myClientId,
       createdAt: Date.now(),
+      closedAt: null,
+      lastSeenAt: Date.now(),
       updatedAt: Date.now(),
       requiredCount: computeRequiredPlayers(),
       players: [],
@@ -641,6 +716,8 @@ export function initRoomSim() {
     existing.color = existing.color || COLOR_POOL[room.players.length % COLOR_POOL.length];
   }
 
+  room.closedAt = null;
+  room.lastSeenAt = Date.now();
   room.updatedAt = Date.now();
   saveRoom(roomId, room);
 
@@ -660,6 +737,7 @@ export function initRoomSim() {
   syncPresenceMessages(room, myClientId);
   renderTeamSetup(room, myClientId);
   renderRoomChat(room, myClientId);
+  applyHostSettingsLock(room, myClientId);
   syncStartButtonState();
 
   const params = new URLSearchParams(window.location.search);
@@ -698,6 +776,7 @@ export function initRoomSim() {
       renderPlayersList(nextRoom, myClientId);
       renderTeamSetup(nextRoom, myClientId);
       renderRoomChat(nextRoom, myClientId);
+      applyHostSettingsLock(nextRoom, myClientId);
       syncStartButtonState();
       maybeRedirectToGame(nextRoom);
     }
@@ -706,13 +785,37 @@ export function initRoomSim() {
   if (syncTimer) clearInterval(syncTimer);
   syncTimer = setInterval(() => {
     const nextRoom = loadRoom(roomId);
+    if (nextRoom) {
+      nextRoom.lastSeenAt = Date.now();
+      nextRoom.updatedAt = Date.now();
+      saveRoom(roomId, nextRoom);
+    }
     syncPresenceMessages(nextRoom, myClientId);
     renderPlayersList(nextRoom, myClientId);
     renderTeamSetup(nextRoom, myClientId);
     renderRoomChat(nextRoom, myClientId);
+    applyHostSettingsLock(nextRoom, myClientId);
     syncStartButtonState();
     maybeRedirectToGame(nextRoom);
   }, 700);
+
+  const handleLeaveRoom = () => {
+    const nextRoom = loadRoom(roomId);
+    if (!nextRoom || !Array.isArray(nextRoom.players)) return;
+    const before = nextRoom.players.length;
+    nextRoom.players = nextRoom.players.filter((p) => p.clientId !== myClientId);
+    if (nextRoom.players.length !== before) {
+      nextRoom.updatedAt = Date.now();
+      nextRoom.lastSeenAt = Date.now();
+      if (nextRoom.players.length === 0) {
+        nextRoom.closedAt = Date.now();
+      } else if (nextRoom.hostClientId === myClientId) {
+        nextRoom.hostClientId = nextRoom.players[0]?.clientId || null;
+      }
+      saveRoom(roomId, nextRoom);
+    }
+  };
+  window.addEventListener("pagehide", handleLeaveRoom, { once: true });
 }
 
 export function getRoomIdForGame() {
