@@ -45,6 +45,7 @@ function initMenuCards(openLearnMorePanel) {
   const mobileNewsLearnMoreBtn = document.getElementById("mobile-news-learn-more-btn");
   const desktopAboutPanel = document.getElementById("desktop-about-panel");
   const closeDesktopAboutBtn = document.getElementById("close-desktop-about");
+  const lobbyBtn = document.getElementById("menu-lobby-btn");
 
   const openPlayPanel = () => {
     openPlayModePanel?.classList.remove("hidden");
@@ -86,6 +87,10 @@ function initMenuCards(openLearnMorePanel) {
 
   mobileNewsLearnMoreBtn?.addEventListener("click", () => {
     openLearnMorePanel?.();
+  });
+
+  lobbyBtn?.addEventListener("click", () => {
+    window.location.href = "./lobby.html";
   });
 }
 
