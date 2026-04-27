@@ -62,10 +62,10 @@
     "mobile:build:clean:all": "trapeze run apps/client/trapeze.yaml --project apps/client --var PACKAGE_VERSION=${npm_package_version} --var BUILD_NUMBER=$(git rev-list --count HEAD) --platform android --platform ios --clean"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.3.11",
-    "@biomejs/cli-linux-x64": "2.3.11",
-    "@commitlint/cli": "^20.3.0",
-    "@commitlint/config-conventional": "^20.3.0",
+    "@biomejs/biome": "2.4.13",
+    "@biomejs/cli-linux-x64": "2.4.13",
+    "@commitlint/cli": "^20.5.2",
+    "@commitlint/config-conventional": "^20.5.0",
     "@release-it/conventional-changelog": "^10.0.4",
     "conventional-changelog-angular": "^8.1.0",
     "cross-env": "^7.0.3",
